@@ -11,7 +11,7 @@ const CoupleConnect = ({ navigation }) => {
     const [text, setText] = useState('')
 
     const goToProfileInput = () => { //프로필 입력 화면으로 이동
-        navigation.navigate('ProfileInput');
+        navigation.navigate('Profile');
     };
 
     const onChangeText = (inputText) => {

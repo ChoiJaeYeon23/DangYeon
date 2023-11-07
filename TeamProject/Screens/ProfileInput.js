@@ -8,8 +8,10 @@ import {
   Image,
   Platform
 } from "react-native";
+import { Picker } from '@react-native-picker/picker';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import calendarIcon from '../assets/calendar.png'; 
+import calendar from '../assets/calendar.png';
+import { launchImageLibrary } from 'react-native-image-picker';
 
 const ProfileInput = ({ navigation }) => {
   const [name, setName] = useState('');
@@ -20,7 +22,33 @@ const ProfileInput = ({ navigation }) => {
 
   const [date, setDate] = useState(new Date()); // 날짜 picker
   const [showDatePicker, setShowDatePicker] = useState(false);
+  const [isBirthdayPickerVisible, setIsBirthdayPickerVisible] = useState(false); //생년월일 picker
+  const [isMeetingDayPickerVisible, setIsMeetingDayPickerVisible] = useState(false); //처음 만난 날 picker
+  const [profilePic, setProfilePic] = useState(null); // 프로필 사진
 
+  // 생년월일 변경
+  const onBirthdayChange = (event, selectedDate) => {
+    const currentDate = selectedDate || new Date();
+    setIsBirthdayPickerVisible(Platform.OS === 'ios');
+    setBirthday(currentDate.toISOString().split('T')[0]);
+  };
+
+  // 처음 만난 날 변경
+  const onMeetingDayChange = (event, selectedDate) => {
+    const currentDate = selectedDate || new Date();
+    setIsMeetingDayPickerVisible(Platform.OS === 'ios');
+    setMeetingDay(currentDate.toISOString().split('T')[0]);
+  };
+
+  // 생년월일 표시
+  const showBirthdayPicker = () => {
+    setIsBirthdayPickerVisible(true);
+  };
+
+  // 처음 만난 날 표시
+  const showMeetingDayPicker = () => {
+    setIsMeetingDayPickerVisible(true);
+  };
   const onChange = (event, selectedDate) => {
     const currentDate = selectedDate || date;
     setShowDatePicker(Platform.OS === 'ios' ? true : false);
@@ -29,8 +57,14 @@ const ProfileInput = ({ navigation }) => {
   };
 
   const showDatepicker = () => {
-    setShowDatePicker(true);
+    setShowDatePicker(true); // 날짜 선택기를 표시하기 위한 상태를 true로 설정
   };
+
+  // 성별 선택에 따른 텍스트 스타일 변경
+  const genderTextStyle = (selectedGender) => [
+    styles.genderText,
+    gender === selectedGender && styles.selectedGenderText
+  ];
 
   // 이름 입력을 처리하는 함수
   const handleNameChange = text => {
@@ -39,7 +73,20 @@ const ProfileInput = ({ navigation }) => {
     }
   };
 
-  const goToNickNameInput = () => {
+  // 사진 선택하는 함수
+  const handleChoosePhoto = () => {
+    const options = {
+      noData: true,
+    };
+
+    launchImageLibrary(options, response => {
+      if (response.uri) {
+        setProfilePic(response);
+      }
+    });
+  };
+
+  const goToNickNameInput = () => { //수정 해야함
     navigation.navigate('NickNameInput');
   };
 
@@ -51,15 +98,18 @@ const ProfileInput = ({ navigation }) => {
       <Text style={styles.titleText}>프로필을 입력해주세요.</Text>
       <Separator />
       <View style={styles.genderContainer}>
-        <TouchableOpacity
-          style={[styles.genderButton, gender === '여성' && styles.selectedGender]}
-          onPress={() => setGender('여성')}>
-          <Text style={styles.genderText}>여성</Text>
+      <TouchableOpacity onPress={handleChoosePhoto} style={styles.genderIconContainer}>
+          <Image source={require('../assets/imageicon.png')} style={styles.genderIcon} />
         </TouchableOpacity>
         <TouchableOpacity
-          style={[styles.genderButton, gender === '남성' && styles.selectedGender]}
+          style={styles.genderButton}
+          onPress={() => setGender('여성')}>
+          <Text style={genderTextStyle('여성')}>여성</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.genderButton}
           onPress={() => setGender('남성')}>
-          <Text style={styles.genderText}>남성</Text>
+          <Text style={genderTextStyle('남성')}>남성</Text>
         </TouchableOpacity>
       </View>
       <View style={styles.inputRow}>
@@ -76,42 +126,60 @@ const ProfileInput = ({ navigation }) => {
         <View style={styles.dateInputContainer}>
           <TextInput
             value={birthday}
-            placeholder="00.00.00"
+            placeholder="0000-00-00"
             style={styles.dateInput}
             editable={false}
           />
-          <TouchableOpacity onPress={showDatepicker}>
-            <Image source={calendarIcon} style={styles.calendar} />
+          <TouchableOpacity onPress={showBirthdayPicker}>
+            <Image source={calendar} style={styles.calendar} />
           </TouchableOpacity>
         </View>
-        {showDatePicker && (
+        {isBirthdayPickerVisible && (
           <DateTimePicker
-            testID="dateTimePicker"
-            value={date}
+            testID="birthdayPicker"
+            value={birthday ? new Date(birthday) : new Date()}
             mode="date"
-            is24Hour={true}
             display="default"
-            onChange={onChange}
+            onChange={onBirthdayChange}
           />
         )}
       </View>
-      <View style={styles.inputRow}>
+      <View style={styles.inputRowColumn}>
         <Text style={styles.inputLabel}>혈액형</Text>
-        <TextInput
-          onChangeText={setBloodType}
-          value={bloodType}
-          placeholder="혈액형 입력"
-          style={styles.input}
-        />
+        <Picker
+          selectedValue={bloodType}
+          style={styles.picker}
+          onValueChange={(itemValue, itemIndex) =>
+            setBloodType(itemValue)
+          }>
+          <Picker.Item label="A형" value="A" />
+          <Picker.Item label="B형" value="B" />
+          <Picker.Item label="O형" value="O" />
+          <Picker.Item label="AB형" value="AB" />
+        </Picker>
       </View>
       <View style={styles.inputRow}>
         <Text style={styles.inputLabel}>처음 만난 날</Text>
-        <TextInput
-          onChangeText={setMeetingDay}
-          value={meetingDay}
-          placeholder="00.00.00"
-          style={styles.input}
-        />
+        <View style={styles.dateInputContainer}>
+          <TextInput
+            value={meetingDay}
+            placeholder="0000-00-00"
+            style={styles.dateInput}
+            editable={false}
+          />
+          <TouchableOpacity onPress={showMeetingDayPicker}>
+            <Image source={calendar} style={styles.calendar} />
+          </TouchableOpacity>
+        </View>
+        {isMeetingDayPickerVisible && (
+          <DateTimePicker
+            testID="meetingDayPicker"
+            value={meetingDay ? new Date(meetingDay) : new Date()}
+            mode="date"
+            display="default"
+            onChange={onMeetingDayChange}
+          />
+        )}
       </View>
       <TouchableOpacity onPress={goToNickNameInput} style={styles.connectButton}>
         <Text style={styles.connectButtonText}>완료</Text>
@@ -140,17 +208,23 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginBottom: 20,
   },
+  genderIconContainer: {
+    marginRight: 5, // 아이콘과 글자 사이의 간격
+  },
+  genderIcon: {
+    width: 20, // 아이콘의 너비
+    height: 20, // 아이콘의 높이
+  },
   genderButton: {
     padding: 10,
     marginHorizontal: 10,
   },
-  selectedGender: {
-    borderBottomWidth: 2,
-    borderBottomColor: '#FFCECE',
-  },
   genderText: {
     fontSize: 16,
     color: '#544848',
+  },
+  selectedGenderText: {
+    color: '#FF0000',
   },
   inputRow: {
     flexDirection: 'row',
@@ -159,9 +233,15 @@ const styles = StyleSheet.create({
     width: '60%',
     marginBottom: 15,
   },
+  inputRowColumn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    width: '60%',
+    marginBottom: 15,
+  },
   inputLabel: {
     fontSize: 16,
-    width: '40%',
+    width: '30%',
     color: '#544848',
   },
   input: {
@@ -196,7 +276,7 @@ const styles = StyleSheet.create({
   dateInputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    width: '80%',
+    width: '60%',
     borderBottomWidth: 1,
     borderBottomColor: '#A0A0A0',
     marginBottom: 15,
@@ -210,7 +290,13 @@ const styles = StyleSheet.create({
   },
   calendar: {
     marginLeft: 10,
-    size: 20,
+    width: 25,
+    height: 25,
+  },
+  picker: {
+    height: 30,
+    width: '70%',
+    alignSelf: 'center',
   },
 });
 
