@@ -86,8 +86,8 @@ const ProfileInput = ({ navigation }) => {
     });
   };
 
-  const goToNickNameInput = () => { //수정 해야함
-    navigation.navigate('NickNameInput');
+  const goToCalendar = () => { //수정 해야함
+    navigation.navigate('Calendar');
   };
 
   const Separator = () => <View style={styles.separator} />;
@@ -181,7 +181,7 @@ const ProfileInput = ({ navigation }) => {
           />
         )}
       </View>
-      <TouchableOpacity onPress={goToNickNameInput} style={styles.connectButton}>
+      <TouchableOpacity onPress={goToCalendar} style={styles.connectButton}>
         <Text style={styles.connectButtonText}>완료</Text>
       </TouchableOpacity>
     </View>

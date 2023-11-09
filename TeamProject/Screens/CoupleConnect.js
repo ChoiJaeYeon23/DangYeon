@@ -14,6 +14,10 @@ const CoupleConnect = ({ navigation }) => {
         navigation.navigate('Profile');
     };
 
+    const goToWeather = () => { //날씨 화면으로 이동
+        navigation.navigate('Weather');
+    };
+
     const onChangeText = (inputText) => {
         setText(inputText)
     }
@@ -27,7 +31,7 @@ const CoupleConnect = ({ navigation }) => {
             <View style={styles.codeContainer}>
                 <Text style={styles.codeTitle}>내 초대코드</Text>
                 <Text style={styles.code}>47868</Text>
-                <TouchableOpacity onPress={goToProfileInput} style={styles.button}>
+                <TouchableOpacity style={styles.button} onPress={goToWeather}>
                     <Text style={styles.buttonText}>복사</Text>
                 </TouchableOpacity>
             </View>

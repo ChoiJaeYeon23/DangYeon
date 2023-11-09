@@ -4,6 +4,8 @@ import ProfileInput from "../Screens/ProfileInput";
 import CoupleConnect from "../Screens/CoupleConnect";
 import Login from '../Screens/Login'
 import SignUp from "../Screens/SignUp";
+import Weather from "../Screens/Weather";
+
 const Stack = createStackNavigator();
 
 const StackScreen = () => {
@@ -73,6 +75,20 @@ const StackScreen = () => {
         component={ProfileInput}
         options={{
           title: "프로필 입력화면?(ProfileInput)",
+          headerShown: true,
+          headerStyle: { backgroundColor: "#FFCCFF" },
+          headerTintColor: "white",
+          headerTitleStyle: {
+            fontWeight: "bold",
+            color: "white",
+          },
+        }}
+      />
+      <Stack.Screen
+        name="Weather"
+        component={Weather}
+        options={{
+          title: "날씨 위젯?(Weather)",
           headerShown: true,
           headerStyle: { backgroundColor: "#FFCCFF" },
           headerTintColor: "white",
