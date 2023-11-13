@@ -51,7 +51,7 @@ const Weather = () => {
 
     useEffect(() => {
         if (currentLocation) {
-            const apiKey = '9edb951af86953242ae7a71e5c342ad2'; // Your OpenWeatherMap API key
+            const apiKey = '9edb951af86953242ae7a71e5c342ad2'; 
             const { latitude, longitude } = currentLocation;
 
             axios

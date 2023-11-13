@@ -15,7 +15,7 @@ const CoupleConnect = ({ navigation }) => {
     };
 
     const goToWeather = () => { //날씨 화면으로 이동
-        navigation.navigate('Weather');
+        navigation.navigate('Calendar');
     };
 
     const onChangeText = (inputText) => {
@@ -58,13 +58,13 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
         padding: 20,
-        backgroundColor: '#FFF9F9', // 바탕화면 색상 변경
+        backgroundColor: '#FFF9F9',
     },
     titleText: {
         textAlign: 'center',
         marginBottom: 10,
-        color: '#544848', // titleText 색상 변경
-        fontSize: 18,
+        color: '#544848',
+        fontSize: 24,
         fontWeight: 'bold',
     },
     codeContainer: {
@@ -80,7 +80,7 @@ const styles = StyleSheet.create({
         marginVertical: 8,
     },
     button: {
-        backgroundColor: '#EBDBDB', // 복사하기 버튼 색상 변경
+        backgroundColor: '#EBDBDB', 
         paddingHorizontal: 20,
         paddingVertical: 10,
         borderRadius: 20,
@@ -97,14 +97,14 @@ const styles = StyleSheet.create({
     },
     input: {
         height: 40,
-        borderBottomWidth: 1,
-        width: '70%',
+        borderBottomWidth: 0.5,
+        width: '80%',
         borderBottomColor: '#A0A0A0',
         color: '#A0A0A0',
         marginBottom: 15,
-        marginRight: 100,
         fontSize: 16,
         textAlign: 'center',
+        alignSelf: 'center'
     },
     connectButton: {
         backgroundColor: '#FFCECE', // 연결하기 버튼 색상 변경
@@ -119,8 +119,8 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
     },
     separator: {
-        height: 1,
-        width: "70%",
+        height: 0.5,
+        width: "80%",
         backgroundColor: "#737373",
         marginVertical: 15,
     }

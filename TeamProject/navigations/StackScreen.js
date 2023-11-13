@@ -5,6 +5,8 @@ import CoupleConnect from "../Screens/CoupleConnect";
 import Login from '../Screens/Login'
 import SignUp from "../Screens/SignUp";
 import Weather from "../Screens/Weather";
+import CalendarScreen from "../Screens/CalendarScreen";
+import UserInfo from "../Screens/UserInfo";
 
 const Stack = createStackNavigator();
 
@@ -89,6 +91,34 @@ const StackScreen = () => {
         component={Weather}
         options={{
           title: "날씨 위젯?(Weather)",
+          headerShown: true,
+          headerStyle: { backgroundColor: "#FFCCFF" },
+          headerTintColor: "white",
+          headerTitleStyle: {
+            fontWeight: "bold",
+            color: "white",
+          },
+        }}
+      />
+      <Stack.Screen
+        name="Calendar"
+        component={CalendarScreen}
+        options={{
+          title: "캘린더?(Calendar)",
+          headerShown: true,
+          headerStyle: { backgroundColor: "#FFCCFF" },
+          headerTintColor: "white",
+          headerTitleStyle: {
+            fontWeight: "bold",
+            color: "white",
+          },
+        }}
+      />
+      <Stack.Screen
+        name="UserInfo"
+        component={UserInfo}
+        options={{
+          title: "내 정보 수정?(UserInfo)",
           headerShown: true,
           headerStyle: { backgroundColor: "#FFCCFF" },
           headerTintColor: "white",
