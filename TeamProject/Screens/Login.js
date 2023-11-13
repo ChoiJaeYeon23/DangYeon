@@ -23,7 +23,7 @@ const Login = () => {
         if (user) {
             alert("로그인 성공");
             resetInputs();
-            navigation.navigate("Connect", { id });
+            navigation.navigate("MainTab", { id });
         } else {
             alert("ID 또는 비밀번호가 잘못되었습니다.");
             resetInputs();

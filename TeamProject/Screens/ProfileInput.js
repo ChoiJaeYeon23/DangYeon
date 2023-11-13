@@ -87,7 +87,7 @@ const ProfileInput = ({ navigation }) => {
   };
 
   const goToCalendar = () => { //수정 해야함
-    navigation.navigate('Calendar');
+    navigation.navigate('Main');
   };
 
   const Separator = () => <View style={styles.separator} />;

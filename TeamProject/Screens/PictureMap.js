@@ -1,20 +1,20 @@
 import React, { useState } from 'react';
 import { View, Text, Button, Image } from 'react-native';
-import ImagePicker from 'react-native-image-picker';
+// import ImagePicker from 'react-native-image-picker';
 import Exif from 'react-native-exif';
 
 const PictureMap = () => {
   const [imageUri, setImageUri] = useState(null);
   const [location, setLocation] = useState(null);
 
-  const selectImage = () => {
-    const options = {
-      title: '이미지 선택',
-      storageOptions: {
-        skipBackup: true,
-        path: 'images',
-      },
-    };
+  // const selectImage = () => {
+  //   const options = {
+  //     title: '이미지 선택',
+  //     storageOptions: {
+  //       skipBackup: true,
+  //       path: 'images',
+  //     },
+  //   };
 
     ImagePicker.showImagePicker(options, (response) => {
       if (response.didCancel) {
@@ -58,6 +58,6 @@ const PictureMap = () => {
       )}
     </View>
   );
-};
+
 
 export default PictureMap;
