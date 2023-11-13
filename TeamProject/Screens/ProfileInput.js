@@ -87,7 +87,7 @@ const ProfileInput = ({ navigation }) => {
   };
 
   const goToCalendar = () => { //수정 해야함
-    navigation.navigate('Main');
+    navigation.navigate('UserInfo');
   };
 
   const Separator = () => <View style={styles.separator} />;
@@ -98,8 +98,8 @@ const ProfileInput = ({ navigation }) => {
       <Text style={styles.titleText}>프로필을 입력해주세요.</Text>
       <Separator />
       <View style={styles.genderContainer}>
-      <TouchableOpacity onPress={handleChoosePhoto} style={styles.genderIconContainer}>
-          <Image source={require('../assets/imageicon.png')} style={styles.genderIcon} />
+      <TouchableOpacity onPress={handleChoosePhoto} style={styles.iconContainer}>
+          <Image source={require('../assets/imageicon.png')} style={styles.icon} />
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.genderButton}
@@ -200,7 +200,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 10,
     color: '#544848',
-    fontSize: 18,
+    fontSize: 24,
     fontWeight: 'bold',
   },
   genderContainer: {
@@ -208,19 +208,19 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginBottom: 20,
   },
-  genderIconContainer: {
-    marginRight: 5, // 아이콘과 글자 사이의 간격
+  iconContainer: {
+    marginRight: 5,
   },
-  genderIcon: {
-    width: 20, // 아이콘의 너비
-    height: 20, // 아이콘의 높이
+  icon: {
+    width: 30,
+    height: 30, 
   },
   genderButton: {
     padding: 10,
     marginHorizontal: 10,
   },
   genderText: {
-    fontSize: 16,
+    fontSize: 18,
     color: '#544848',
   },
   selectedGenderText: {
@@ -240,18 +240,19 @@ const styles = StyleSheet.create({
     marginBottom: 15,
   },
   inputLabel: {
-    fontSize: 16,
-    width: '30%',
+    fontSize: 18,
     color: '#544848',
+    textAlign: 'center',
+    width: '40%',
   },
   input: {
     height: 40,
-    width: '80%',
+    width: '70%',
     borderBottomWidth: 1,
     borderBottomColor: '#A0A0A0',
     color: '#A0A0A0',
     marginBottom: 15,
-    fontSize: 16,
+    fontSize: 18,
     textAlign: 'center',
   },
   connectButton: {
@@ -269,7 +270,7 @@ const styles = StyleSheet.create({
   },
   separator: {
     height: 1,
-    width: '70%',
+    width: '80%',
     backgroundColor: '#737373',
     marginVertical: 15,
   },
