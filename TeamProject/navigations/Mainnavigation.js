@@ -203,6 +203,7 @@ function EtcStackScreen() {
         </EtcStack.Navigator>
     );
 }
+
 const MainTabNavigator = () => {
     return (
         <Tab.Navigator>

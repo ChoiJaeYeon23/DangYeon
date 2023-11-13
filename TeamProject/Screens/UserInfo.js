@@ -7,4 +7,5 @@ const UserInfo = () => {
         </View>
     )
 }
+
 export default UserInfo
