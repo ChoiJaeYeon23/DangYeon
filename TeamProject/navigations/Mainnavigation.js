@@ -63,7 +63,6 @@ function ChatStackScreen() {
     );
 }
 
-//  스택 네비게이터
 function BoardStackScreen() {
     return (
         <BoardStack.Navigator>
