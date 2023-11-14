@@ -1,6 +1,13 @@
 import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { Image } from 'react-native';
+
+import home from '../assets/home.png'
+import board from '../assets/board.png'
+import chat from '../assets/chat.png'
+import user from '../assets/user.png'
+import etc from '../assets/etc.png'
 
 import Login from '../Screens/Login';
 import SignUp from "../Screens/SignUp";
@@ -73,19 +80,19 @@ function MainStackScreen() {
                 }}
             />
             <MainStack.Screen
-            name="Weather"
-            component={Weather}
-            options={{
-                title: "날씨",
-                headerShown: true,
-                headerStyle: { backgroundColor: "#FFCCFF" },
-                headerTintColor: "white",
-                headerTitleStyle: {
-                    fontWeight: "bold",
-                    color: "white",
-                },
-            }}
-        />
+                name="Weather"
+                component={Weather}
+                options={{
+                    title: "날씨",
+                    headerShown: true,
+                    headerStyle: { backgroundColor: "#FFCCFF" },
+                    headerTintColor: "white",
+                    headerTitleStyle: {
+                        fontWeight: "bold",
+                        color: "white",
+                    },
+                }}
+            />
         </MainStack.Navigator>
     );
 }
@@ -281,11 +288,71 @@ function EtcStackScreen() {
 const MainTabNavigator = () => {
     return (
         <Tab.Navigator>
-            <Tab.Screen name="Main" component={MainStackScreen} />
-            <Tab.Screen name="Chat" component={ChatStackScreen} />
-            <Tab.Screen name="Board" component={BoardStackScreen} />
-            <Tab.Screen name="UserInfo" component={UserInfoStackScreen} />
-            <Tab.Screen name="Etc" component={EtcStackScreen} />
+            <Tab.Screen name="Main" component={MainStackScreen}
+                options={{
+                    tabBarIcon: ({ focused, color, size }) => (
+                        <Image
+                            source={home}
+                            style={{
+                                width: size,
+                                height: size,
+                                tintColor: focused ? color : 'gray'
+                            }}
+                        />
+                    ),
+                }} />
+            <Tab.Screen name="Chat" component={ChatStackScreen}
+                options={{
+                    tabBarIcon: ({ focused, color, size }) => (
+                        <Image
+                            source={chat}
+                            style={{
+                                width: size,
+                                height: size,
+                                tintColor: focused ? color : 'gray'
+                            }}
+                        />
+                    ),
+                }} />
+            <Tab.Screen name="Board" component={BoardStackScreen}
+                options={{
+                    tabBarIcon: ({ focused, color, size }) => (
+                        <Image
+                            source={board}
+                            style={{
+                                width: size,
+                                height: size,
+                                tintColor: focused ? color : 'gray'
+                            }}
+                        />
+                    ),
+                }} />
+            <Tab.Screen name="UserInfo" component={UserInfoStackScreen}
+                options={{
+                    tabBarIcon: ({ focused, color, size }) => (
+                        <Image
+                            source={user}
+                            style={{
+                                width: size,
+                                height: size,
+                                tintColor: focused ? color : 'gray'
+                            }}
+                        />
+                    ),
+                }} />
+            <Tab.Screen name="Etc" component={EtcStackScreen}
+                options={{
+                    tabBarIcon: ({ focused, color, size }) => (
+                        <Image
+                            source={etc}
+                            style={{
+                                width: size,
+                                height: size,
+                                tintColor: focused ? color : 'gray'
+                            }}
+                        />
+                    ),
+                }} />
         </Tab.Navigator>
     );
 }

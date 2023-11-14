@@ -25,6 +25,10 @@ const ProfileInput = ({ navigation }) => {
   const [isMeetingDayPickerVisible, setIsMeetingDayPickerVisible] = useState(false); //처음 만난 날 picker
   const [profilePic, setProfilePic] = useState(null); // 프로필 사진
 
+  const goToMain = () => { //메인 화면으로 이동
+    navigation.navigate('Main');
+};
+
   // 생년월일 변경
   const onBirthdayChange = (event, selectedDate) => {
     const currentDate = selectedDate || new Date();
@@ -176,7 +180,7 @@ const ProfileInput = ({ navigation }) => {
           />
         )}
       </View>
-      <TouchableOpacity style={styles.connectButton}>
+      <TouchableOpacity style={styles.connectButton} onPress={goToMain}>
         <Text style={styles.connectButtonText}>완료</Text>
       </TouchableOpacity>
     </View>
