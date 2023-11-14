@@ -4,14 +4,14 @@ import * as Location from 'expo-location';
 import axios from 'axios';
 
 const weatherIcons = {
-    'Clear': require('../assets/clear.png'),
-    'Clouds': require('../assets/clouds.png'),
-    'Rain': require('../assets/rain.png'),
-    'Snow': require('../assets/snow.png'),
-    'Dust': require('../assets/dust.png'),
-    'Drizzle': require('../assets/drizzle.png'),
-    'Fog': require('../assets/fog.png'),
-    'Thunderstorm': require('../assets/thunder.png'),
+    'Clear': require('../../assets/clear.png'),
+    'Clouds': require('../../assets/clouds.png'),
+    'Rain': require('../../assets/rain.png'),
+    'Snow': require('../../assets/snow.png'),
+    'Dust': require('../../assets/dust.png'),
+    'Drizzle': require('../../assets/drizzle.png'),
+    'Fog': require('../../assets/fog.png'),
+    'Thunderstorm': require('../../assets/thunder.png'),
 };
 
 const weatherTranslations = {

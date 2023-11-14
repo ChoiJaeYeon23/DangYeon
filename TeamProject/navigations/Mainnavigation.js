@@ -2,16 +2,16 @@ import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 
-import Main from '../Screens/Main';
+import Main from '../Screens/MainScreen/Main';
 import Login from '../Screens/Login';
 import SignUp from "../Screens/SignUp";
-import Chat from '../Screens/Chat'
-import UserInfo from '../Screens/UserInfo'
-import Board from '../Screens/Board'
-import ProfileInput from "../Screens/ProfileInput";
+import Chat from '../Screens/ChatScreen/Chat'
+import UserInfo from '../Screens/UserInfoScreen/UserInfo'
+import Board from '../Screens/BoardScreen/Board'
+import ProfileInput from "../Screens/MainScreen/ProfileInput";
 import CoupleConnect from "../Screens/CoupleConnect";
-import Weather from "../Screens/Weather";
-import Etc from '../Screens/Etc'
+import Weather from "../Screens/MainScreen/Weather";
+import Etc from '../Screens/EtcScreen/Etc'
 
 const MainStack = createStackNavigator();
 const AuthStack = createStackNavigator();

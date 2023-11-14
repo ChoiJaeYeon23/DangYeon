@@ -3,6 +3,7 @@ import {
     View,
     Text,
     StyleSheet,
+
     TextInput,
     TouchableOpacity,
     Image,
@@ -10,7 +11,7 @@ import {
 } from "react-native";
 import { Picker } from '@react-native-picker/picker';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import calendar from '../assets/calendar.png';
+import calendar from '../../assets/calendar.png'
 import { launchImageLibrary } from 'react-native-image-picker';
 
 const UserInfo = ({ navigation }) => {
@@ -84,7 +85,7 @@ const UserInfo = ({ navigation }) => {
     };
 
     const goToLogout = () => { //로그아웃 화면으로 이동 (이름 수정 필요)
-        navigation.navigate('Calendar');
+        navigation.navigate('Login');
     };
 
     const Separator = () => <View style={styles.separator} />;
@@ -93,7 +94,7 @@ const UserInfo = ({ navigation }) => {
         <View style={styles.container}>
             <View style={styles.headerContainer}>
                 <TouchableOpacity onPress={handleChoosePhoto} style={styles.iconContainer}>
-                    <Image source={require('../assets/imageicon.png')} style={styles.icon} />
+                    <Image source={require('../../assets/imageicon.png')} style={styles.icon} />
                 </TouchableOpacity>
                 <Text style={styles.titleText}>수쨩 💖 OO</Text>
             </View>

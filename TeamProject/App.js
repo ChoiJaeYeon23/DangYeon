@@ -4,6 +4,7 @@ import { NavigationContainer } from "@react-navigation/native";
 import Mainnavigation from './navigations/Mainnavigation'
 const Stack = createStackNavigator();
 
+
 function App() {
   return (
     <NavigationContainer>
