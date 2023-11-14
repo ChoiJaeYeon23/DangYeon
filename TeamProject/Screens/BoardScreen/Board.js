@@ -1,9 +1,14 @@
-import{ View,Text } from 'react-native'
+import { View, Text, TouchableOpacity } from 'react-native'
 
-const Board = () => {
-    return(
+const Board = ({ navigation }) => {
+    const goToBoard = () => { //게시판 화면으로 이동 수정!!!!!!!!
+        navigation.navigate('Board');
+    };
+    return (
         <View>
-            <Text> Board Screen </Text>
+            <TouchableOpacity onPress={goToBoard}>
+                <Text>게시판 보러가기</Text>
+            </TouchableOpacity>
         </View>
     )
 }

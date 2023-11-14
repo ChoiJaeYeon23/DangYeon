@@ -85,10 +85,6 @@ const ProfileInput = ({ navigation }) => {
     });
   };
 
-  const goToCalendar = () => { //수정 해야함
-    navigation.navigate('UserInfo');
-  };
-
   const Separator = () => <View style={styles.separator} />;
 
   return (
@@ -98,7 +94,7 @@ const ProfileInput = ({ navigation }) => {
       <Separator />
       <View style={styles.genderContainer}>
       <TouchableOpacity onPress={handleChoosePhoto} style={styles.iconContainer}>
-          <Image source={require('../../assets/calendar.png')} style={styles.icon} />
+          <Image source={require('../assets/calendar.png')} style={styles.icon} />
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.genderButton}
@@ -130,7 +126,7 @@ const ProfileInput = ({ navigation }) => {
             editable={false}
           />
           <TouchableOpacity onPress={showBirthdayPicker}>
-            <Image source={require('../../assets/calendar.png')} style={styles.calendar} />
+            <Image source={require('../assets/calendar.png')} style={styles.calendar} />
           </TouchableOpacity>
         </View>
         {isBirthdayPickerVisible && (
@@ -167,7 +163,7 @@ const ProfileInput = ({ navigation }) => {
             editable={false}
           />
           <TouchableOpacity onPress={showMeetingDayPicker}>
-            <Image source={require('../../assets/calendar.png')} style={styles.calendar} />
+            <Image source={require('../assets/calendar.png')} style={styles.calendar} />
           </TouchableOpacity>
         </View>
         {isMeetingDayPickerVisible && (
@@ -180,7 +176,7 @@ const ProfileInput = ({ navigation }) => {
           />
         )}
       </View>
-      <TouchableOpacity onPress={goToCalendar} style={styles.connectButton}>
+      <TouchableOpacity style={styles.connectButton}>
         <Text style={styles.connectButtonText}>완료</Text>
       </TouchableOpacity>
     </View>

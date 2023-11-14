@@ -2,16 +2,21 @@ import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 
-import Main from '../Screens/MainScreen/Main';
 import Login from '../Screens/Login';
 import SignUp from "../Screens/SignUp";
+import ProfileInput from "../Screens/ProfileInput";
+import CoupleConnect from "../Screens/CoupleConnect";
+import Main from '../Screens/MainScreen/Main';
+// import PictureMap from '../Screens/MainScreen/PictureMap'
+import CalendarScreen from '../Screens/MainScreen/CalendarScreen'
+import Weather from '../Screens/MainScreen/Weather';
 import Chat from '../Screens/ChatScreen/Chat'
 import UserInfo from '../Screens/UserInfoScreen/UserInfo'
 import Board from '../Screens/BoardScreen/Board'
-import ProfileInput from "../Screens/MainScreen/ProfileInput";
-import CoupleConnect from "../Screens/CoupleConnect";
-import Weather from "../Screens/MainScreen/Weather";
 import Etc from '../Screens/EtcScreen/Etc'
+import BucketList from '../Screens/EtcScreen/BucketList';
+import Entire from '../Screens/EtcScreen/Entire';
+import Bulletinboard from '../Screens/EtcScreen/Bulletinboard'
 
 const MainStack = createStackNavigator();
 const AuthStack = createStackNavigator();
@@ -39,6 +44,48 @@ function MainStackScreen() {
                     },
                 }}
             />
+            {/* <MainStack.Screen
+                name="PictureMap"
+                component={PictureMap}
+                options={{
+                    title: "사진지도",
+                    headerShown: true,
+                    headerStyle: { backgroundColor: "#FFCCFF" },
+                    headerTintColor: "white",
+                    headerTitleStyle: {
+                        fontWeight: "bold",
+                        color: "white",
+                    },
+                }}
+            /> */}
+            <MainStack.Screen
+                name="CalendarScreen"
+                component={CalendarScreen}
+                options={{
+                    title: "캘린더",
+                    headerShown: true,
+                    headerStyle: { backgroundColor: "#FFCCFF" },
+                    headerTintColor: "white",
+                    headerTitleStyle: {
+                        fontWeight: "bold",
+                        color: "white",
+                    },
+                }}
+            />
+            <MainStack.Screen
+            name="Weather"
+            component={Weather}
+            options={{
+                title: "날씨",
+                headerShown: true,
+                headerStyle: { backgroundColor: "#FFCCFF" },
+                headerTintColor: "white",
+                headerTitleStyle: {
+                    fontWeight: "bold",
+                    color: "white",
+                },
+            }}
+        />
         </MainStack.Navigator>
     );
 }
@@ -143,20 +190,6 @@ function AuthStackScreen() {
                     },
                 }}
             />
-            <AuthStack.Screen
-                name="Weather"
-                component={Weather}
-                options={{
-                    title: "날씨 위젯?(Weather)",
-                    headerShown: true,
-                    headerStyle: { backgroundColor: "#FFCCFF" },
-                    headerTintColor: "white",
-                    headerTitleStyle: {
-                        fontWeight: "bold",
-                        color: "white",
-                    },
-                }}
-            />
         </AuthStack.Navigator>
     );
 }
@@ -190,6 +223,48 @@ function EtcStackScreen() {
                 component={Etc}
                 options={{
                     title: "etc",
+                    headerShown: true,
+                    headerStyle: { backgroundColor: "#FFCCFF" },
+                    headerTintColor: "white",
+                    headerTitleStyle: {
+                        fontWeight: "bold",
+                        color: "white",
+                    },
+                }}
+            />
+            <EtcStack.Screen
+                name="BucketList"
+                component={BucketList}
+                options={{
+                    title: "버킷리스트",
+                    headerShown: true,
+                    headerStyle: { backgroundColor: "#FFCCFF" },
+                    headerTintColor: "white",
+                    headerTitleStyle: {
+                        fontWeight: "bold",
+                        color: "white",
+                    },
+                }}
+            />
+            <EtcStack.Screen
+                name="Entire"
+                component={Entire}
+                options={{
+                    title: "Entire",
+                    headerShown: true,
+                    headerStyle: { backgroundColor: "#FFCCFF" },
+                    headerTintColor: "white",
+                    headerTitleStyle: {
+                        fontWeight: "bold",
+                        color: "white",
+                    },
+                }}
+            />
+            <EtcStack.Screen
+                name="Bulletinboard"
+                component={Bulletinboard}
+                options={{
+                    title: "Bulletinboard",
                     headerShown: true,
                     headerStyle: { backgroundColor: "#FFCCFF" },
                     headerTintColor: "white",

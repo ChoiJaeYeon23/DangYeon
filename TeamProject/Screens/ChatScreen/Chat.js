@@ -1,9 +1,14 @@
-import{ View,Text } from 'react-native'
+import{ View, Text, TouchableOpacity } from 'react-native'
 
-const Chat = () => {
+const Chat = ({ navigation }) => {
+    const goToChat = () => { //채팅 화면으로 이동 수정!!!!!!!!
+        navigation.navigate('C');
+    };
     return(
         <View>
-            <Text> Chat Screen </Text>
+            <TouchableOpacity onPress={goToChat}>
+                <Text>채팅하러 가기</Text>
+            </TouchableOpacity>
         </View>
     )
 }

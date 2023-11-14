@@ -52,10 +52,10 @@ const BucketList = () => {
   const renderItem = ({ item, index }) => (
     <View style={styles.item}>
       <TouchableOpacity onPress={() => toggleCompletion(index)}>
-      <Image
+      {/* <Image
         source={item.isCompleted ? require('../../assets/heart.png') : require('../../assets/Bingeart.png')}
         style={styles.icon}
-      />
+      /> */}
       </TouchableOpacity>
       <Text
         style={[
