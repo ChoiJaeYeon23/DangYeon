@@ -10,7 +10,6 @@ import {
 } from "react-native";
 import { Picker } from '@react-native-picker/picker';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import calendar from '../assets/calendar.png';
 import { launchImageLibrary } from 'react-native-image-picker';
 
 const ProfileInput = ({ navigation }) => {
@@ -99,7 +98,7 @@ const ProfileInput = ({ navigation }) => {
       <Separator />
       <View style={styles.genderContainer}>
       <TouchableOpacity onPress={handleChoosePhoto} style={styles.iconContainer}>
-          <Image source={require('../assets/imageicon.png')} style={styles.icon} />
+          <Image source={require('../../assets/calendar.png')} style={styles.icon} />
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.genderButton}
@@ -131,7 +130,7 @@ const ProfileInput = ({ navigation }) => {
             editable={false}
           />
           <TouchableOpacity onPress={showBirthdayPicker}>
-            <Image source={calendar} style={styles.calendar} />
+            <Image source={require('../../assets/calendar.png')} style={styles.calendar} />
           </TouchableOpacity>
         </View>
         {isBirthdayPickerVisible && (
@@ -168,7 +167,7 @@ const ProfileInput = ({ navigation }) => {
             editable={false}
           />
           <TouchableOpacity onPress={showMeetingDayPicker}>
-            <Image source={calendar} style={styles.calendar} />
+            <Image source={require('../../assets/calendar.png')} style={styles.calendar} />
           </TouchableOpacity>
         </View>
         {isMeetingDayPickerVisible && (
