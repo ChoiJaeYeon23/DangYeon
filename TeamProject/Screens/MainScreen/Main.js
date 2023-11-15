@@ -1,9 +1,9 @@
 import { View, Text, TouchableOpacity } from 'react-native'
 
 const Main = ({ navigation }) => {
-    // const goToPictureMap = () => { //사진지도 화면으로 이동 수정!!!!!!!!
-    //     navigation.navigate('PictureMap');
-    // };
+    const goToPictureMap = () => { //사진지도 화면으로 이동 수정!!!!!!!!
+        navigation.navigate('PictureMap');
+    };
     const goToWeather = () => { //날씨 화면으로 이동
         navigation.navigate('Weather');
     };
@@ -12,9 +12,9 @@ const Main = ({ navigation }) => {
     };
     return (
         <View>
-            {/* <TouchableOpacity onPress={goToPictureMap}>
+            <TouchableOpacity onPress={goToPictureMap}>
                 <Text>사진지도 보러가기</Text>
-            </TouchableOpacity> */}
+            </TouchableOpacity>
             <TouchableOpacity onPress={goToWeather}>
                 <Text>날씨 보러가기</Text>
             </TouchableOpacity>

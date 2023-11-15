@@ -23,8 +23,9 @@
     "react-dom": "18.2.0",
     "react-native": "0.72.6",
     "react-native-calendars": "^1.1302.0",
-    "react-native-image-picker": "^7.0.2",
+    "react-native-image-picker": "*",
     "react-native-naver-login": "^1.4.0",
+    "react-native-paper": "4.9.2",
     "react-native-web": "~0.19.6"
   },
   "devDependencies": {
