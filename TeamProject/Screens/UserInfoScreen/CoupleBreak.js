@@ -1,15 +1,6 @@
-import { View, Text, TouchableOpacity, Alert, StyleSheet } from 'react-native'
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native'
 
 const CheckCoupleBreak = ({ navigation }) => {
-    const breakAlert = () => //연결 끊기 알람
-        Alert.alert(
-            "💔 커플 연결 끊기 💔",
-            "커플 끊기가 완료되었습니다.",
-            [
-                { text: "확인", onPress: () => gotoUserInfo() },
-            ],
-            { cancelable: false }
-        );
 
     const gotoUserInfo = () => { //로그인 화면으로 이동
         navigation.navigate('Login');
@@ -17,7 +8,7 @@ const CheckCoupleBreak = ({ navigation }) => {
     return (
         <View style={styles.container}>
             <Text style={styles.text}>커플 끊기가 완료되었습니다.</Text>
-            <TouchableOpacity style={styles.button} onPress={breakAlert}>
+            <TouchableOpacity style={styles.button} onPress={gotoUserInfo}>
                 <Text style={styles.buttonText}>확인</Text>
             </TouchableOpacity>
         </View>
@@ -30,6 +21,7 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         padding: 20,
         backgroundColor: '#FFF9F9',
+        alignItems: 'center',
     },
     text: {
         color: '#544848',
@@ -44,12 +36,12 @@ const styles = StyleSheet.create({
         paddingVertical: 10,
         borderRadius: 20,
         alignItems: 'center',
-        width: '40%',
-        marginHorizontal: 10,
+        alignSelf: 'center',
+
     },
     buttonText: {
         color: '#544848',
-        fontSize: 16,
+        fontSize: 14,
         fontWeight: 'bold',
     },
 });
