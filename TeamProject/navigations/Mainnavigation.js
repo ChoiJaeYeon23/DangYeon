@@ -22,8 +22,7 @@ import UserInfo from '../Screens/UserInfoScreen/UserInfo'
 import Board from '../Screens/BoardScreen/Board'
 import Etc from '../Screens/EtcScreen/Etc'
 import BucketList from '../Screens/EtcScreen/BucketList';
-import Entire from '../Screens/EtcScreen/Entire';
-import Bulletinboard from '../Screens/EtcScreen/Bulletinboard'
+
 
 const MainStack = createStackNavigator();
 const AuthStack = createStackNavigator();
@@ -244,34 +243,6 @@ function EtcStackScreen() {
                 component={BucketList}
                 options={{
                     title: "버킷리스트",
-                    headerShown: true,
-                    headerStyle: { backgroundColor: "#FFCCFF" },
-                    headerTintColor: "white",
-                    headerTitleStyle: {
-                        fontWeight: "bold",
-                        color: "white",
-                    },
-                }}
-            />
-            <EtcStack.Screen
-                name="Entire"
-                component={Entire}
-                options={{
-                    title: "Entire",
-                    headerShown: true,
-                    headerStyle: { backgroundColor: "#FFCCFF" },
-                    headerTintColor: "white",
-                    headerTitleStyle: {
-                        fontWeight: "bold",
-                        color: "white",
-                    },
-                }}
-            />
-            <EtcStack.Screen
-                name="Bulletinboard"
-                component={Bulletinboard}
-                options={{
-                    title: "Bulletinboard",
                     headerShown: true,
                     headerStyle: { backgroundColor: "#FFCCFF" },
                     headerTintColor: "white",
