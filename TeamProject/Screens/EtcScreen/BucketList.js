@@ -11,12 +11,13 @@ import {
 import { Image } from 'react-native';
 
 const BucketList = () => {
-  const [text, setText] = useState('');
-  const [list, setList] = useState([]);
-  const [modalVisible, setModalVisible] = useState(false);
+  const [text, setText] = useState(''); // 입력된 텍스트 관리
+  const [list, setList] = useState([]); // 버킷리스트 항목 관리
+  const [modalVisible, setModalVisible] = useState(false); 
   const [deleteConfirmationVisible, setDeleteConfirmationVisible] = useState(false);
-  const [deleteIndex, setDeleteIndex] = useState(null);
+  const [deleteIndex, setDeleteIndex] = useState(null); // 삭제할 항목 관리
 
+  // 버킷리스트에 새 항목 추가
   const addToList = () => {
     if (text.trim() !== '') {
       setList([...list, { text, isCompleted: false }]);
@@ -24,23 +25,23 @@ const BucketList = () => {
       setModalVisible(false);
     }
   };
-
+ // 삭제 확인 모달 표시 
   const showDeleteConfirmation = (index) => {
     setDeleteIndex(index);
     setDeleteConfirmationVisible(true);
   };
-
+  // 리스트에서 항목 삭제 
   const removeFromList = () => {
     setList((currentList) => currentList.filter((_, idx) => idx !== deleteIndex));
     setDeleteConfirmationVisible(false);
     setDeleteIndex(null);
   };
-
+  // 삭제 버튼 아니요
   const cancelDelete = () => {
     setDeleteConfirmationVisible(false);
     setDeleteIndex(null);
   };
-
+ // 항목 완료 상태 
   const toggleCompletion = (index) => {
     setList((currentList) =>
       currentList.map((item, idx) =>
@@ -52,10 +53,10 @@ const BucketList = () => {
   const renderItem = ({ item, index }) => (
     <View style={styles.item}>
       <TouchableOpacity onPress={() => toggleCompletion(index)}>
-      {/* <Image
-        source={item.isCompleted ? require('../../assets/heart.png') : require('../../assets/Bingeart.png')}
+      <Image
+        source={item.isCompleted ? require('../../assets/heart.png') : require('../../assets/Binheart.png')}
         style={styles.icon}
-      /> */}
+      />
       </TouchableOpacity>
       <Text
         style={[
@@ -124,6 +125,7 @@ const BucketList = () => {
         data={list}
         keyExtractor={(item, index) => index.toString()}
         renderItem={renderItem}
+        contentContainerStyle={{ paddingTop: 30 }} 
       />
 
       <TouchableOpacity style={styles.addButton} onPress={() => setModalVisible(true)}>
@@ -136,61 +138,61 @@ const BucketList = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFF9F9',
+    backgroundColor: '#FFF9F9', 
   },
   item: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'flex-start', // 항목들을 왼쪽으로 정렬
-    padding: 10,
-    marginVertical: 5,
-    backgroundColor: '#f9f9f9',
+    justifyContent: 'flex-start',
+    marginVertical: 10,
+    paddingLeft: 40,
   },
   text: {
-    fontSize: 18,
+    fontSize: 18, 
   },
-icon: {
-  width: 24, // Set the width of your icon
-  height: 24, // Set the height of your icon
-  marginRight: 10, // Keep your margin as is
+  icon: {
+    width: 24, 
+    height: 24, 
+    marginRight: 10, 
   },
   addButton: {
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 10,
+    justifyContent: 'center', 
+    alignItems: 'center', 
+    padding: 10, 
   },
   addButtonText: {
-    fontSize: 18,
-    color: '#000000',
+    fontSize: 18, 
+    color: '#000000', 
+    padding: 20,
   },
   saveButton: {
-    borderWidth: 1, // 테두리 두께 설정
-    borderColor: '#000000', // 테두리 색상 설정
-    backgroundColor: '#EBDBDB', // 배경 색상 설정
-    borderRadius: 50, // 테두리 둥글게 설정
-    padding: 5, // 내부 여백 설정
-    marginTop: 5, // 버튼 상단 여백
-    width: '40%', // 너비를 부모 요소에 맞춤
-    alignItems: 'center', // 자식 요소를 중앙 정렬
+    borderWidth: 1, 
+    borderColor: '#000000', 
+    backgroundColor: '#EBDBDB', 
+    borderRadius: 50, 
+    padding: 5, 
+    marginTop: 5, 
+    width: '30%',
+    alignItems: 'center', 
   },
   saveButtonText: {
-    color: '#000000', // 텍스트 색상
-    fontSize: 18, // 폰트 크기 설정
+    color: '#000000', 
+    fontSize: 18, 
   },
   centeredView: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0,0,0,0.4)',
+    justifyContent: 'center', 
+    alignItems: 'center', 
+    backgroundColor: 'rgba(0,0,0,0.4)', 
   },
   modalView: {
-    width: '90%', // 모달 창의 너비를 조정
-    borderWidth: 1, // 테두리 두께 설정
-    backgroundColor: 'white',
-    borderColor: '#000000', // 테두리 색상 설정
-    borderRadius: 10, // 테두리 둥글게 조정정
-    padding: 30, // 여백
-    alignItems: 'center',
+    width: '90%', 
+    borderWidth: 1, 
+    backgroundColor: 'white', 
+    borderColor: '#000000', 
+    borderRadius: 10, 
+    padding: 30, 
+    alignItems: 'center', 
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
@@ -201,34 +203,34 @@ icon: {
     elevation: 5,
   },
   modalInput: {
-    height: 50,
-    width: '100%', // 입력 창의 너비를 모달 크기에 맞게 조정
-    marginBottom: 15,
-    borderBottomWidth: 1, // 하단 테두리만 표시
-    padding: 10,
-    textAlign: 'center', // 텍스트를 가운데 정렬
+    height: 50, 
+    width: '100%', 
+    marginBottom: 15, 
+    borderBottomWidth: 1, 
+    padding: 10, 
+    textAlign: 'center', 
   },
   closeButton: {
-    alignSelf: 'flex-start',
-    position: 'absolute', // 버튼을 모달 뷰 내에서 절대적 위치로 설정
-    top: 10,
-    left: 10,
+    alignSelf: 'flex-start', 
+    position: 'absolute', 
+    top: 10, 
+    left: 10, 
   },
   closeButtonText: {
     fontSize: 18,
     color: '#000',
   },
   strikethrough: {
-    textDecorationLine: 'line-through', // 완료된 항목에 줄 긋기
-    color: '#d3d3d3', // 완료된 항목의 텍스트 색상 변경
+    textDecorationLine: 'line-through', 
+    color: '#d3d3d3',
   },
   deleteModalView: {
-    width: '90%', // 모달 창의 너비를 조정
-    borderWidth: 1, // 테두리 두께 설정
+    width: '80%', 
+    borderWidth: 1, 
     backgroundColor: 'white',
-    borderColor: '#000000', // 테두리 색상 설정
-    borderRadius: 10, // 테두리 둥글게 조정정
-    padding: 30, // 여백
+    borderColor: '#000000', 
+    borderRadius: 10, 
+    padding: 30, 
     alignItems: 'center',
     shadowColor: '#000',
     shadowOffset: {
@@ -247,27 +249,27 @@ icon: {
   },
   deleteModalButtons: {
     flexDirection: 'row',
-   justifyContent: 'center', // 버튼들을 중앙 정렬로 변경
+   justifyContent: 'center', 
   },
   deleteModalButton: {
-    borderWidth: 1, // 테두리 두께 설정
-    borderColor: '#000000', // 테두리 색상 설정
-    backgroundColor: '#EBDBDB', // 배경 색상 설정
-    borderRadius: 50, // 테두리 둥글게 설정
-    padding: 5, // 내부 여백 설정
-    marginTop: 5, // 버튼 상단 여백
-    width: '100%', // 너비를 부모 요소에 맞춤
-    alignItems: 'center', // 자식 요소를 중앙 정렬
+    borderWidth: 1,
+    borderColor: '#000000',
+    backgroundColor: '#EBDBDB',
+    borderRadius: 50,
+    padding: 5,
+    marginTop: 5,
+    width: '40%',
+    alignItems: 'center',
     elevation: 4,
-    marginHorizontal: 5,
+    marginHorizontal: 10, 
   },
   header: {
     alignItems: 'center',
-    padding: 10,
+    padding: 30,
     borderBottomWidth: 1,
-    borderBottomColor: '#958585',
-    width: '80%', // Adjust this value to control the width of the line
-    alignSelf: 'center', // Center the line in the header
+    borderBottomColor: '#D18D8D', 
+    width: '80%', 
+    alignSelf: 'center',
   },
   headerText: {
     fontSize: 20,

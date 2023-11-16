@@ -14,7 +14,7 @@ import SignUp from "../Screens/SignUp";
 import ProfileInput from "../Screens/ProfileInput";
 import CoupleConnect from "../Screens/CoupleConnect";
 import Main from '../Screens/MainScreen/Main';
-// import PictureMap from '../Screens/MainScreen/PictureMap'
+import PictureMap from '../Screens/MainScreen/PictureMap'
 import CalendarScreen from '../Screens/MainScreen/CalendarScreen'
 import Weather from '../Screens/MainScreen/Weather';
 import Chat from '../Screens/ChatScreen/Chat'
@@ -24,8 +24,7 @@ import UserInfo from '../Screens/UserInfoScreen/UserInfo'
 import Board from '../Screens/BoardScreen/Board'
 import Etc from '../Screens/EtcScreen/Etc'
 import BucketList from '../Screens/EtcScreen/BucketList';
-import Entire from '../Screens/EtcScreen/Entire';
-import Bulletinboard from '../Screens/EtcScreen/Bulletinboard'
+
 
 const MainStack = createStackNavigator();
 const AuthStack = createStackNavigator();
@@ -53,7 +52,7 @@ function MainStackScreen() {
                     },
                 }}
             />
-            {/* <MainStack.Screen
+            <MainStack.Screen
                 name="PictureMap"
                 component={PictureMap}
                 options={{
@@ -66,7 +65,7 @@ function MainStackScreen() {
                         color: "white",
                     },
                 }}
-            /> */}
+            />
             <MainStack.Screen
                 name="CalendarScreen"
                 component={CalendarScreen}
@@ -283,34 +282,6 @@ function EtcStackScreen() {
                     },
                 }}
             />
-            <EtcStack.Screen
-                name="Entire"
-                component={Entire}
-                options={{
-                    title: "Entire",
-                    headerShown: true,
-                    headerStyle: { backgroundColor: "#FFCCFF" },
-                    headerTintColor: "white",
-                    headerTitleStyle: {
-                        fontWeight: "bold",
-                        color: "white",
-                    },
-                }}
-            />
-            <EtcStack.Screen
-                name="Bulletinboard"
-                component={Bulletinboard}
-                options={{
-                    title: "Bulletinboard",
-                    headerShown: true,
-                    headerStyle: { backgroundColor: "#FFCCFF" },
-                    headerTintColor: "white",
-                    headerTitleStyle: {
-                        fontWeight: "bold",
-                        color: "white",
-                    },
-                }}
-            />
         </EtcStack.Navigator>
     );
 }
@@ -318,7 +289,7 @@ function EtcStackScreen() {
 const MainTabNavigator = () => {
     return (
         <Tab.Navigator>
-            <Tab.Screen name="Main" component={MainStackScreen}
+            <Tab.Screen name="Home" component={MainStackScreen}
                 options={{
                     tabBarIcon: ({ focused, color, size }) => (
                         <Image
