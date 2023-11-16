@@ -3,7 +3,7 @@ import {
     View,
     Text,
     StyleSheet,
-
+    Alert,
     TextInput,
     TouchableOpacity,
     Image,
@@ -80,14 +80,21 @@ const UserInfo = ({ navigation }) => {
         });
     };
 
-    const couplebreak = () => { //커플 연결 끊기 화면으로 이동 (이름 수정 필요)
-        navigation.navigate('Calendar');
+    const couplebreak = () => { //커플 연결 끊기 확인 화면으로 이동
+        navigation.navigate('CheckCoupleBreak');
     };
 
     const goToLogout = () => { //로그아웃 화면으로 이동 (이름 수정 필요)
         navigation.navigate('Login');
     };
 
+    const saveAlert = () => //저장 완료 알람창
+        Alert.alert(
+            "저장 완료",
+            "저장이 완료되었습니다.",
+            [{ text: "확인", onPress: () => { } }],
+            { cancelable: false }
+        );
     const Separator = () => <View style={styles.separator} />;
 
     return (
@@ -169,7 +176,7 @@ const UserInfo = ({ navigation }) => {
                 )}
                 {/* <Separator /> */}
                 <View style={styles.buttonContainer}>
-                    <TouchableOpacity style={styles.Button}>
+                    <TouchableOpacity style={styles.Button} onPress={saveAlert}>
                         <Text style={styles.ButtonText}>저장</Text>
                     </TouchableOpacity>
                     <TouchableOpacity onPress={couplebreak} style={styles.Button2}>
@@ -241,7 +248,7 @@ const styles = StyleSheet.create({
     buttonContainer: {
         alignItems: 'center',
         width: '100%',
-        marginTop: 20, 
+        marginTop: 20,
     },
     Button: {
         backgroundColor: '#FFCECE',

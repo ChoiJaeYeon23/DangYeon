@@ -18,6 +18,8 @@ import Main from '../Screens/MainScreen/Main';
 import CalendarScreen from '../Screens/MainScreen/CalendarScreen'
 import Weather from '../Screens/MainScreen/Weather';
 import Chat from '../Screens/ChatScreen/Chat'
+import CheckCoupleBreak from '../Screens/UserInfoScreen/CheckCoupleBreak';
+import CoupleBreak from '../Screens/UserInfoScreen/CoupleBreak';
 import UserInfo from '../Screens/UserInfoScreen/UserInfo'
 import Board from '../Screens/BoardScreen/Board'
 import Etc from '../Screens/EtcScreen/Etc'
@@ -209,6 +211,34 @@ function UserInfoStackScreen() {
                 component={UserInfo}
                 options={{
                     title: "내 정보",
+                    headerShown: true,
+                    headerStyle: { backgroundColor: "#FFCCFF" },
+                    headerTintColor: "white",
+                    headerTitleStyle: {
+                        fontWeight: "bold",
+                        color: "white",
+                    },
+                }}
+            />
+            <UserInfoStack.Screen
+                name="CheckCoupleBreak"
+                component={CheckCoupleBreak}
+                options={{
+                    title: "커플 연결 끊기 확인",
+                    headerShown: true,
+                    headerStyle: { backgroundColor: "#FFCCFF" },
+                    headerTintColor: "white",
+                    headerTitleStyle: {
+                        fontWeight: "bold",
+                        color: "white",
+                    },
+                }}
+            />
+            <UserInfoStack.Screen
+                name="CoupleBreak"
+                component={CoupleBreak}
+                options={{
+                    title: "커플 연결 끊기",
                     headerShown: true,
                     headerStyle: { backgroundColor: "#FFCCFF" },
                     headerTintColor: "white",
