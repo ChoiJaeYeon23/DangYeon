@@ -3,7 +3,7 @@ import { Button, View, Image, Text } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import Exif from 'react-native-exif';
 
-export default function App() {
+const PictureMap = () => {
   const [imageExif, setImageExif] = useState(null);
 
   const pickImage = async () => {
@@ -41,3 +41,5 @@ export default function App() {
     </View>
   );
 }
+
+export default PictureMap;
