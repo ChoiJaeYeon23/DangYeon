@@ -1,49 +1,43 @@
 import React, { useState } from 'react';
-import { View, Text, Button, Image } from 'react-native';
-import * as ImagePicker from 'react-native-image-picker';
+import { Button, View, Image, Text } from 'react-native';
+import * as ImagePicker from 'expo-image-picker';
+import Exif from 'react-native-exif';
 
-const PictureMap = () => {
-  const [imageUri, setImageUri] = useState(null);
-  const [location, setLocation] = useState(null);
+export default function App() {
+  const [imageExif, setImageExif] = useState(null);
 
-  const selectImage = () => {
-    const options = {
-      title: '이미지 선택',
-      storageOptions: {
-        skipBackup: true,
-        path: 'images',
-      },
-    };
+  const pickImage = async () => {
+    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (permissionResult.granted === false) {
+      alert('갤러리에 접근하기 위한 권한이 필요합니다.');
+      return;
+    }
 
-    ImagePicker.launchImageLibrary(options, (response) => {
-      if (response.didCancel) {
-        console.log('사용자가 이미지 선택을 취소했습니다.');
-      } else if (response.error) {
-        console.log('ImagePicker Error: ', response.error);
-      } else {
-        const source = { uri: response.uri };
-        setImageUri(source);
-
-        // 메타데이터에서 위도와 경도 추출
-        const { latitude, longitude } = response;
-        if (latitude && longitude) {
-          setLocation({ latitude, longitude });
-        }
-      }
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
     });
+
+    if (!result.canceled && result.assets) {
+      result.assets.forEach(asset => {
+        Exif.getExif(asset.uri)
+          .then(msg => {
+            console.log(msg);
+            setImageExif(msg.exif);
+          })
+          .catch(msg => console.error('Error getting EXIF data: ', msg));
+      });
+    }
   };
 
   return (
     <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-      <Button title="이미지 선택" onPress={selectImage} />
-      {imageUri && <Image source={imageUri} style={{ width: 300, height: 300 }} />}
-      {location && (
-        <Text>
-          위도: {location.latitude}, 경도: {location.longitude}
-        </Text>
+      <Button title="Select Image" onPress={pickImage} />
+      {imageExif && (
+        <View>
+          <Text>Latitude: {imageExif.GPSLatitude}</Text>
+          <Text>Longitude: {imageExif.GPSLongitude}</Text>
+        </View>
       )}
     </View>
   );
-};
-
-export default PictureMap;
+}
