@@ -289,7 +289,7 @@ function EtcStackScreen() {
 const MainTabNavigator = () => {
     return (
         <Tab.Navigator>
-            <Tab.Screen name="Home" component={MainStackScreen}
+            <Tab.Screen name="HomeTab" component={MainStackScreen}
                 options={{
                     tabBarIcon: ({ focused, color, size }) => (
                         <Image
@@ -302,7 +302,7 @@ const MainTabNavigator = () => {
                         />
                     ),
                 }} />
-            <Tab.Screen name="Chat" component={ChatStackScreen}
+            <Tab.Screen name="ChatTab" component={ChatStackScreen}
                 options={{
                     tabBarIcon: ({ focused, color, size }) => (
                         <Image
@@ -315,7 +315,7 @@ const MainTabNavigator = () => {
                         />
                     ),
                 }} />
-            <Tab.Screen name="Board" component={BoardStackScreen}
+            <Tab.Screen name="BoardTab" component={BoardStackScreen}
                 options={{
                     tabBarIcon: ({ focused, color, size }) => (
                         <Image
@@ -328,7 +328,7 @@ const MainTabNavigator = () => {
                         />
                     ),
                 }} />
-            <Tab.Screen name="UserInfo" component={UserInfoStackScreen}
+            <Tab.Screen name="UserInfoTab" component={UserInfoStackScreen}
                 options={{
                     tabBarIcon: ({ focused, color, size }) => (
                         <Image
@@ -341,7 +341,7 @@ const MainTabNavigator = () => {
                         />
                     ),
                 }} />
-            <Tab.Screen name="Etc" component={EtcStackScreen}
+            <Tab.Screen name="EtcTab" component={EtcStackScreen}
                 options={{
                     tabBarIcon: ({ focused, color, size }) => (
                         <Image
