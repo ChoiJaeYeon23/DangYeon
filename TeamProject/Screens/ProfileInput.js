@@ -10,7 +10,6 @@ import {
 } from "react-native";
 import { Picker } from '@react-native-picker/picker';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { launchImageLibrary } from 'react-native-image-picker';
 
 const ProfileInput = ({ navigation }) => {
   const [name, setName] = useState('');
@@ -27,7 +26,7 @@ const ProfileInput = ({ navigation }) => {
 
   const goToMain = () => { //메인 화면으로 이동
     navigation.navigate('Main');
-};
+  };
 
   // 생년월일 변경
   const onBirthdayChange = (event, selectedDate) => {
@@ -77,17 +76,18 @@ const ProfileInput = ({ navigation }) => {
   };
 
   // 사진 선택하는 함수
-  const handleChoosePhoto = () => {
-    const options = {
-      noData: true,
-    };
-
-    launchImageLibrary(options, response => {
-      if (response.uri) {
-        setProfilePic(response);
-      }
-    });
-  };
+  // const handleChoosePhoto = () => {
+  //   ImagePicker.openPicker({
+  //     width: 300,
+  //     height: 300,
+  //     cropping: true // 이미지 크롭 기능 활성화
+  //   }).then(image => {
+  //     console.log(image);
+  //     setProfilePic({ uri: image.path });
+  //   }).catch(error => {
+  //     console.error("Error picking image: ", error);
+  //   });
+  // };
 
   const Separator = () => <View style={styles.separator} />;
 
@@ -97,8 +97,11 @@ const ProfileInput = ({ navigation }) => {
       <Text style={styles.titleText}>프로필을 입력해주세요.</Text>
       <Separator />
       <View style={styles.genderContainer}>
-      <TouchableOpacity onPress={handleChoosePhoto} style={styles.iconContainer}>
-          <Image source={require('../assets/calendar.png')} style={styles.icon} />
+        {/* {profilePic && (
+          <Image source={{ uri: profilePic.uri }} style={styles.uploadedImage} />
+        )} */}
+        <TouchableOpacity style={styles.iconContainer}>
+          <Image source={require('../assets/imageicon.png')} style={styles.icon} />
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.genderButton}
@@ -212,7 +215,7 @@ const styles = StyleSheet.create({
   },
   icon: {
     width: 30,
-    height: 30, 
+    height: 30,
   },
   genderButton: {
     padding: 10,
