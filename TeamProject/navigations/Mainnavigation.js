@@ -22,6 +22,7 @@ import CheckCoupleBreak from '../Screens/UserInfoScreen/CheckCoupleBreak';
 import CoupleBreak from '../Screens/UserInfoScreen/CoupleBreak';
 import UserInfo from '../Screens/UserInfoScreen/UserInfo'
 import Board from '../Screens/BoardScreen/Board'
+import Gesigeul from '../Screens/BoardScreen/Gesigeul';
 import Etc from '../Screens/EtcScreen/Etc'
 import BucketList from '../Screens/EtcScreen/BucketList';
 
@@ -135,6 +136,20 @@ function BoardStackScreen() {
                     },
                 }}
             />
+            <BoardStack.Screen
+                name="Gesigeul"
+                component={Gesigeul}
+                options={{
+                    title: "게시글 작성",
+                    headerShown: true,
+                    headerStyle: { backgroundColor: "#FFCCFF" },
+                    headerTintColor: "white",
+                    headerTitleStyle: {
+                        fontWeight: "bold",
+                        color: "white",
+                    },
+                }}
+            />           
         </BoardStack.Navigator>
     );
 }
