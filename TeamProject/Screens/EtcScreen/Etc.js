@@ -1,11 +1,24 @@
-import React from 'react';
-import { View, StyleSheet,Text, Dimensions } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, StyleSheet, Text, Dimensions } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const { width } = Dimensions.get('window');
 
-const Etc = ({ navigation }) => { 
-  const firstDots = Array.from({ length: 15 }, (_, i) => i); // 15개의 점을 생성
-  const secondDots = Array.from({ length: width / 20 }, (_, i) => i);
+const Etc = ({ navigation }) => {
+  const [bucketList, setBucketList] = useState([]);
+
+  const firstDots = Array.from({ length: 15 }, (_, i) => i); // 15개의 점 생성
+  const secondDots = Array.from({ length: Math.floor(width / 20) }, (_, i) => i); // 화면 너비에 따른 점 생성
+
+  useEffect(() => {
+    AsyncStorage.getItem('@bucketList')
+      .then((data) => {
+        if (data !== null) {
+          setBucketList(JSON.parse(data));
+        }
+      })
+      .catch((error) => console.error(error));
+  }, []);
 
   return (
     <View style={styles.container}>
@@ -21,27 +34,27 @@ const Etc = ({ navigation }) => {
           <View key={index} style={styles.dot} />
         ))}
       </View>
-        {/*버킷리스트 상자*/}
+
+      {/* 버킷리스트 상자 */}
       <View style={styles.ListBox}>
-        <Text
-          style={styles.ListBoxText}
-          onPress={() => navigation.navigate('BucketList')} // 'BucketList'로 이동
-        >
+        <Text style={styles.ListBoxText} onPress={() => navigation.navigate('BucketList')}>
           버킷리스트
         </Text>
+        {bucketList.map((item, index) => (
+          <Text key={index}>{item.text}</Text>
+        ))}
       </View>
+
       {/* 두 번째 점선 */}
       <View style={styles.secondDotsContainer}>
         {secondDots.map((_, index) => (
           <View key={`second-dot-${index}`} style={styles.secondDot} />
         ))}
       </View>
-      {/*출석체크 상자*/}
+
+      {/* 출석체크 상자 */}
       <View style={styles.Check}>
-        <Text
-          style={styles.CheckText}
-          onPress={() => navigation.navigate('BucketList')} 
-        >
+        <Text style={styles.CheckText} onPress={() => navigation.navigate('BucketList')}>
           출석체크
         </Text>
       </View>
