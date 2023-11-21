@@ -1,8 +1,18 @@
-import React from 'react';
-import { View, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, TextInput, TouchableOpacity, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
 
-const SearchBarWithPlusIcon = () => {
+const Board = ({ route }) => {
+  const navigation = useNavigation();
+  const [savedText, setSavedText] = useState('');
+
+  useEffect(() => {
+    if (route.params?.savedText) {
+      setSavedText(route.params.savedText);
+    }
+  }, [route.params?.savedText]);
+
   return (
     <View style={styles.container}>
       {/* 검색 섹션: 아이콘과 입력 필드를 가로로 배열합니다. */}
@@ -13,13 +23,14 @@ const SearchBarWithPlusIcon = () => {
         <TextInput
           style={styles.input}
           placeholder="검색"
-          placeholderTextColor="#989292"
+          placeholderTextColor="#C7C7CD"
         />
       </View>
       {/* 플러스 아이콘 버튼 */}
-      <TouchableOpacity style={styles.addButton}>
+      <TouchableOpacity style={styles.addButton} onPress={() => navigation.navigate('Gesigeul')}>
         <Ionicons name="ios-add" size={24} color="#FFFFFF" />
       </TouchableOpacity>
+      {savedText && <Text>저장된 내용: {savedText}</Text>}
     </View>
   );
 };
@@ -53,7 +64,6 @@ const styles = StyleSheet.create({
     paddingLeft: 0,
     backgroundColor: '#F6E6E6',
     color: '#716B6B',
-    placeholderTextColor: '#C7C7CD', 
   },
   addButton: {
     position: 'absolute',
@@ -69,4 +79,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default SearchBarWithPlusIcon;
+export default Board;
