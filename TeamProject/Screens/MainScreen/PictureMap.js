@@ -38,8 +38,6 @@ const PictureMap = () => {
     }
   };
 
-
-
   const getReverseGeocodingData = async (lat, lon) => {
     const apiKey = 'AIzaSyAUoOgEdqAJjl2MbnqQiztR-8Et2_vFQMA'; // Google Maps API 키
     const url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lon}&key=${apiKey}`;
