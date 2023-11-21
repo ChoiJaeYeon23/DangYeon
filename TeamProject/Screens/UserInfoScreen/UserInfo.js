@@ -152,15 +152,17 @@ const UserInfo = ({ navigation }) => {
                         <Image source={calendar} style={styles.calendar} />
                     </TouchableOpacity>
                 </View>
-                {isMeetingDayPickerVisible && (
-                    <DateTimePicker
-                        testID="meetingDayPicker"
-                        value={meetingDay ? new Date(meetingDay) : new Date()}
-                        mode="date"
-                        display="default"
-                        onChange={onMeetingDayChange}
-                    />
-                )}
+                <View style={styles.datePickerContainer}>
+                    {isMeetingDayPickerVisible && (
+                        <DateTimePicker
+                            testID="meetingDayPicker"
+                            value={meetingDay ? new Date(meetingDay) : new Date()}
+                            mode="date"
+                            display="default"
+                            onChange={onMeetingDayChange}
+                        />
+                    )}
+                </View>
             </View>
             <View style={styles.inputRowColumn}>
                 <Text style={styles.inputLabel}>혈액형</Text>
@@ -184,6 +186,9 @@ const UserInfo = ({ navigation }) => {
                 <View style={styles.buttonContainer}>
                     <TouchableOpacity onPress={couplebreak} style={styles.Button2}>
                         <Text style={styles.ButtonText2}>커플 연결 끊기</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity style={styles.Button2}>
+                        <Text style={styles.ButtonText3}>l</Text>
                     </TouchableOpacity>
                     <TouchableOpacity onPress={goToLogout} style={styles.Button2}>
                         <Text style={styles.ButtonText2}>로그아웃</Text>
@@ -250,15 +255,14 @@ const styles = StyleSheet.create({
         padding: 10,
     },
     saveButtonContainer: {
-        width: '80%',
+        width: '40%',
         alignItems: 'center',
-        marginBottom: 30,
+        marginTop: 30,
     },
     buttonContainer: {
         flexDirection: 'row',
         justifyContent: 'center',
-        width: '70%',
-        marginLeft: 30,
+        width: '80%',
     },
     Button: {
         backgroundColor: '#FFCECE',
@@ -269,28 +273,38 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         alignSelf: 'center',
         width: '60%',
+        borderWidth: 1,
+        borderColor: 'black',
+        padding: 5,
+        borderRadius: 15,
+        marginBottom: 5,
     },
     ButtonText: {
         color: '#544848',
         fontSize: 18,
         fontWeight: 'bold',
+        textAlign: 'center',
     },
     Button2: {
         marginTop: 15,
         alignSelf: 'center',
         width: '40%',
-        marginLeft: 20,
-        marginRight: 20,
     },
     ButtonText2: {
         color: '#544848',
         fontSize: 16,
+        textAlign: 'center',
+    },
+    ButtonText3: {
+        color: '#544848',
+        fontSize: 22,
+        textAlign: 'center',
     },
     separator: {
         height: 1,
         width: '80%',
         backgroundColor: '#737373',
-        marginVertical: 15,
+        marginVertical: 20,
     },
     dateInputContainer: {
         flexDirection: 'row',
@@ -311,6 +325,10 @@ const styles = StyleSheet.create({
         marginLeft: 10,
         width: 25,
         height: 25,
+    },
+    datePickerContainer: {
+        marginLeft: -20,
+        width: '70%',
     },
     picker: {
         flex: 1,
