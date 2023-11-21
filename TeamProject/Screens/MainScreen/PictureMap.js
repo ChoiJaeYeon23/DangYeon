@@ -3,9 +3,9 @@ import { Button, View, Text, Image, Alert, ScrollView } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 
 const PictureMap = () => {
-  const [imageExif, setImageExif] = useState(null);
-  const [imageUri, setImageUri] = useState(null);
-  const [address, setAddress] = useState(null);
+  const [imageExifs, setImageExifs] = useState([]);
+  const [imageUris, setImageUris] = useState([]);
+  const [addresses, setAddresses] = useState([]);
 
   const pickImage = async () => {
     const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -15,33 +15,45 @@ const PictureMap = () => {
     }
 
     let result = await ImagePicker.launchImageLibraryAsync({
+      allowsMultipleSelection: true,
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       exif: true,
     });
 
     if (!result.canceled && result.assets) {
-      const selectedAsset = result.assets[0]; // 첫 번째 이미지를 선택
-      setImageUri(selectedAsset.uri);
-
-      if (selectedAsset.exif) {
-        setImageExif(selectedAsset.exif);
-        // 위도와 경도가 있는 경우, 역지오코딩 함수를 호출합니다.
-        const { GPSLatitude, GPSLongitude } = selectedAsset.exif;
-        if (GPSLatitude && GPSLongitude) {
-          const address = await getReverseGeocodingData(GPSLatitude, GPSLongitude);
-          // 주소를 상태에 저장하거나 사용자에게 보여줄 수 있습니다.
-        }
-      } else {
-        Alert.alert('EXIF 데이터 없음', '선택된 이미지에 EXIF 데이터가 없습니다.');
-        setImageExif(null);
-      }
+      const uris = result.assets.map(asset => asset.uri);
+      setImageUris(uris);
+      await processImages(result.assets);
     }
   };
 
+  const processImages = async (assets) => {
+    const exifs = [];
+    const addrs = [];
 
+    for (const asset of assets) {
+      if (asset.exif) {
+        exifs.push(asset.exif);
+
+        const { GPSLatitude, GPSLongitude } = asset.exif;
+        if (GPSLatitude && GPSLongitude) {
+          const addr = await getReverseGeocodingData(GPSLatitude, GPSLongitude);
+          addrs.push(addr || '주소를 찾을 수 없음');
+        } else {
+          addrs.push('GPS 데이터 없음');
+        }
+      } else {
+        exifs.push('EXIF 데이터 없음');
+        addrs.push('주소 정보 없음');
+      }
+    }
+
+    setImageExifs(exifs);
+    setAddresses(addrs);
+  };
 
   const getReverseGeocodingData = async (lat, lon) => {
-    const apiKey = 'AIzaSyAUoOgEdqAJjl2MbnqQiztR-8Et2_vFQMA'; // Google Maps API 키
+    const apiKey = 'YOUR_GOOGLE_MAPS_API_KEY'; // Google Maps API 키를 사용하세요
     const url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lon}&key=${apiKey}`;
 
     try {
@@ -49,8 +61,6 @@ const PictureMap = () => {
       const json = await response.json();
       if (json.status === 'OK') {
         const address = json.results[0].formatted_address;
-        setAddress(address); // 상태 업데이트
-        console.log(address);
         return address;
       } else {
         console.log(json.error_message);
@@ -66,17 +76,20 @@ const PictureMap = () => {
     <ScrollView>
       <View>
         <Button title="이미지 선택" onPress={pickImage} />
-        {imageUri && <Image source={{ uri: imageUri }} style={{ width: 200, height: 200, marginBottom: 20 }} />}
-        {imageExif && (
-          Object.entries(imageExif).map(([key, value]) => (
-            <Text key={key}>{`${key}: ${value}`}</Text>
-          ))
-        )}
-        {address && <Text>주소: {address}</Text>}
+        {imageUris.map((uri, index) => (
+          <View key={index}>
+            <Image source={{ uri }} style={{ width: 200, height: 200, marginBottom: 20 }} />
+            {imageExifs[index] && (
+              Object.entries(imageExifs[index]).map(([key, value]) => (
+                <Text key={key}>{`${key}: ${value}`}</Text>
+              ))
+            )}
+            {addresses[index] && <Text>주소: {addresses[index]}</Text>}
+          </View>
+        ))}
       </View>
     </ScrollView>
   );
-
 }
 
 export default PictureMap;
