@@ -53,7 +53,7 @@ const PictureMap = () => {
   };
 
   const getReverseGeocodingData = async (lat, lon) => {
-    const apiKey = 'YOUR_GOOGLE_MAPS_API_KEY'; // Google Maps API 키를 사용하세요
+    const apiKey = 'AIzaSyAUoOgEdqAJjl2MbnqQiztR-8Et2_vFQMA'; // Google Maps API 키를 사용하세요
     const url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lon}&key=${apiKey}`;
 
     try {
@@ -79,11 +79,6 @@ const PictureMap = () => {
         {imageUris.map((uri, index) => (
           <View key={index}>
             <Image source={{ uri }} style={{ width: 200, height: 200, marginBottom: 20 }} />
-            {imageExifs[index] && (
-              Object.entries(imageExifs[index]).map(([key, value]) => (
-                <Text key={key}>{`${key}: ${value}`}</Text>
-              ))
-            )}
             {addresses[index] && <Text>주소: {addresses[index]}</Text>}
           </View>
         ))}
