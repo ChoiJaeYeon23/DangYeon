@@ -103,7 +103,7 @@ const UserInfo = ({ navigation }) => {
                 <TouchableOpacity onPress={handleChoosePhoto} style={styles.iconContainer}>
                     <Image source={require('../../assets/imageicon.png')} style={styles.icon} />
                 </TouchableOpacity>
-                <Text style={styles.titleText}>수쨩 💖 OO</Text>
+                <Text style={styles.titleText}>수쨩 💖 원우</Text>
             </View>
             <Separator />
             <View style={styles.inputRow}>
@@ -138,20 +138,6 @@ const UserInfo = ({ navigation }) => {
                     />
                 )}
             </View>
-            <View style={styles.inputRowColumn}>
-                <Text style={styles.inputLabel}>혈액형</Text>
-                {/* <Picker
-                    selectedValue={bloodType}
-                    style={styles.picker}
-                    onValueChange={(itemValue, itemIndex) =>
-                        setBloodType(itemValue)
-                    }>
-                    <Picker.Item label="A형" value="A" />
-                    <Picker.Item label="B형" value="B" />
-                    <Picker.Item label="O형" value="O" />
-                    <Picker.Item label="AB형" value="AB" />
-                </Picker> */}
-            </View>
             <View style={styles.inputRow}>
                 <Text style={styles.inputLabel}>처음 만난 날</Text>
                 <View style={styles.dateInputContainer}>
@@ -160,6 +146,7 @@ const UserInfo = ({ navigation }) => {
                         placeholder="2023-10-17"
                         style={styles.dateInput}
                         editable={false}
+                        onPress={showMeetingDayPicker}
                     />
                     <TouchableOpacity onPress={showMeetingDayPicker}>
                         <Image source={calendar} style={styles.calendar} />
@@ -174,11 +161,27 @@ const UserInfo = ({ navigation }) => {
                         onChange={onMeetingDayChange}
                     />
                 )}
-                {/* <Separator /> */}
+            </View>
+            <View style={styles.inputRowColumn}>
+                <Text style={styles.inputLabel}>혈액형</Text>
+                <Picker
+                    selectedValue={bloodType}
+                    style={styles.picker}
+                    onValueChange={(itemValue, itemIndex) =>
+                        setBloodType(itemValue)
+                    }>
+                    <Picker.Item label="A형" value="A" />
+                    <Picker.Item label="B형" value="B" />
+                    <Picker.Item label="O형" value="O" />
+                    <Picker.Item label="AB형" value="AB" />
+                </Picker>
+            </View>
+            <Separator />
+            <View style={styles.saveButtonContainer}>
+                <TouchableOpacity style={styles.Button} onPress={saveAlert}>
+                    <Text style={styles.ButtonText}>저장</Text>
+                </TouchableOpacity>
                 <View style={styles.buttonContainer}>
-                    <TouchableOpacity style={styles.Button} onPress={saveAlert}>
-                        <Text style={styles.ButtonText}>저장</Text>
-                    </TouchableOpacity>
                     <TouchableOpacity onPress={couplebreak} style={styles.Button2}>
                         <Text style={styles.ButtonText2}>커플 연결 끊기</Text>
                     </TouchableOpacity>
@@ -218,37 +221,44 @@ const styles = StyleSheet.create({
     },
     inputRow: {
         flexDirection: 'row',
-        justifyContent: 'space-between',
         alignItems: 'center',
         width: '60%',
-        marginBottom: 15,
+        marginBottom: 20,
     },
     inputRowColumn: {
         flexDirection: 'row',
         alignItems: 'center',
-        justifyContent: 'space-between',
         width: '60%',
-        marginBottom: 15,
+        marginBottom: 20,
+        height: 20,
     },
     inputLabel: {
         fontSize: 18,
         color: '#544848',
         textAlign: 'center',
+        width: '30%',
+        marginRight: 10,
     },
     input: {
+        flex: 1,
         height: 40,
-        width: '70%',
         borderBottomWidth: 1,
         borderBottomColor: '#A0A0A0',
         color: '#A0A0A0',
-        marginBottom: 15,
-        fontSize: 18,
+        fontSize: 16,
         textAlign: 'center',
+        padding: 10,
+    },
+    saveButtonContainer: {
+        width: '80%',
+        alignItems: 'center',
+        marginBottom: 30,
     },
     buttonContainer: {
-        alignItems: 'center',
-        width: '100%',
-        marginTop: 20,
+        flexDirection: 'row',
+        justifyContent: 'center',
+        width: '70%',
+        marginLeft: 30,
     },
     Button: {
         backgroundColor: '#FFCECE',
@@ -259,17 +269,18 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         alignSelf: 'center',
         width: '60%',
-        marginTop: 20,
     },
     ButtonText: {
         color: '#544848',
-        fontSize: 16,
+        fontSize: 18,
         fontWeight: 'bold',
     },
     Button2: {
-        marginTop: 10,
+        marginTop: 15,
         alignSelf: 'center',
-        width: '60%',
+        width: '40%',
+        marginLeft: 20,
+        marginRight: 20,
     },
     ButtonText2: {
         color: '#544848',
@@ -284,6 +295,7 @@ const styles = StyleSheet.create({
     dateInputContainer: {
         flexDirection: 'row',
         alignItems: 'center',
+        justifyContent: 'flex-start',
         width: '60%',
         borderBottomWidth: 1,
         borderBottomColor: '#A0A0A0',
@@ -294,7 +306,6 @@ const styles = StyleSheet.create({
         height: 40,
         fontSize: 16,
         textAlign: 'center',
-        color: '#A0A0A0',
     },
     calendar: {
         marginLeft: 10,
@@ -302,9 +313,7 @@ const styles = StyleSheet.create({
         height: 25,
     },
     picker: {
-        height: 30,
-        width: '70%',
-        alignSelf: 'center',
+        flex: 1,
     },
 });
 
