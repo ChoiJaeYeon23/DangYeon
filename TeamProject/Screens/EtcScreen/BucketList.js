@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -7,56 +7,82 @@ import {
   StyleSheet,
   Modal,
   FlatList,
+  Image
 } from 'react-native';
-import { Image } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const BucketList = () => {
   const [text, setText] = useState(''); // 입력된 텍스트 관리
   const [list, setList] = useState([]); // 버킷리스트 항목 관리
-  const [modalVisible, setModalVisible] = useState(false); 
+  const [modalVisible, setModalVisible] = useState(false);
   const [deleteConfirmationVisible, setDeleteConfirmationVisible] = useState(false);
   const [deleteIndex, setDeleteIndex] = useState(null); // 삭제할 항목 관리
 
-  // 버킷리스트에 새 항목 추가
-  const addToList = () => {
-    if (text.trim() !== '') {
-      setList([...list, { text, isCompleted: false }]);
-      setText('');
-      setModalVisible(false);
+  const saveData = async (newList) => {
+    try {
+      const jsonValue = JSON.stringify(newList);
+      await AsyncStorage.setItem('@bucketList', jsonValue);
+    } catch (e) {
+      console.error("Error saving data", e);
     }
   };
- // 삭제 확인 모달 표시 
+
+  const loadData = async () => {
+    try {
+      const jsonValue = await AsyncStorage.getItem('@bucketList');
+      return jsonValue != null ? JSON.parse(jsonValue) : [];
+    } catch(e) {
+      console.error("Error loading data", e);
+    }
+  };
+
+  useEffect(() => {
+    loadData().then(setList);
+  }, []);
+
+  const addToList = () => {
+    if (text.trim() !== '') {
+      const newList = [...list, { text, isCompleted: false }];
+      setList(newList);
+      setText('');
+      setModalVisible(false);
+      saveData(newList);
+    }
+  };
+
   const showDeleteConfirmation = (index) => {
     setDeleteIndex(index);
     setDeleteConfirmationVisible(true);
   };
-  // 리스트에서 항목 삭제 
+
   const removeFromList = () => {
-    setList((currentList) => currentList.filter((_, idx) => idx !== deleteIndex));
+    const newList = list.filter((_, idx) => idx !== deleteIndex);
+    setList(newList);
     setDeleteConfirmationVisible(false);
     setDeleteIndex(null);
+    saveData(newList);
   };
-  // 삭제 버튼 아니요
+
   const cancelDelete = () => {
     setDeleteConfirmationVisible(false);
     setDeleteIndex(null);
   };
- // 항목 완료 상태 
+
   const toggleCompletion = (index) => {
-    setList((currentList) =>
-      currentList.map((item, idx) =>
-        idx === index ? { ...item, isCompleted: !item.isCompleted } : item
-      )
+    const newList = list.map((item, idx) =>
+      idx === index ? { ...item, isCompleted: !item.isCompleted } : item
     );
+    setList(newList);
+    saveData(newList);
   };
 
   const renderItem = ({ item, index }) => (
     <View style={styles.item}>
       <TouchableOpacity onPress={() => toggleCompletion(index)}>
-      <Image
-        source={item.isCompleted ? require('../../assets/heart.png') : require('../../assets/Binheart.png')}
-        style={styles.icon}
-      />
+        <Image
+          source={item.isCompleted ? require('../../assets/heart.png') : require('../../assets/Binheart.png')}
+          style={styles.icon}
+        />
       </TouchableOpacity>
       <Text
         style={[

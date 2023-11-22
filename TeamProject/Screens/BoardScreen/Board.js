@@ -1,17 +1,20 @@
 import React, { useState, useEffect } from 'react';
-import { View, TextInput, TouchableOpacity, Text, StyleSheet } from 'react-native';
+import { View, TextInput, TouchableOpacity, Text, StyleSheet, Image, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 
 const Board = ({ route }) => {
   const navigation = useNavigation();
   const [savedText, setSavedText] = useState('');
+  const [savedImages, setSavedImages] = useState([]);
 
   useEffect(() => {
-    if (route.params?.savedText) {
-      setSavedText(route.params.savedText);
+    if (route.params?.postData) {
+      const { text, images } = route.params.postData;
+      setSavedText(text);
+      setSavedImages(images);
     }
-  }, [route.params?.savedText]);
+  }, [route.params?.postData]);
 
   return (
     <View style={styles.container}>
@@ -31,6 +34,11 @@ const Board = ({ route }) => {
         <Ionicons name="ios-add" size={24} color="#FFFFFF" />
       </TouchableOpacity>
       {savedText && <Text>저장된 내용: {savedText}</Text>}
+      <ScrollView horizontal style={styles.imageScroll}>
+        {savedImages.map((imageUri, index) => (
+          <Image key={index} source={{ uri: imageUri }} style={styles.savedImage} />
+        ))}
+      </ScrollView>
     </View>
   );
 };
@@ -76,6 +84,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     elevation: 3,
+  },
+  savedImage: {
+    width: 200,
+    height: 200,
+    marginRight: 10,
   },
 });
 
