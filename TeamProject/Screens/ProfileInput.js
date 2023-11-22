@@ -6,10 +6,12 @@ import {
   TextInput,
   TouchableOpacity,
   Image,
-  Platform
+  Platform,
+  ScrollView
 } from "react-native";
 import { Picker } from '@react-native-picker/picker';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import * as ImagePicker from 'expo-image-picker';
 
 const ProfileInput = ({ navigation }) => {
   const [name, setName] = useState('');
@@ -75,19 +77,24 @@ const ProfileInput = ({ navigation }) => {
     }
   };
 
-  // 사진 선택하는 함수
-  // const handleChoosePhoto = () => {
-  //   ImagePicker.openPicker({
-  //     width: 300,
-  //     height: 300,
-  //     cropping: true // 이미지 크롭 기능 활성화
-  //   }).then(image => {
-  //     console.log(image);
-  //     setProfilePic({ uri: image.path });
-  //   }).catch(error => {
-  //     console.error("Error picking image: ", error);
-  //   });
-  // };
+  const pickImage = async () => {
+    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permissionResult.granted) {
+      Alert.alert('권한 필요', '갤러리에 접근하기 위한 권한이 필요합니다.');
+      return;
+    }
+
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsMultipleSelection: true,
+    });
+
+    if (!result.canceled && result.assets) {
+      setProfilePic({ uri: result.assets[0].uri }); // 선택한 새 이미지로 profilePic 상태 업데이트
+    } else {
+      setProfilePic(null); // 이미지 선택을 취소한 경우, profilePic 상태를 null로 설정하여 기존 이미지 제거
+    }
+  };
 
   const Separator = () => <View style={styles.separator} />;
 
@@ -97,11 +104,12 @@ const ProfileInput = ({ navigation }) => {
       <Text style={styles.titleText}>프로필을 입력해주세요.</Text>
       <Separator />
       <View style={styles.genderContainer}>
-        {/* {profilePic && (
-          <Image source={{ uri: profilePic.uri }} style={styles.uploadedImage} />
-        )} */}
-        <TouchableOpacity style={styles.iconContainer}>
-          <Image source={require('../assets/imageicon.png')} style={styles.icon} />
+        <TouchableOpacity style={styles.iconContainer} onPress={pickImage}>
+          {profilePic ? (
+            <Image source={{ uri: profilePic.uri }} style={{ width: 50, height: 50, borderRadius: 25 }} />
+          ) : (
+            <Image source={require('../assets/imageicon.png')} style={styles.icon} />
+          )}
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.genderButton}

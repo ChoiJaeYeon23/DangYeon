@@ -26,7 +26,6 @@ import Gesigeul from '../Screens/BoardScreen/Gesigeul';
 import Etc from '../Screens/EtcScreen/Etc'
 import BucketList from '../Screens/EtcScreen/BucketList';
 
-
 const MainStack = createStackNavigator();
 const AuthStack = createStackNavigator();
 const ChatStack = createStackNavigator();
