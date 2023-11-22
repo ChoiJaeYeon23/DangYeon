@@ -25,6 +25,7 @@ const UserInfo = ({ navigation }) => {
     const [isBirthdayPickerVisible, setIsBirthdayPickerVisible] = useState(false); //생년월일 picker
     const [isMeetingDayPickerVisible, setIsMeetingDayPickerVisible] = useState(false); //처음 만난 날 picker
     const [profilePic, setProfilePic] = useState(null); // 프로필 사진
+    const [imageSources, setImageSources] = useState([]);
 
     // 생년월일 변경
     const onBirthdayChange = (event, selectedDate) => {
