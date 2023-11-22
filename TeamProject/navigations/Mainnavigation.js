@@ -149,7 +149,7 @@ function BoardStackScreen() {
                         color: "white",
                     },
                 }}
-            />           
+            />
         </BoardStack.Navigator>
     );
 }
@@ -253,7 +253,7 @@ function UserInfoStackScreen() {
                 component={CoupleBreak}
                 options={{
                     title: "커플 연결 끊기",
-                    headerShown: true,
+                    headerShown: false,
                     headerStyle: { backgroundColor: "#FFCCFF" },
                     headerTintColor: "white",
                     headerTitleStyle: {

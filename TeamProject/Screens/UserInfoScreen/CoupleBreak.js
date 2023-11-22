@@ -1,14 +1,14 @@
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native'
 
-const CheckCoupleBreak = ({ navigation }) => {
+const CoupleBreak = ({ navigation }) => {
 
-    const gotoUserInfo = () => { //로그인 화면으로 이동
+    const gotoLogin = () => { //로그인 화면으로 이동
         navigation.navigate('Login');
     }
     return (
         <View style={styles.container}>
             <Text style={styles.text}>커플 끊기가 완료되었습니다.</Text>
-            <TouchableOpacity style={styles.button} onPress={gotoUserInfo}>
+            <TouchableOpacity style={styles.button} onPress={gotoLogin}>
                 <Text style={styles.buttonText}>확인</Text>
             </TouchableOpacity>
         </View>
@@ -37,7 +37,10 @@ const styles = StyleSheet.create({
         borderRadius: 20,
         alignItems: 'center',
         alignSelf: 'center',
-
+        borderWidth: 1,
+        borderColor: 'black',
+        borderRadius: 15,
+        marginTop: 25,
     },
     buttonText: {
         color: '#544848',
@@ -46,4 +49,4 @@ const styles = StyleSheet.create({
     },
 });
 
-export default CheckCoupleBreak
+export default CoupleBreak
