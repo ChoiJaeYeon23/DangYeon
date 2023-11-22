@@ -66,8 +66,8 @@ const styles = StyleSheet.create({
         marginTop: 30,
     },
     image: {
-        width: 100,
-        height: 100,
+        width: 120,
+        height: 120,
         marginBottom: "40%",
     },
     bottomText: {
@@ -91,6 +91,9 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         width: '40%',
         marginHorizontal: 10,
+        borderWidth: 1,
+        borderColor: 'black',
+        borderRadius: 15,
     },
     buttonText: {
         color: '#544848',
