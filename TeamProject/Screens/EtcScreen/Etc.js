@@ -1,23 +1,32 @@
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, Text, Dimensions } from 'react-native';
+import { View, StyleSheet, Text, Dimensions, Image } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const { width } = Dimensions.get('window');
 
-const Etc = ({ navigation }) => {
-  const [bucketList, setBucketList] = useState([]);
+const Etc = ({ navigation }) => { 
+  const firstDots = Array.from({ length: 15 }, (_, i) => i);
+  const secondDots = Array.from({ length: width / 20 }, (_, i) => i);
+  const [bucketListItems, setBucketListItems] = useState([]);
 
-  const firstDots = Array.from({ length: 15 }, (_, i) => i); // 15개의 점 생성
-  const secondDots = Array.from({ length: Math.floor(width / 20) }, (_, i) => i); // 화면 너비에 따른 점 생성
+  const loadData = async () => {
+    try {
+      const jsonValue = await AsyncStorage.getItem('@bucketList');
+      if (jsonValue != null) {
+        const data = JSON.parse(jsonValue);
+        setBucketListItems(data.slice(0, 2)); // 최대 두 개의 항목만 설정
+      }
+    } catch(e) {
+      console.error("Error loading data", e);
+    }
+  };
 
   useEffect(() => {
-    AsyncStorage.getItem('@bucketList')
-      .then((data) => {
-        if (data !== null) {
-          setBucketList(JSON.parse(data));
-        }
-      })
-      .catch((error) => console.error(error));
+    const interval = setInterval(() => {
+      loadData();
+    }, 1000); // 1초마다 데이터를 다시 로드하여 업데이트
+
+    return () => clearInterval(interval); // 컴포넌트가 언마운트될 때 인터벌 정리
   }, []);
 
   return (
@@ -34,27 +43,34 @@ const Etc = ({ navigation }) => {
           <View key={index} style={styles.dot} />
         ))}
       </View>
-
-      {/* 버킷리스트 상자 */}
       <View style={styles.ListBox}>
         <Text style={styles.ListBoxText} onPress={() => navigation.navigate('BucketList')}>
           버킷리스트
         </Text>
-        {bucketList.map((item, index) => (
-          <Text key={index}>{item.text}</Text>
+        {bucketListItems.map((item, index) => (
+          <View key={index} style={styles.listItem}>
+            <Image
+              source={item.isCompleted ? require('../../assets/heart.png') : require('../../assets/Binheart.png')}
+              style={styles.icon}
+            />
+            <Text style={[item.isCompleted && styles.strikethrough]}>
+              {item.text}
+            </Text>
+          </View>
         ))}
       </View>
-
       {/* 두 번째 점선 */}
       <View style={styles.secondDotsContainer}>
         {secondDots.map((_, index) => (
           <View key={`second-dot-${index}`} style={styles.secondDot} />
         ))}
       </View>
-
-      {/* 출석체크 상자 */}
+      {/*출석체크 상자*/}
       <View style={styles.Check}>
-        <Text style={styles.CheckText} onPress={() => navigation.navigate('BucketList')}>
+        <Text
+          style={styles.CheckText}
+          onPress={() => navigation.navigate('BucketList')} 
+        >
           출석체크
         </Text>
       </View>
@@ -106,12 +122,34 @@ const styles = StyleSheet.create({
     marginRight: 10, 
   },
   ListBox: {
-    backgroundColor: '#FFD9D9', 
+    backgroundColor: '#FFFFFF', 
     width: width * 0.8, 
     height: width * 0.3, 
-    justifyContent: 'center', 
-    alignItems: 'center', 
+    justifyContent: 'flex-start', // 여기를 변경
+    alignItems: 'flex-start', // 항목이 없을 때도 왼쪽 정렬 유지
     marginVertical: 20, 
+    paddingLeft: 15,
+    paddingTop: 10,
+  },
+  ListBoxText: {
+    fontSize: 15,
+    fontWeight: 'bold',
+  },
+  listItem: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginTop: 15, // 상단 여백 추가
+    width: '100%',
+    paddingLeft: 20,
+  },
+  icon: {
+    width: 24,
+    height: 24,
+    marginRight: 10,
+  },
+  strikethrough: {
+    textDecorationLine: 'line-through', 
+    color: '#d3d3d3',
   },
   Check: {
     backgroundColor: '#FFD9D9', 

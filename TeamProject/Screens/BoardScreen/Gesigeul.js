@@ -1,38 +1,45 @@
 import React, { useState } from 'react';
-import { View, TextInput, TouchableOpacity, Text, StyleSheet, Image } from 'react-native';
+import { View, TextInput, TouchableOpacity, Text, StyleSheet, Image, ScrollView, Alert } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
-import ImagePicker from 'react-native-image-picker';
-import { useNavigation } from '@react-navigation/native'; // useNavigation 훅 추가
+import * as ImagePicker from 'expo-image-picker';
+import { useNavigation } from '@react-navigation/native';
 
 const Gesigeul = () => {
   const [text, setText] = useState('');
-  const [imageSource, setImageSource] = useState(null);
-  const navigation = useNavigation(); // useNavigation 훅 사용
+  const [imageSources, setImageSources] = useState([]);
+  const navigation = useNavigation();
 
-  const handleCameraPress = () => {
-    const options = {
-      title: 'Select Image',
-      storageOptions: {
-        skipBackup: true,
-        path: 'images',
-      },
-    };
+  const pickImage = async () => {
+    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permissionResult.granted) {
+      Alert.alert('권한 필요', '갤러리에 접근하기 위한 권한이 필요합니다.');
+      return;
+    }
 
-    ImagePicker.showImagePicker(options, (response) => {
-      if (response.didCancel) {
-        console.log('User cancelled image picker');
-      } else if (response.error) {
-        console.log('ImagePicker Error: ', response.error);
-      } else {
-        const source = { uri: response.uri };
-        setImageSource(source);
-      }
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsMultipleSelection: true,
     });
+
+    if (!result.canceled && result.assets) {
+      setImageSources(result.assets.map(asset => ({ uri: asset.uri })));
+    }
   };
 
   const handleSavePress = () => {
     console.log('내용 저장: ', text);
-    navigation.navigate('Board', { savedText: text }); // Board 화면으로 이동하면서 데이터 전달
+
+    // 저장할 데이터 구조 생성
+    const postData = {
+      text: text,
+      images: imageSources.map(source => source.uri)
+    };
+
+    // 예시: 콘솔에 데이터 출력
+    console.log('저장할 데이터: ', postData);
+
+    // 다음 화면으로 데이터 전달
+    navigation.navigate('Board', { postData: postData });
   };
 
   return (
@@ -50,12 +57,16 @@ const Gesigeul = () => {
         value={text}
         onChangeText={setText}
       />
+      <ScrollView horizontal style={styles.imageScroll}>
+        {imageSources.map((source, index) => (
+          <Image key={index} source={source} style={styles.image} />
+        ))}
+      </ScrollView>
       <View style={styles.footer}>
-        <TouchableOpacity style={styles.cameraButton} onPress={handleCameraPress}>
+        <TouchableOpacity style={styles.cameraButton} onPress={pickImage}>
           <Icon name="camera" size={30} color="#808080" />
         </TouchableOpacity>
       </View>
-      {imageSource && <Image source={imageSource} style={styles.image} />}
     </View>
   );
 };
@@ -87,6 +98,14 @@ const styles = StyleSheet.create({
     padding: 10,
     marginTop: 10,
   },
+  imageScroll: {
+    height: 210, // 이미지의 높이 + 여백
+  },
+  image: {
+    width: 200,
+    height: 200,
+    marginRight: 10,
+  },
   footer: {
     flexDirection: 'row',
     justifyContent: 'flex-start',
@@ -95,11 +114,6 @@ const styles = StyleSheet.create({
   cameraButton: {
     alignItems: 'center',
     padding: 10,
-  },
-  image: {
-    width: 200,
-    height: 200,
-    marginTop: 20,
   },
 });
 
