@@ -7,9 +7,9 @@ import {
   TouchableOpacity,
   Image,
   Platform,
-  ScrollView
+  Modal,
+  FlatList
 } from "react-native";
-import { Picker } from '@react-native-picker/picker';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import * as ImagePicker from 'expo-image-picker';
 
@@ -25,6 +25,7 @@ const ProfileInput = ({ navigation }) => {
   const [isBirthdayPickerVisible, setIsBirthdayPickerVisible] = useState(false); //생년월일 picker
   const [isMeetingDayPickerVisible, setIsMeetingDayPickerVisible] = useState(false); //처음 만난 날 picker
   const [profilePic, setProfilePic] = useState(null); // 프로필 사진
+  const [isBloodTypeModalVisible, setIsBloodTypeModalVisible] = useState(false); // 혈액형 모달
 
   const goToMain = () => { //메인 화면으로 이동
     navigation.navigate('Main');
@@ -97,6 +98,27 @@ const ProfileInput = ({ navigation }) => {
     }
   };
 
+  // 혈액형 선택 모달 표시 함수
+  const showBloodTypeModal = () => {
+    setIsBloodTypeModalVisible(true);
+  };
+
+  // 혈액형 선택 처리 함수
+  const selectBloodType = (type) => {
+    setBloodType(type);
+    setIsBloodTypeModalVisible(false); // 모달 숨기기
+  };
+
+  // 혈액형 데이터
+  const bloodTypes = ['A', 'B', 'O', 'AB'];
+
+  // 혈액형 선택 항목 렌더링 함수
+  const renderBloodTypeItem = ({ item }) => (
+    <TouchableOpacity style={styles.bloodTypeItem} onPress={() => selectBloodType(item)}>
+      <Text style={styles.bloodTypeText}>{item}형</Text>
+    </TouchableOpacity>
+  );
+
   const Separator = () => <View style={styles.separator} />;
 
   return (
@@ -145,29 +167,17 @@ const ProfileInput = ({ navigation }) => {
             <Image source={require('../assets/calendar.png')} style={styles.calendar} />
           </TouchableOpacity>
         </View>
-        {isBirthdayPickerVisible && (
-          <DateTimePicker
-            testID="birthdayPicker"
-            value={birthday ? new Date(birthday) : new Date()}
-            mode="date"
-            display="default"
-            onChange={onBirthdayChange}
-          />
-        )}
-      </View>
-      <View style={styles.inputRowColumn}>
-        <Text style={styles.inputLabel}>혈액형</Text>
-        <Picker
-          selectedValue={bloodType}
-          style={styles.picker}
-          onValueChange={(itemValue, itemIndex) =>
-            setBloodType(itemValue)
-          }>
-          <Picker.Item label="A형" value="A" />
-          <Picker.Item label="B형" value="B" />
-          <Picker.Item label="O형" value="O" />
-          <Picker.Item label="AB형" value="AB" />
-        </Picker>
+        <View style={styles.datePickerContainer}>
+          {isBirthdayPickerVisible && (
+            <DateTimePicker
+              testID="birthdayPicker"
+              value={birthday ? new Date(birthday) : new Date()}
+              mode="date"
+              display="calendar"
+              onChange={onBirthdayChange}
+            />
+          )}
+        </View>
       </View>
       <View style={styles.inputRow}>
         <Text style={styles.inputLabel}>처음 만난 날</Text>
@@ -177,20 +187,50 @@ const ProfileInput = ({ navigation }) => {
             placeholder="0000-00-00"
             style={styles.dateInput}
             editable={false}
+            onPress={showMeetingDayPicker}
           />
           <TouchableOpacity onPress={showMeetingDayPicker}>
             <Image source={require('../assets/calendar.png')} style={styles.calendar} />
           </TouchableOpacity>
         </View>
-        {isMeetingDayPickerVisible && (
-          <DateTimePicker
-            testID="meetingDayPicker"
-            value={meetingDay ? new Date(meetingDay) : new Date()}
-            mode="date"
-            display="default"
-            onChange={onMeetingDayChange}
-          />
-        )}
+        <View style={styles.datePickerContainer}>
+          {isMeetingDayPickerVisible && (
+            <DateTimePicker
+              testID="meetingDayPicker"
+              value={meetingDay ? new Date(meetingDay) : new Date()}
+              mode="date"
+              display="calendar"
+              onChange={onMeetingDayChange}
+            />
+          )}
+        </View>
+      </View>
+      <View style={styles.inputRowColumn}>
+        <Text style={styles.inputLabel}>혈액형</Text>
+        <TouchableOpacity onPress={showBloodTypeModal}>
+          <Text style={styles.bloodText}>{bloodType ? `${bloodType}형` : "혈액형 선택"}</Text>
+        </TouchableOpacity>
+        <Modal
+          animationType="slide"
+          transparent={true}
+          visible={isBloodTypeModalVisible}
+          onRequestClose={() => {
+            setIsBloodTypeModalVisible(false);
+          }}>
+          <TouchableOpacity
+            style={styles.centeredView}
+            activeOpacity={1}
+            onPressOut={() => setIsBloodTypeModalVisible(false)}
+          >
+            <View style={styles.modalView}>
+              <FlatList
+                data={bloodTypes}
+                renderItem={renderBloodTypeItem}
+                keyExtractor={(item) => item}
+              />
+            </View>
+          </TouchableOpacity>
+        </Modal>
       </View>
       <TouchableOpacity style={styles.connectButton} onPress={goToMain}>
         <Text style={styles.connectButtonText}>완료</Text>
@@ -209,7 +249,7 @@ const styles = StyleSheet.create({
   },
   titleText: {
     textAlign: 'center',
-    marginBottom: 10,
+    marginBottom: 12,
     color: '#544848',
     fontSize: 24,
     fontWeight: 'bold',
@@ -231,11 +271,12 @@ const styles = StyleSheet.create({
     marginHorizontal: 10,
   },
   genderText: {
-    fontSize: 18,
+    fontSize: 20,
     color: '#544848',
   },
   selectedGenderText: {
     color: '#FF0000',
+    fontWeight: 'bold'
   },
   inputRow: {
     flexDirection: 'row',
@@ -243,22 +284,25 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     width: '60%',
     marginBottom: 15,
+    marginRight: 30,
   },
   inputRowColumn: {
     flexDirection: 'row',
     alignItems: 'center',
     width: '60%',
     marginBottom: 15,
+    marginRight: 30,
   },
   inputLabel: {
-    fontSize: 18,
+    fontSize: 20,
     color: '#544848',
     textAlign: 'center',
     width: '40%',
+    marginRight: 15,
   },
   input: {
     height: 40,
-    width: '70%',
+    width: '60%',
     borderBottomWidth: 1,
     borderBottomColor: '#A0A0A0',
     color: '#A0A0A0',
@@ -268,15 +312,17 @@ const styles = StyleSheet.create({
   },
   connectButton: {
     backgroundColor: '#FFCECE',
-    marginTop: 20,
+    marginTop: 30,
     paddingHorizontal: 20,
     paddingVertical: 10,
-    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: 'black',
+    borderRadius: 15,
     alignItems: 'center',
   },
   connectButtonText: {
     color: '#544848',
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: 'bold',
   },
   separator: {
@@ -284,6 +330,45 @@ const styles = StyleSheet.create({
     width: '80%',
     backgroundColor: '#737373',
     marginVertical: 15,
+    marginBottom: 20,
+  },
+  bloodText: {
+    fontSize: 18,
+    textAlign: 'center',
+    marginLeft: 30,
+  },
+  centeredView: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    marginTop: 22,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  modalView: {
+    margin: 20,
+    width: 200,
+    height: 200,
+    backgroundColor: "white",
+    borderRadius: 25,
+    padding: 20,
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5
+  },
+  bloodTypeItem: {
+    padding: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#ccc',
+  },
+  bloodTypeText: {
+    fontSize: 18,
+    textAlign: 'center'
   },
   dateInputContainer: {
     flexDirection: 'row',
@@ -298,18 +383,17 @@ const styles = StyleSheet.create({
     height: 40,
     fontSize: 16,
     textAlign: 'center',
-    color: '#A0A0A0',
+    marginLeft: 10,
   },
   calendar: {
     marginLeft: 10,
     width: 25,
     height: 25,
   },
-  picker: {
-    height: 30,
-    width: '70%',
-    alignSelf: 'center',
-  },
+  datePickerContainer: {
+    marginLeft: -20,
+    width: '9%',
+},
 });
 
 export default ProfileInput;

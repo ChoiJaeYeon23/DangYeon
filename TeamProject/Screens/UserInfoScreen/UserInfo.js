@@ -7,25 +7,26 @@ import {
     TextInput,
     TouchableOpacity,
     Image,
-    Platform
+    Platform,
+    Modal,
+    FlatList
 } from "react-native";
-import { Picker } from '@react-native-picker/picker';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import calendar from '../../assets/calendar.png'
 import * as ImagePicker from 'expo-image-picker';
 
 const UserInfo = ({ navigation }) => {
-    const [name, setName] = useState('');
-    const [birthday, setBirthday] = useState('');
-    const [bloodType, setBloodType] = useState('');
-    const [meetingDay, setMeetingDay] = useState('');
+    const [name, setName] = useState(''); //이름
+    const [birthday, setBirthday] = useState(''); //생년월일
+    const [meetingDay, setMeetingDay] = useState(''); //처음 만난 날
+    const [bloodType, setBloodType] = useState(''); //혈액형
 
     const [date, setDate] = useState(new Date()); // 날짜 picker
     const [showDatePicker, setShowDatePicker] = useState(false);
     const [isBirthdayPickerVisible, setIsBirthdayPickerVisible] = useState(false); //생년월일 picker
     const [isMeetingDayPickerVisible, setIsMeetingDayPickerVisible] = useState(false); //처음 만난 날 picker
     const [profilePic, setProfilePic] = useState(null); // 프로필 사진
-    const [imageSources, setImageSources] = useState([]);
+    const [isBloodTypeModalVisible, setIsBloodTypeModalVisible] = useState(false); // 혈액형 모달
 
     // 생년월일 변경
     const onBirthdayChange = (event, selectedDate) => {
@@ -103,6 +104,28 @@ const UserInfo = ({ navigation }) => {
             [{ text: "확인", onPress: () => { } }],
             { cancelable: false }
         );
+
+    // 혈액형 선택 모달 표시 함수
+    const showBloodTypeModal = () => {
+        setIsBloodTypeModalVisible(true);
+    };
+
+    // 혈액형 선택 처리 함수
+    const selectBloodType = (type) => {
+        setBloodType(type);
+        setIsBloodTypeModalVisible(false); // 모달 숨기기
+    };
+
+    // 혈액형 데이터
+    const bloodTypes = ['A', 'B', 'O', 'AB'];
+
+    // 혈액형 선택 항목 렌더링 함수
+    const renderBloodTypeItem = ({ item }) => (
+        <TouchableOpacity style={styles.bloodTypeItem} onPress={() => selectBloodType(item)}>
+            <Text style={styles.bloodTypeText}>{item}형</Text>
+        </TouchableOpacity>
+    );
+
     const Separator = () => <View style={styles.separator} />;
 
     return (
@@ -140,15 +163,17 @@ const UserInfo = ({ navigation }) => {
                         <Image source={calendar} style={styles.calendar} />
                     </TouchableOpacity>
                 </View>
-                {isBirthdayPickerVisible && (
-                    <DateTimePicker
-                        testID="birthdayPicker"
-                        value={birthday ? new Date(birthday) : new Date()}
-                        mode="date"
-                        display="default"
-                        onChange={onBirthdayChange}
-                    />
-                )}
+                <View style={styles.datePickerContainer}>
+                    {isBirthdayPickerVisible && (
+                        <DateTimePicker
+                            testID="birthdayPicker"
+                            value={birthday ? new Date(birthday) : new Date()}
+                            mode="date"
+                            display="calendar"
+                            onChange={onBirthdayChange}
+                        />
+                    )}
+                </View>
             </View>
             <View style={styles.inputRow}>
                 <Text style={styles.inputLabel}>처음 만난 날</Text>
@@ -178,17 +203,30 @@ const UserInfo = ({ navigation }) => {
             </View>
             <View style={styles.inputRowColumn}>
                 <Text style={styles.inputLabel}>혈액형</Text>
-                <Picker
-                    selectedValue={bloodType}
-                    style={styles.picker}
-                    onValueChange={(itemValue, itemIndex) =>
-                        setBloodType(itemValue)
-                    }>
-                    <Picker.Item label="A형" value="A" />
-                    <Picker.Item label="B형" value="B" />
-                    <Picker.Item label="O형" value="O" />
-                    <Picker.Item label="AB형" value="AB" />
-                </Picker>
+                <TouchableOpacity onPress={showBloodTypeModal}>
+                    <Text style={styles.bloodText}>{bloodType ? `${bloodType}형` : "혈액형 선택"}</Text>
+                </TouchableOpacity>
+                <Modal
+                    animationType="slide"
+                    transparent={true}
+                    visible={isBloodTypeModalVisible}
+                    onRequestClose={() => {
+                        setIsBloodTypeModalVisible(false);
+                    }}>
+                    <TouchableOpacity
+                        style={styles.centeredView}
+                        activeOpacity={1}
+                        onPressOut={() => setIsBloodTypeModalVisible(false)}
+                    >
+                        <View style={styles.modalView}>
+                            <FlatList
+                                data={bloodTypes}
+                                renderItem={renderBloodTypeItem}
+                                keyExtractor={(item) => item}
+                            />
+                        </View>
+                    </TouchableOpacity>
+                </Modal>
             </View>
             <Separator />
             <View style={styles.saveButtonContainer}>
@@ -226,7 +264,7 @@ const styles = StyleSheet.create({
     titleText: {
         textAlign: 'center',
         color: '#544848',
-        fontSize: 22,
+        fontSize: 24,
         fontWeight: 'bold',
     },
     iconContainer: {
@@ -238,38 +276,40 @@ const styles = StyleSheet.create({
     },
     inputRow: {
         flexDirection: 'row',
+        justifyContent: 'space-between',
         alignItems: 'center',
         width: '60%',
         marginBottom: 20,
+        marginRight: 30,
     },
     inputRowColumn: {
         flexDirection: 'row',
         alignItems: 'center',
         width: '60%',
-        marginBottom: 20,
-        height: 20,
+        marginBottom: 15,
+        marginRight: 30,
     },
     inputLabel: {
-        fontSize: 18,
+        fontSize: 20,
         color: '#544848',
         textAlign: 'center',
-        width: '30%',
-        marginRight: 10,
+        width: '40%',
+        marginRight: 15,
     },
     input: {
-        flex: 1,
         height: 40,
+        width: '60%',
         borderBottomWidth: 1,
         borderBottomColor: '#A0A0A0',
         color: '#A0A0A0',
-        fontSize: 16,
+        marginBottom: 15,
+        fontSize: 18,
         textAlign: 'center',
-        padding: 10,
     },
     saveButtonContainer: {
         width: '40%',
         alignItems: 'center',
-        marginTop: 30,
+        marginTop: 20,
     },
     buttonContainer: {
         flexDirection: 'row',
@@ -278,10 +318,8 @@ const styles = StyleSheet.create({
     },
     Button: {
         backgroundColor: '#FFCECE',
-        marginTop: 20,
         paddingHorizontal: 20,
         paddingVertical: 10,
-        borderRadius: 20,
         alignItems: 'center',
         alignSelf: 'center',
         width: '60%',
@@ -289,7 +327,7 @@ const styles = StyleSheet.create({
         borderColor: 'black',
         padding: 5,
         borderRadius: 15,
-        marginBottom: 5,
+        marginBottom: 30,
     },
     ButtonText: {
         color: '#544848',
@@ -298,9 +336,9 @@ const styles = StyleSheet.create({
         textAlign: 'center',
     },
     Button2: {
-        marginTop: 15,
+        marginTop: 10,
         alignSelf: 'center',
-        width: '40%',
+        width: '70%',
     },
     ButtonText2: {
         color: '#544848',
@@ -318,6 +356,45 @@ const styles = StyleSheet.create({
         backgroundColor: '#737373',
         marginVertical: 20,
     },
+    bloodText: {
+        fontSize: 18,
+        textAlign: 'center',
+        marginLeft: 30,
+
+    },
+    centeredView: {
+        flex: 1,
+        justifyContent: "center",
+        alignItems: "center",
+        marginTop: 22,
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    },
+    modalView: {
+        margin: 20,
+        width: 200,
+        height: 200,
+        backgroundColor: "white",
+        borderRadius: 25,
+        padding: 20,
+        alignItems: "center",
+        shadowColor: "#000",
+        shadowOffset: {
+            width: 0,
+            height: 2
+        },
+        shadowOpacity: 0.25,
+        shadowRadius: 3.84,
+        elevation: 5
+    },
+    bloodTypeItem: {
+        padding: 10,
+        borderBottomWidth: 1,
+        borderBottomColor: '#ccc',
+    },
+    bloodTypeText: {
+        fontSize: 18,
+        textAlign: 'center'
+    },
     dateInputContainer: {
         flexDirection: 'row',
         alignItems: 'center',
@@ -332,6 +409,7 @@ const styles = StyleSheet.create({
         height: 40,
         fontSize: 16,
         textAlign: 'center',
+        marginLeft: 10,
     },
     calendar: {
         marginLeft: 10,
@@ -340,10 +418,7 @@ const styles = StyleSheet.create({
     },
     datePickerContainer: {
         marginLeft: -20,
-        width: '70%',
-    },
-    picker: {
-        flex: 1,
+        width: '9%',
     },
 });
 
