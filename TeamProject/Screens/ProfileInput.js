@@ -77,6 +77,7 @@ const ProfileInput = ({ navigation }) => {
     }
   };
 
+  // 사진 선택하는 함수
   const pickImage = async () => {
     const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!permissionResult.granted) {

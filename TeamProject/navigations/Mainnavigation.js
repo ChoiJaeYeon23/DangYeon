@@ -212,6 +212,20 @@ function AuthStackScreen() {
                     },
                 }}
             />
+            <AuthStack.Screen
+                name="CoupleBreak"
+                component={CoupleBreak}
+                options={{
+                    title: "커플 연결 끊기",
+                    headerShown: false,
+                    headerStyle: { backgroundColor: "#FFCCFF" },
+                    headerTintColor: "white",
+                    headerTitleStyle: {
+                        fontWeight: "bold",
+                        color: "white",
+                    },
+                }}
+            />
         </AuthStack.Navigator>
     );
 }
@@ -247,20 +261,7 @@ function UserInfoStackScreen() {
                     },
                 }}
             />
-            <UserInfoStack.Screen
-                name="CoupleBreak"
-                component={CoupleBreak}
-                options={{
-                    title: "커플 연결 끊기",
-                    headerShown: false,
-                    headerStyle: { backgroundColor: "#FFCCFF" },
-                    headerTintColor: "white",
-                    headerTitleStyle: {
-                        fontWeight: "bold",
-                        color: "white",
-                    },
-                }}
-            />
+
         </UserInfoStack.Navigator>
     );
 }
@@ -354,6 +355,7 @@ const MainTabNavigator = () => {
                             }}
                         />
                     ),
+                    headerShown: false
                 }} />
             <Tab.Screen name="기타" component={EtcStackScreen}
                 options={{
