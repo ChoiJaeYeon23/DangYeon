@@ -37,6 +37,7 @@
 >>>>>>> 994ba3b (update)
     "react-native-paper": "4.9.2",
     "react-native-web": "~0.19.6",
+    "request": "^2.88.2",
     "socket.io-client": "^4.7.2"
   },
   "devDependencies": {

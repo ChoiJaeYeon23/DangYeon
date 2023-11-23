@@ -12,7 +12,7 @@ import {
 import { Picker } from '@react-native-picker/picker';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import calendar from '../../assets/calendar.png'
-import { launchImageLibrary } from 'react-native-image-picker';
+import * as ImagePicker from 'expo-image-picker';
 
 const UserInfo = ({ navigation }) => {
     const [name, setName] = useState('');
@@ -69,17 +69,24 @@ const UserInfo = ({ navigation }) => {
     };
 
     // 사진 선택하는 함수
-    const handleChoosePhoto = () => {
-        const options = {
-            noData: true,
-        };
+    const pickImage = async () => {
+        const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+        if (!permissionResult.granted) {
+            Alert.alert('권한 필요', '갤러리에 접근하기 위한 권한이 필요합니다.');
+            return;
+        }
 
-        launchImageLibrary(options, response => {
-            if (response.uri) {
-                setProfilePic(response);
-            }
+        let result = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: ImagePicker.MediaTypeOptions.Images,
+            allowsMultipleSelection: true,
         });
-    };
+
+        if (!result.canceled && result.assets) {
+            setProfilePic({ uri: result.assets[0].uri }); // 선택한 새 이미지로 profilePic 상태 업데이트
+        } else {
+            setProfilePic(null); // 이미지 선택을 취소한 경우, profilePic 상태를 null로 설정하여 기존 이미지 제거
+        }
+    };;
 
     const couplebreak = () => { //커플 연결 끊기 확인 화면으로 이동
         navigation.navigate('CheckCoupleBreak');
@@ -101,8 +108,12 @@ const UserInfo = ({ navigation }) => {
     return (
         <View style={styles.container}>
             <View style={styles.headerContainer}>
-                <TouchableOpacity onPress={handleChoosePhoto} style={styles.iconContainer}>
-                    <Image source={require('../../assets/imageicon.png')} style={styles.icon} />
+                <TouchableOpacity style={styles.iconContainer} onPress={pickImage}>
+                    {profilePic ? (
+                        <Image source={{ uri: profilePic.uri }} style={{ width: 50, height: 50, borderRadius: 25 }} />
+                    ) : (
+                        <Image source={require('../../assets/imageicon.png')} style={styles.icon} />
+                    )}
                 </TouchableOpacity>
                 <Text style={styles.titleText}>수쨩 💖 원우</Text>
             </View>
