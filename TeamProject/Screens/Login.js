@@ -1,22 +1,45 @@
-import React, { useState } from 'react';
-import { View, TouchableOpacity, Linking, Image, styles } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { Button, Text, View } from 'react-native';
+import * as WebBrowser from 'expo-web-browser';
+import { makeRedirectUri, useAuthRequest, ResponseType } from 'expo-auth-session';
+
+WebBrowser.maybeCompleteAuthSession();
 
 const LoginScreen = () => {
-    const client_id = 'OqbYyPi3lOqgNJuqAvXL';
-    const redirectURI = 'http://13.236.248.201:8080/'
-    const state = Math.random().toString(36).substring(2) + Date.now().toString(36);
+    const [token, setToken] = useState(null);
 
-    const naverLogin = () => {
-        const api_url = `https://nid.naver.com/oauth2.0/authorize?response_type=code&client_id=${client_id}&redirect_uri=${redirectURI}&state=${state}`;
-        Linking.openURL(api_url);
-    };
+    // 네이버 클라이언트 ID 설정 및 사용자 정의 리디렉션 URI 설정
+    const clientId = 'OqbYyPi3lOqgNJuqAvXL';
+    const redirectUri = 'http://3.34.6.50:8080/auth/naver/callback';
+
+    // 네이버 인증 요청 구성
+    const [request, response, promptAsync] = useAuthRequest(
+        {
+            clientId,
+            redirectUri,
+            responseType: ResponseType.Code,
+            scopes: ['name'],
+            extraParams: {
+                state: 'STATE',
+            },
+        },
+        {
+            authorizationEndpoint: 'https://nid.naver.com/oauth2.0/authorize',
+            tokenEndpoint: 'https://nid.naver.com/oauth2.0/token',
+        }
+    );
+
 
     return (
         <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-            <TouchableOpacity onPress={naverLogin}> 
-                    <Image source={require('../assets/Naver/btnG_완성형.png')} style={{ width: 150, height: 50 }}/>
-                    <Image source={require('../assets/Naver/btnW_아이콘원형.png')} style={{ width: 80, height: 80 }}/>
-            </TouchableOpacity>
+            <Button
+                disabled={!request}
+                title="네이버 로그인"
+                onPress={() => {
+                    promptAsync({ useProxy: false });
+                }}
+            />
+            {token && <Text>토큰: {token}</Text>}
         </View>
     );
 };
