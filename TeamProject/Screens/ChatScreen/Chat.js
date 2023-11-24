@@ -9,7 +9,7 @@ const Chat = () => {
   const [messages, setMessages] = useState([]);
 
   useEffect(() => {
-    const newSocket = io("http://13.236.248.201");
+    const newSocket = io("http://3.34.6.50:8080");
     setSocket(newSocket);
 
     newSocket.on("chat message", (msg) => {
