@@ -44,4 +44,40 @@ const LoginScreen = () => {
     );
 };
 
-export default LoginScreen;
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        alignItems: "center",
+        justifyContent: "center",
+        backgroundColor: "#FFCCFF",
+    },
+    inputTT: {
+        alignItems: "center",
+        justifyContent: "center",
+        width: "75%",
+        height: 45,
+        borderWidth: 1,
+        marginBottom: 10,
+        paddingHorizontal: 10,
+        backgroundColor: "white",
+        borderColor: "black",
+        borderWidth: 2,
+        borderRadius: 7,
+    },
+    loginBtn: {
+        width: "75%",
+        height: 45,
+        justifyContent: "center",
+        alignItems: "center",
+        borderRadius: 7,
+        backgroundColor: "white",
+        borderWidth: 2,
+        marginBottom: 10,
+    },
+    loginText: {
+        color: "black",
+        fontWeight: "bold",
+    },
+});
+
+export default Login;
