@@ -1,12 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { Button, Text, View } from 'react-native';
+import { Button, Text, TouchableOpacity, View } from 'react-native';
 import * as WebBrowser from 'expo-web-browser';
 import { makeRedirectUri, useAuthRequest, ResponseType } from 'expo-auth-session';
+import { useNavigation } from "@react-navigation/native";
+
 
 WebBrowser.maybeCompleteAuthSession();
 
 const LoginScreen = () => {
     const [token, setToken] = useState(null);
+    const navigation = useNavigation();
 
     // 네이버 클라이언트 ID 설정 및 사용자 정의 리디렉션 URI 설정
     const clientId = 'OqbYyPi3lOqgNJuqAvXL';
@@ -40,7 +43,12 @@ const LoginScreen = () => {
                 }}
             />
             {token && <Text>토큰: {token}</Text>}
+            <TouchableOpacity onPress={() => navigation.navigate("MainTab")}>
+                <Text >회원가입</Text>
+            </TouchableOpacity>
         </View>
+
+
     );
 };
 
