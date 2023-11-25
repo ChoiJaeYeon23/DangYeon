@@ -1,10 +1,11 @@
 import React, { useState } from "react";
-import { 
-    View, 
-    Text, 
-    StyleSheet, 
-    TextInput, 
-    TouchableOpacity 
+import {
+    View,
+    Text,
+    StyleSheet,
+    TextInput,
+    TouchableOpacity,
+    Alert
 } from "react-native";
 
 const CoupleConnect = ({ navigation }) => {
@@ -18,18 +19,32 @@ const CoupleConnect = ({ navigation }) => {
         setText(inputText)
     }
 
+    const copyAlert = () => //복사 알람
+        Alert.alert(
+            "복사",
+            "복사되었습니다.",
+            [
+                { text: "확인", onPress: () => { } },
+            ],
+            { cancelable: false }
+        );
+
     const Separator = () => <View style={styles.separator} />
 
     return (
         <View style={styles.container}>
             <Text style={styles.titleText}>서로의 초대코드를 입력하세요.</Text>
             <Separator />
+            <Text style={styles.codeTitle}>내 초대코드</Text>
             <View style={styles.codeContainer}>
-                <Text style={styles.codeTitle}>내 초대코드</Text>
-                <Text style={styles.code}>47868</Text>
-                <TouchableOpacity style={styles.button}>
-                    <Text style={styles.buttonText}>복사</Text>
-                </TouchableOpacity>
+                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+                        <Text style={styles.code}>47868</Text>
+                    </View>
+                    <TouchableOpacity style={styles.button} onPress={copyAlert}>
+                        <Text style={styles.buttonText}>복사</Text>
+                    </TouchableOpacity>
+                </View>
             </View>
             <Separator />
             <View style={styles.inputContainer}>
@@ -65,24 +80,35 @@ const styles = StyleSheet.create({
     },
     codeContainer: {
         width: '100%',
+        flexDirection: 'row',
         alignItems: 'center',
+        justifyContent: 'space-between',
     },
     codeTitle: {
         textAlign: 'center',
+        fontSize: 22,
+        marginBottom: 10,
+        color: '#544848',
     },
     code: {
         textAlign: 'center',
         fontSize: 24,
         marginVertical: 8,
+        marginLeft: 90
     },
     button: {
-        backgroundColor: '#EBDBDB', 
-        paddingHorizontal: 20,
+        backgroundColor: '#EBDBDB',
+        paddingHorizontal: 15,
         paddingVertical: 10,
-        borderRadius: 20,
+        borderWidth: 1,
+        borderColor: 'black',
+        borderRadius: 15,
+        marginRight: 40
     },
     buttonText: {
         textAlign: 'center',
+        fontWeight: 'bold',
+        fontSize: 17,
     },
     inputContainer: {
         width: '100%',
@@ -90,35 +116,41 @@ const styles = StyleSheet.create({
     inputTitle: {
         textAlign: 'center',
         marginBottom: 8,
+        fontSize: 18,
+        marginBottom: 10,
+        color: '#544848',
     },
     input: {
         height: 40,
-        borderBottomWidth: 0.5,
+        borderBottomWidth: 1,
         width: '80%',
         borderBottomColor: '#A0A0A0',
-        color: '#A0A0A0',
         marginBottom: 15,
-        fontSize: 16,
+        fontSize: 18,
         textAlign: 'center',
         alignSelf: 'center'
     },
     connectButton: {
-        backgroundColor: '#FFCECE', // 연결하기 버튼 색상 변경
+        backgroundColor: '#FFCECE',
         marginTop: 20,
         paddingHorizontal: 20,
         paddingVertical: 10,
-        borderRadius: 20,
+        borderWidth: 1,
+        borderColor: 'black',
+        borderRadius: 15,
     },
     connectButtonText: {
         textAlign: 'center',
-        color: '#544848', // 버튼 텍스트 색상도 titleText 색상과 동일하게 설정
+        color: '#544848',
         fontWeight: 'bold',
+        fontSize: 20,
     },
     separator: {
-        height: 0.5,
+        height: 1,
         width: "80%",
         backgroundColor: "#737373",
         marginVertical: 15,
+        marginBottom: 35,
     }
 });
 

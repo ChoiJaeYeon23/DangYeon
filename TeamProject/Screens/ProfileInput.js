@@ -302,10 +302,9 @@ const styles = StyleSheet.create({
   },
   input: {
     height: 40,
-    width: '60%',
+    width: '70%',
     borderBottomWidth: 1,
     borderBottomColor: '#A0A0A0',
-    color: '#A0A0A0',
     marginBottom: 15,
     fontSize: 18,
     textAlign: 'center',
@@ -373,7 +372,7 @@ const styles = StyleSheet.create({
   dateInputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    width: '60%',
+    width: '70%',
     borderBottomWidth: 1,
     borderBottomColor: '#A0A0A0',
     marginBottom: 15,

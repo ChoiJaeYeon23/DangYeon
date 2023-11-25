@@ -1,24 +1,94 @@
-import React, { useState } from 'react';
-import { View, TouchableOpacity, Linking, Image, styles } from 'react-native';
+import { useState } from "react";
+import { View, Text, TextInput, TouchableOpacity, StyleSheet } from "react-native";
+import { useNavigation } from "@react-navigation/native";
 
-const LoginScreen = () => {
-    const client_id = 'OqbYyPi3lOqgNJuqAvXL';
-    const redirectURI = 'http://13.236.248.201:8080/'
-    const state = Math.random().toString(36).substring(2) + Date.now().toString(36);
+const Login = () => {
+    const [id, setID] = useState("");
+    const [pw, setPW] = useState("");
+    const navigation = useNavigation();
 
-    const naverLogin = () => {
-        const api_url = `https://nid.naver.com/oauth2.0/authorize?response_type=code&client_id=${client_id}&redirect_uri=${redirectURI}&state=${state}`;
-        Linking.openURL(api_url);
+    const users = [ //임시값
+        { ID: 'qwe', PW: '123' },
+        { ID: 'aaa', PW: '111' },
+    ];
+
+    const resetInputs = () => { // 초기화 함수
+        setID("");
+        setPW("");
+    };
+
+    const Login = () => {
+        const user = users.find((u) => u.ID === id && u.PW === pw);
+
+        if (user) {
+            alert("로그인 성공");
+            resetInputs();
+            navigation.navigate("MainTab", { id });
+        } else {
+            alert("ID 또는 비밀번호가 잘못되었습니다.");
+            resetInputs();
+        }
     };
 
     return (
-        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-            <TouchableOpacity onPress={naverLogin}> 
-                    <Image source={require('../assets/Naver/btnG_완성형.png')} style={{ width: 150, height: 50 }}/>
-                    <Image source={require('../assets/Naver/btnW_아이콘원형.png')} style={{ width: 80, height: 80 }}/>
+        <View style={styles.container}>
+            <TextInput
+                style={styles.inputTT}
+                placeholder="아이디"
+                value={id}
+                onChangeText={setID}
+            />
+            <TextInput
+                style={styles.inputTT}
+                placeholder="비밀번호"
+                secureTextEntry
+                value={pw}
+                onChangeText={setPW}
+            />
+            <TouchableOpacity style={styles.loginBtn} onPress={Login}>
+                <Text style={styles.loginText}>로그인</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.loginBtn} onPress={() => navigation.navigate("Profile")}>
+                <Text style={styles.loginText}>회원가입</Text>
             </TouchableOpacity>
         </View>
     );
 };
 
-export default LoginScreen;
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        alignItems: "center",
+        justifyContent: "center",
+        backgroundColor: "#FFCCFF",
+    },
+    inputTT: {
+        alignItems: "center",
+        justifyContent: "center",
+        width: "75%",
+        height: 45,
+        borderWidth: 1,
+        marginBottom: 10,
+        paddingHorizontal: 10,
+        backgroundColor: "white",
+        borderColor: "black",
+        borderWidth: 2,
+        borderRadius: 7,
+    },
+    loginBtn: {
+        width: "75%",
+        height: 45,
+        justifyContent: "center",
+        alignItems: "center",
+        borderRadius: 7,
+        backgroundColor: "white",
+        borderWidth: 2,
+        marginBottom: 10,
+    },
+    loginText: {
+        color: "black",
+        fontWeight: "bold",
+    },
+});
+
+export default Login;
