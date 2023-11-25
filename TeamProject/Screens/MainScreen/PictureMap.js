@@ -1,11 +1,16 @@
 import React, { useState } from 'react';
-import { Button, View, Text, Image, Alert, ScrollView } from 'react-native';
+import { Button, View, Text, Image, Alert, ScrollView, StyleSheet } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 
 const PictureMap = () => {
   const [imageExifs, setImageExifs] = useState([]);
   const [imageUris, setImageUris] = useState([]);
   const [addresses, setAddresses] = useState([]);
+
+  const regionCoordinates = {
+    '경기도': { x: 100, y: 200 },
+    // 나머지 8도에 대한 좌표도 추가해야함..
+  };
 
   const pickImage = async () => {
     const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -72,19 +77,61 @@ const PictureMap = () => {
     }
   };
 
+  const renderImageOnMap = (uri, address) => {
+    const region = determineRegion(address);
+    const coordinates = regionCoordinates[region];
+
+    if (!coordinates) {
+      return null; // 좌표가 없는 경우 렌더링하지 않음
+    }
+
+    const imageStyle = {
+      position: 'absolute',
+      left: coordinates.x,
+      top: coordinates.y,
+      width: 50, // 이미지 크기 조정 필요
+      height: 50, // 이미지 크기 조정 필요
+    };
+
+    return (
+      <Image
+        key={uri}
+        source={{ uri }}
+        style={imageStyle}
+      />
+    );
+  };
+  
   return (
     <ScrollView>
-      <View>
+      <View style={styles.container}>
         <Button title="이미지 선택" onPress={pickImage} />
-        {imageUris.map((uri, index) => (
-          <View key={index}>
-            <Image source={{ uri }} style={{ width: 200, height: 200, marginBottom: 20 }} />
-            {addresses[index] && <Text>주소: {addresses[index]}</Text>}
-          </View>
-        ))}
+        <View style={styles.mapContainer}>
+          {/* 대한민국 8도 지도 이미지 */}
+          <Image source={require('../../assets/8domap.png')} style={styles.mapStyle} />
+          {/* 각 사진을 지도에 배치 */}
+          {addresses.map((address, index) => renderImageOnMap(imageUris[index], address))}
+        </View>
       </View>
     </ScrollView>
   );
-}
+};
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  mapContainer: {
+    position: 'relative',
+    width: '100%', // 지도의 크기에 맞게 조정
+    height: 400, // 지도의 높이에 맞게 조정
+  },
+  mapStyle: {
+    width: '100%',
+    height: '100%',
+  },
+});
 
 export default PictureMap;
