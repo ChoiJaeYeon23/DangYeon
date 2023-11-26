@@ -61,7 +61,7 @@ const styles = StyleSheet.create({
     },
     text2: {
         color: '#544848',
-        fontSize: 18,
+        fontSize: 20,
         textAlign: 'center',
         marginTop: 30,
     },
@@ -72,7 +72,7 @@ const styles = StyleSheet.create({
     },
     bottomText: {
         color: '#544848',
-        fontSize: 18,
+        fontSize: 20,
         textAlign: 'center',
         marginTop: 5,
     },
