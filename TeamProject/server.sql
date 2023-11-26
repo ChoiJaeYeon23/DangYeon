@@ -10,14 +10,14 @@ CREATE TABLE coupleInfo(
 
 -- 유저 정보 테이블
 CREATE TABLE userInfo( 
-    id VARCHAR(20) PRIMARY KEY,
-    username VARCHAR(20),
-    pw VARCHAR(20),
-    birthday DATE,
-    connect_id TEXT,
-    blood_type VARCHAR(5),
-    user_image TEXT,
-    couple_id VARCHAR(20),
+    id          VARCHAR(50) PRIMARY KEY,
+    username    VARCHAR(20),
+    pw          VARCHAR(20),
+    birthday    DATE,
+    connect_id  TEXT,
+    blood_type  VARCHAR(5),
+    user_image  TEXT,
+    couple_id   VARCHAR(20),
     FOREIGN KEY (couple_id) REFERENCES coupleInfo(couple_id)
 );
 
