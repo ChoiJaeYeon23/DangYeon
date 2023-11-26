@@ -1,7 +1,6 @@
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native'
 import PictureMap from './PictureMap';
 import Weather from './Weather';
-import CalendarScreen from './CalendarScreen';
 
 const Main = ({ navigation }) => {
     const goToPictureMap = () => { //사진지도 화면으로 이동 수정!!!!!!!!
