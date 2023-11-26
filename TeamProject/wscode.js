@@ -93,6 +93,18 @@ app.get("/auth/naver/callback", async (req, res) => {
     // 사용자 정보 처리
     const userInfo = userInfoResponse.data;
 
+    // 네이버 API로부터 받은 userInfo 객체에서 birthyear와 birthday를 추출하고 합치는 함수
+    const formatNaverBirthday = (birthyear, birthday) => {
+      return `${birthyear}-${birthday}`;
+    };
+
+    // 사용자 정보 처리 부분에서
+    const formattedBirthday = formatNaverBirthday(
+      userInfo.response.birthyear,
+      userInfo.response.birthday
+    );
+    userInfo.response.birthday = formattedBirthday; // 합쳐진 날짜로 업데이트
+
     // 처리 결과 응답 (예시)
     res.json(userInfo);
     console.log(userInfo);
@@ -102,17 +114,37 @@ app.get("/auth/naver/callback", async (req, res) => {
       try {
         // 첫 번째 쿼리 실행
         let sql = `SELECT * FROM userInfo WHERE id = '${userInfo.response.id}';`;
-
         let data1 = await queryDatabase(sql);
 
         if (data1[0] == undefined) {
           console.log("신규 가입자");
 
           // 신규 사용자 등록
-          let sql2 = `INSERT INTO userInfo (id, username) VALUES ('${userInfo.response.id}', '${userInfo.response.name}');`;
+          let sql2 = `INSERT INTO userInfo (id, username,  birthday) VALUES (
+            '${userInfo.response.id}', 
+            '${userInfo.response.name}', 
+            '${userInfo.response.birthday}'
+            );`;
           queryDatabase(sql2);
         }
 
+        /* 사용자가 입력하는 추가 정보들을 받아와서 DB에 저장하기 
+        else {
+      // 기존 사용자 정보 업데이트
+      let bloodType = userInfo.response.bloodType; // 혈액형
+      let profilePicture = userInfo.response.profilePicture; // 프로필 사진
+      let coupleId = userInfo.response.coupleId; // 커플 ID
+
+      let updateSql = `UPDATE userInfo SET blood_type ='${userInfo.response.blood_type}',
+      user_image = '${userInfo.response.user_image}',
+      couple_id = '${userInfo.response.couple_id}' WHERE id = '${userInfo.response.id}';`;
+      await queryDatabase(updateSql, [bloodType, user_image couple_id, userInfo.response.id]);
+    }
+  } catch (error) {
+    throw error;
+  }
+};
+*/
         // 결과 확인을 위한 추가 쿼리
         let sql3 = "SELECT * FROM userInfo;";
         db.query(sql3, (error, data, fields) => {
@@ -127,6 +159,25 @@ app.get("/auth/naver/callback", async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).send("오류 발생");
+  }
+});
+
+// 클라이언트에게 데이터 전송을 위한 api 엔드포인트 생성
+app.get("/api/user-info/:userId", async (req, res) => {
+  try {
+    const userId = req.params.userId;
+    let sql = `SELECT * FROM userInfo WHERE id = '${userInfo.response.id}';`;
+    let result = await queryDatabase(sql, [userId]);
+    if (result.length > 0) {
+      res.status(200).json(result[0]);
+    } else {
+      res.status(404).send("사용자를 찾지 못했습니다.");
+    }
+  } catch (error) {
+    console.error(error);
+    res
+      .status(500)
+      .send("사용자 데이터를 검색하는 중에 오류가 발생하였습니다.");
   }
 });
 
