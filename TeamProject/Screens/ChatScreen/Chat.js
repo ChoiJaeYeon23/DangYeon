@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { KeyboardAvoidingView, Platform, View, TextInput, TouchableOpacity, FlatList, Text, StyleSheet } from "react-native";
 import { Feather } from '@expo/vector-icons';
 import io from "socket.io-client";
@@ -8,12 +8,18 @@ const Chat = () => {
   const [message, setMessage] = useState("");
   const [messages, setMessages] = useState([]);
 
+  const flatListRef = useRef();
+
   useEffect(() => {
     const newSocket = io("http://3.34.6.50:8080");
     setSocket(newSocket);
 
     newSocket.on("chat message", (msg) => {
       setMessages((prevMessages) => [...prevMessages, msg]);
+      // 메시지 상태가 업데이트 될 때마다 최신 메시지로 스크롤합니다.
+      if (flatListRef.current) {
+        flatListRef.current.scrollToEnd({ animated: true });
+      }
     });
 
     return () => newSocket.disconnect();
@@ -23,7 +29,7 @@ const Chat = () => {
     const isUserMessage = item.isUser; // 메시지 객체의 isUser 속성을 기반으로 사용자 메시지 여부 판단
     return (
       <View style={[
-        styles.messageBubble, 
+        styles.messageBubble,
         isUserMessage ? styles.userMessage : styles.otherMessage
       ]}>
         <Text>{item.text}</Text>
@@ -32,9 +38,13 @@ const Chat = () => {
   };
 
   const sendMessage = () => {
-    if (socket && message) {
-      socket.emit("chat message", message);
-      setMessage("");
+    if (socket && message.trim()) {
+      // 서버에 메시지를 보냅니다.
+      socket.emit("chat message", {
+        text: message.trim(),
+        isUser: true // 이 플래그는 서버에서 처리하여 다시 클라이언트로 보내야 합니다.
+      });
+      setMessage(""); // 입력 필드 초기화
     }
   };
 
@@ -54,6 +64,7 @@ const Chat = () => {
     >
       <View style={styles.container}>
         <FlatList
+          ref={flatListRef}
           data={messages}
           renderItem={renderMessage}
           keyExtractor={(item, index) => index.toString()}
@@ -104,7 +115,7 @@ const styles = StyleSheet.create({
     marginRight: 5
   },
   iconButton: {
-    marginHorizontal: 2, 
+    marginHorizontal: 2,
   },
   messageBubble: {
     padding: 10,
