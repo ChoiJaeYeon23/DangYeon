@@ -23,6 +23,7 @@ import CoupleBreak from '../Screens/UserInfoScreen/CoupleBreak';
 import UserInfo from '../Screens/UserInfoScreen/UserInfo'
 import Board from '../Screens/BoardScreen/Board'
 import Gesigeul from '../Screens/BoardScreen/Gesigeul';
+import Comments from '../Screens/BoardScreen/Comments';
 import Etc from '../Screens/EtcScreen/Etc'
 import BucketList from '../Screens/EtcScreen/BucketList';
 
@@ -140,6 +141,20 @@ function BoardStackScreen() {
                 component={Gesigeul}
                 options={{
                     title: "게시글 작성",
+                    headerShown: true,
+                    headerStyle: { backgroundColor: "#FFCCFF" },
+                    headerTintColor: "white",
+                    headerTitleStyle: {
+                        fontWeight: "bold",
+                        color: "white",
+                    },
+                }}
+            />
+            <BoardStack.Screen
+                name="Comments"
+                component={Comments}
+                options={{
+                    title: "댓글달기",
                     headerShown: true,
                     headerStyle: { backgroundColor: "#FFCCFF" },
                     headerTintColor: "white",
@@ -306,6 +321,7 @@ const MainTabNavigator = () => {
         <Tab.Navigator>
             <Tab.Screen name="홈" component={MainStackScreen}
                 options={{
+                    headerShown: false,
                     tabBarIcon: ({ focused, color, size }) => (
                         <Image
                             source={home}
@@ -319,6 +335,7 @@ const MainTabNavigator = () => {
                 }} />
             <Tab.Screen name="채팅" component={ChatStackScreen}
                 options={{
+                    headerShown: false,
                     tabBarIcon: ({ focused, color, size }) => (
                         <Image
                             source={chat}
@@ -332,6 +349,7 @@ const MainTabNavigator = () => {
                 }} />
             <Tab.Screen name="게시판" component={BoardStackScreen}
                 options={{
+                    headerShown: false,
                     tabBarIcon: ({ focused, color, size }) => (
                         <Image
                             source={board}
@@ -345,6 +363,7 @@ const MainTabNavigator = () => {
                 }} />
             <Tab.Screen name="내 정보" component={UserInfoStackScreen}
                 options={{
+                    headerShown: false,
                     tabBarIcon: ({ focused, color, size }) => (
                         <Image
                             source={user}
@@ -359,6 +378,7 @@ const MainTabNavigator = () => {
                 }} />
             <Tab.Screen name="기타" component={EtcStackScreen}
                 options={{
+                    headerShown: false,
                     tabBarIcon: ({ focused, color, size }) => (
                         <Image
                             source={etc}
