@@ -1,42 +1,166 @@
 import React, { useState, useEffect } from 'react';
-import { View, TextInput, TouchableOpacity, Text, StyleSheet, Image, ScrollView } from 'react-native';
+import { View, TextInput, TouchableOpacity, Text, StyleSheet, Image, ScrollView, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
+import Swiper from 'react-native-swiper';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { format } from 'date-fns'; // date-fns 임포트
 
 const Board = ({ route }) => {
   const navigation = useNavigation();
-  const [savedText, setSavedText] = useState('');
-  const [savedImages, setSavedImages] = useState([]);
+  const [posts, setPosts] = useState([]);
+
+  useEffect(() => {
+    const loadPosts = async () => {
+      const savedPosts = await loadData('posts');
+      if (savedPosts) {
+        setPosts(savedPosts);
+      }
+    };
+    loadPosts();
+  }, []);
+
+  const savePosts = async (newPosts) => {
+    setPosts(newPosts);
+    await saveData('posts', newPosts);
+  };
 
   useEffect(() => {
     if (route.params?.postData) {
-      const { text, images } = route.params.postData;
-      setSavedText(text);
-      setSavedImages(images);
+      const newPost = {
+        ...route.params.postData,
+        id: Math.random().toString(36).substring(7),
+        isLiked: false,
+        createdAt: new Date().toISOString(), // 현재 날짜와 시간 추가
+      };
+      setPosts(currentPosts => [newPost, ...currentPosts]);
+      savePosts([newPost, ...posts]);
     }
-  }, [route.params?.postData]);
+
+    if (route.params?.editedData) {
+      setPosts(currentPosts =>
+        currentPosts.map(post =>
+          post.id === route.params.editedData.id
+            ? { ...route.params.editedData }
+            : post
+        )
+      );
+      savePosts(posts);
+    }
+  }, [route.params?.postData, route.params?.editedData]);
+
+  const toggleLike = (index) => {
+    setPosts(currentPosts => {
+      const updatedPosts = [...currentPosts];
+      updatedPosts[index].isLiked = !updatedPosts[index].isLiked;
+      return updatedPosts;
+    });
+    savePosts([...posts]);
+  };
+
+  const goToComments = (postId) => {
+    navigation.navigate('Comments', { postId: postId });
+  };
+
+  const editPost = (postId) => {
+    const postToEdit = posts.find(post => post.id === postId);
+    if (postToEdit) {
+      navigation.navigate('Gesigeul', { editingPost: postToEdit });
+    }
+  };
+
+  const deletePost = (postId) => {
+    Alert.alert(
+      "게시물 삭제",
+      "이 게시물을 삭제하시겠습니까?",
+      [
+        { text: "취소", style: "cancel" },
+        { text: "삭제", onPress: () => {
+          const updatedPosts = posts.filter(post => post.id !== postId);
+          savePosts(updatedPosts);
+        } }
+      ]
+    );
+  };
+
+  const openOptions = (postId) => {
+    Alert.alert(
+      "게시물",
+      null,
+      [
+        { text: "수정", onPress: () => editPost(postId) },
+        { text: "삭제", onPress: () => deletePost(postId), style: 'destructive' },
+        { text: "취소", style: "cancel" }
+      ],
+      { cancelable: true }
+    );
+  };
 
   return (
     <View style={styles.container}>
-      {/* 검색 섹션: 아이콘과 입력 필드를 가로로 배열합니다. */}
       <View style={styles.searchSection}>
-        {/* 검색 아이콘 */}
         <Ionicons name="ios-search" size={20} color="#000" style={styles.searchIcon} />
-        {/* 사용자 입력을 받는 텍스트 입력 필드 */}
         <TextInput
           style={styles.input}
           placeholder="검색"
           placeholderTextColor="#C7C7CD"
         />
       </View>
-      {/* 플러스 아이콘 버튼 */}
-      <TouchableOpacity style={styles.addButton} onPress={() => navigation.navigate('Gesigeul')}>
+      <TouchableOpacity 
+        style={styles.addButton} 
+        onPress={() => {
+          console.log('Add button pressed');
+          navigation.navigate('Gesigeul');
+        }}>
         <Ionicons name="ios-add" size={24} color="#FFFFFF" />
       </TouchableOpacity>
-      {savedText && <Text>저장된 내용: {savedText}</Text>}
-      <ScrollView horizontal style={styles.imageScroll}>
-        {savedImages.map((imageUri, index) => (
-          <Image key={index} source={{ uri: imageUri }} style={styles.savedImage} />
+      <ScrollView>
+        {posts.map((post, index) => (
+          <View key={post.id} style={styles.postContainer}>
+            <Text style={styles.postDate}>
+              {post.createdAt && !isNaN(new Date(post.createdAt).getTime())
+                ? format(new Date(post.createdAt), 'yyyy/MM/dd')
+                : '날짜 정보 없음'}
+            </Text>
+            <Text style={styles.postTime}>
+              {post.createdAt && !isNaN(new Date(post.createdAt).getTime())
+                ? format(new Date(post.createdAt), 'HH:mm:ss')
+                : ''}
+            </Text>
+            <TouchableOpacity style={styles.optionsButton} onPress={() => openOptions(post.id)}>
+              <Ionicons name="ellipsis-horizontal" size={24} color="#000" />
+            </TouchableOpacity>
+            <Swiper
+              style={styles.wrapper}
+              showsButtons={false}
+              loop={false}
+              paginationStyle={styles.pagination}
+              dotStyle={styles.dotContainer} // 스타일 변경
+              activeDotStyle={styles.activeDotContainer} // 스타일 변경
+            >
+              {post.images.map((uri, idx) => (
+                <View key={idx} style={styles.slide}>
+                  <Image source={{ uri: uri }} style={styles.postImage} resizeMode="contain" />
+                </View>
+              ))}
+            </Swiper>
+            <View style={styles.dotTextContainer}>
+              <Text style={styles.postText}>{post.text}</Text>
+            </View>
+            <View style={styles.actionContainer}>
+              <TouchableOpacity onPress={() => toggleLike(index)} style={styles.actionButton}>
+                <Image
+                  source={post.isLiked ? require('../../assets/heart.png') : require('../../assets/Binheart.png')}
+                  style={styles.icon}
+                />
+                <Text style={styles.actionText}>좋아요</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => goToComments(post.id)} style={styles.actionButton}>
+                <Ionicons name="chatbubble-outline" size={20} color="#333" />
+                <Text style={styles.actionText}>댓글 달기</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
         ))}
       </ScrollView>
     </View>
@@ -46,7 +170,7 @@ const Board = ({ route }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'flex-start', 
+    justifyContent: 'flex-start',
     alignItems: 'center',
     backgroundColor: '#FFF9F9',
     paddingTop: 20,
@@ -77,19 +201,127 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 20,
     right: 20,
-    backgroundColor: '#9D9692', 
+    backgroundColor: '#9D9692',
     width: 30,
     height: 30,
     borderRadius: 25,
     justifyContent: 'center',
     alignItems: 'center',
     elevation: 3,
+    zIndex: 1,
   },
-  savedImage: {
-    width: 200,
-    height: 200,
-    marginRight: 10,
+  postContainer: {
+    backgroundColor: 'white',
+    borderRadius: 15,
+    marginVertical: 8,
+    marginHorizontal: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
+    elevation: 3,
+    padding: 10,
+  },
+  wrapper: {
+    height: 250,
+  },
+  slide: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'transparent',
+  },
+  postImage: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 10,
+  },
+  postText: {
+    fontSize: 16,
+    color: 'black',
+    marginVertical: 10,
+  },
+  actionContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    padding: 10,
+  },
+  actionButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  actionText: {
+    marginLeft: 5,
+    color: '#333',
+  },
+  icon: {
+    width: 24,
+    height: 24,
+  },
+  optionsButton: {
+    alignSelf: 'flex-end',
+    padding: 10,
+  },
+  pagination: {
+    position: 'absolute',
+    bottom: -25,
+  },
+  dotContainer: {
+    backgroundColor: 'transparent',
+    width: 10, // 동그라미 너비 조정
+    height: 10, // 동그라미 높이 조정
+    borderRadius: 7,
+    borderWidth: 1, // 테두리 두께 설정
+    borderColor: '#949494', // 테두리 색상 설정
+    marginLeft: 3,
+    marginRight: 3,
+  },
+  activeDotContainer: {
+    backgroundColor: '#949494',
+    width: 11,
+    height: 11,
+    borderRadius: 6,
+    marginLeft: 3,
+    marginRight: 3,
+  },
+  dotTextContainer: {
+    marginTop: 20, // 동그라미 아래 텍스트와 간격 조정
+  },
+  postDate: {
+    fontSize: 12,
+    color: '#333',
+    marginBottom: 3, // 날짜와 시간 사이의 간격 조정
+    marginLeft: 10,
+    alignSelf: 'flex-start',
+  },
+  postTime: {
+    fontSize: 12,
+    color: '#555',
+    marginBottom: 5,
+    marginLeft: 10,
+    alignSelf: 'flex-start',
   },
 });
+
+const saveData = async (key, data) => {
+  try {
+    const jsonData = JSON.stringify(data);
+    await AsyncStorage.setItem(key, jsonData);
+  } catch (error) {
+    console.error('데이터 저장 중 오류 발생:', error);
+  }
+};
+
+const loadData = async (key) => {
+  try {
+    const jsonData = await AsyncStorage.getItem(key);
+    if (jsonData !== null) {
+      return JSON.parse(jsonData);
+    }
+  } catch (error) {
+    console.error('데이터 불러오기 중 오류 발생:', error);
+  }
+  return null;
+};
 
 export default Board;
