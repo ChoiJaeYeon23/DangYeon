@@ -97,7 +97,6 @@ const Weather = () => {
             <TouchableOpacity style={styles.button}>
                 <Text style={styles.buttonText}>새로고침</Text>
             </TouchableOpacity>
-
         </View>
     );
 };
@@ -125,7 +124,7 @@ const styles = StyleSheet.create({
     },
     weatherIcon: {
         width: 50,
-        height: 40,
+        height: 50,
         marginRight: 10
     },
     button: {
