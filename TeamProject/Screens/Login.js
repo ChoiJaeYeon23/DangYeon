@@ -56,6 +56,27 @@ const Login = () => {
         }
     );
 
+    useEffect(() => {
+        if (response?.type === 'success') {
+            const { code } = response.params;
+            // 서버로부터 access_token을 받아오는 요청을 합니다.
+            axios.post('http://3.34.6.50:8080/auth/naver/callback', { code })
+                .then((response) => {
+                    const { access_token, userInfo } = response.data;
+                    setToken(access_token); // access_token을 상태에 저장합니다.
+                    // 받아온 userInfo를 이용하여 다른 작업을 수행할 수 있습니다.
+                    // 예를 들어 사용자 이름을 화면에 표시한다든지, 사용자 정보를 전역 상태에 저장한다든지 등입니다.
+
+                    navigation.navigate('Main', { userId: userInfo.id });
+                })
+                .catch((error) => {
+                    console.error('access_token을 가져오는 데 에러 발생', error);
+                    // 에러 처리 로직을 구현합니다.
+                });
+
+        }
+    }, [response]);
+
     return (
         <View style={styles.container}>
             <TextInput
@@ -98,7 +119,7 @@ const styles = StyleSheet.create({
         justifyContent: "center",
         backgroundColor: "#FFCCFF",
     },
-    container2:{
+    container2: {
         flexDirection: 'row',
         marginBottom: 30,
         textAlign: "center",
