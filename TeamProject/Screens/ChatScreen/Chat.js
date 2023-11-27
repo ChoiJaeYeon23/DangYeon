@@ -1,12 +1,21 @@
 import React, { useState, useEffect, useRef } from "react";
-import { KeyboardAvoidingView, Platform, View, TextInput, TouchableOpacity, FlatList, Text, StyleSheet } from "react-native";
-import { Feather } from '@expo/vector-icons';
+import {
+  KeyboardAvoidingView,
+  Platform,
+  View,
+  TextInput,
+  TouchableOpacity,
+  FlatList,
+  Text,
+  StyleSheet,
+} from "react-native";
+import { Feather } from "@expo/vector-icons";
 import io from "socket.io-client";
 
 const Chat = () => {
   const [socket, setSocket] = useState(null);
-  const [message, setMessage] = useState("");
-  const [messages, setMessages] = useState([]);
+  const [message, setMessage] = useState(""); // 사용자 입력 메세지
+  const [messages, setMessages] = useState([]); // 렌더링메세지
 
   const flatListRef = useRef();
 
@@ -14,8 +23,8 @@ const Chat = () => {
     const newSocket = io("http://3.34.6.50:8080");
     setSocket(newSocket);
 
-    newSocket.on("chat message", (msg) => {
-      setMessages((prevMessages) => [...prevMessages, msg]);
+    newSocket.on("chat message", (message) => {
+      setMessages((prevMessages) => [...prevMessages, message]);
       // 메시지 상태가 업데이트 될 때마다 최신 메시지로 스크롤합니다.
       if (flatListRef.current) {
         flatListRef.current.scrollToEnd({ animated: true });
@@ -28,45 +37,40 @@ const Chat = () => {
   const renderMessage = ({ item }) => {
     const isUserMessage = item.isUser; // 메시지 객체의 isUser 속성을 기반으로 사용자 메시지 여부 판단
     return (
-      <View style={[
-        styles.messageBubble,
-        isUserMessage ? styles.userMessage : styles.otherMessage
-      ]}>
+      <View
+        style={[
+          styles.messageBubble,
+          isUserMessage ? styles.userMessage : styles.otherMessage,
+        ]}
+      >
         <Text>{item.text}</Text>
       </View>
     );
   };
 
   const sendMessage = () => {
-    if (socket && message.trim()) {
-      // 서버에 메시지를 보냅니다.
-      socket.emit("chat message", {
-        text: message.trim(),
-        isUser: true // 이 플래그는 서버에서 처리하여 다시 클라이언트로 보내야 합니다.
-      });
-      setMessage(""); // 입력 필드 초기화
+    if (socket && message) {
+      socket.emit("chat message", { msg: message.trim(), coupleId: null });
+      console.log(message);
+      setMessage("");
     }
   };
 
-  const sendImage = () => {
+  const sendImage = () => {};
 
-  }
-
-  const sendEmoticon = () => {
-
-  }
+  const sendEmoticon = () => {};
 
   return (
     <KeyboardAvoidingView
       style={styles.container}
-      behavior={Platform.OS === "ios" === "50%"} // iOS는 padding을 사용하고 Android는 height 조정
-      keyboardVerticalOffset={Platform.OS === "ios" === 64} // 필요에 따라 iOS에서 키보드 오프셋 조정
+      behavior={(Platform.OS === "ios") === "50%"} // iOS는 padding을 사용하고 Android는 height 조정
+      keyboardVerticalOffset={(Platform.OS === "ios") === 64} // 필요에 따라 iOS에서 키보드 오프셋 조정
     >
       <View style={styles.container}>
         <FlatList
           ref={flatListRef}
           data={messages}
-          renderItem={renderMessage}
+          renderItem={({ item }) => <Text>{item}</Text>}
           keyExtractor={(item, index) => index.toString()}
           style={styles.messageList}
         />
@@ -96,15 +100,15 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 10,
-    backgroundColor: '#FFF9F9',
+    backgroundColor: "#FFF9F9",
   },
   messageList: {
     padding: 10,
-    fontSize: 18
+    fontSize: 18,
   },
   inputSection: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
   },
   input: {
     flex: 1,
@@ -112,7 +116,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     padding: 10,
     marginLeft: 5,
-    marginRight: 5
+    marginRight: 5,
   },
   iconButton: {
     marginHorizontal: 2,
@@ -121,22 +125,22 @@ const styles = StyleSheet.create({
     padding: 10,
     borderRadius: 20,
     marginBottom: 10,
-    maxWidth: '80%',
+    maxWidth: "80%",
   },
   userMessage: {
-    alignSelf: 'flex-end',
+    alignSelf: "flex-end",
     padding: 10,
-    backgroundColor: '#DCF8C6',
+    backgroundColor: "#DCF8C6",
     borderRadius: 20,
     marginBottom: 10,
   },
   otherMessage: {
-    alignSelf: 'flex-start',
+    alignSelf: "flex-start",
     padding: 10,
-    backgroundColor: '#ECECEC',
+    backgroundColor: "#ECECEC",
     borderRadius: 20,
     marginBottom: 10,
-  }
+  },
 });
 
 export default Chat;

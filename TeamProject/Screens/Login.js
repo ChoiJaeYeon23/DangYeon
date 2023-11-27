@@ -1,8 +1,22 @@
 import React, { useState, useEffect } from "react";
-import { Image, Text, TouchableOpacity, View, Alert, StyleSheet, TextInput } from "react-native";
+import {
+  Image,
+  Text,
+  TouchableOpacity,
+  View,
+  Alert,
+  StyleSheet,
+  TextInput,
+} from "react-native";
 import * as WebBrowser from "expo-web-browser";
-import { makeRedirectUri, useAuthRequest, ResponseType } from "expo-auth-session";
+import {
+  makeRedirectUri,
+  useAuthRequest,
+  ResponseType,
+} from "expo-auth-session";
 import { useNavigation } from "@react-navigation/native";
+
+import io from "socket.io-client";
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -12,46 +26,108 @@ const Login = () => {
   const [pw, setPW] = useState("");
   const navigation = useNavigation();
 
-  const users = [ //임시값
-    { ID: 'qwe', PW: '123' },
-    { ID: 'aaa', PW: '111' },
-  ];
+  const [socket, setSocket] = useState(null);
+
+  useEffect(() => {
+    const newSocket = io("http://3.34.6.50:8080");
+    setSocket(newSocket);
+
+    return () => newSocket.disconnect();
+  }, []);
 
   const handleLogin = () => {
-    const user = users.find((u) => u.ID === id && u.PW === pw);
-
-    if (user) {
-      alert("로그인 성공");
-      resetInputs();
-      navigation.navigate("MainTab", { id });
-    } else {
-      alert("ID 또는 비밀번호가 잘못되었습니다.");
-      resetInputs();
+    if (socket && id && pw) {
+      socket.emit("login check", { id: id, pw: pw });
+      console.log(id);
+      console.log(pw);
+      setID("");
+      setPW("");
     }
   };
 
-  // 네이버 로그인 설정
-  const clientId = "OqbYyPi3lOqgNJuqAvXL";
-  const redirectUri = "http://3.34.6.50:8080/auth/naver/callback";
+  // const users = [
+  //   //임시값
+  //   { ID: "W2-rLkQcC4BYncLnw2qi5HTn256k-ZbswtV4m3GZAAM", PW: "456" },
+  //   { ID: "W3EII3mrgAT47ho8kFvl9322OYayzpeCA4leKP3L6R8", PW: "123" },
+  // ];
 
-  const resetInputs = () => { // 초기화 함수
+  // const handleLogin = () => {
+  //   const user = users.find((u) => u.ID === id && u.PW === pw);
+
+  //   if (user) {
+  //     alert("로그인 성공");
+  //     resetInputs();
+  //     navigation.navigate("MainTab", { id });
+  //   } else {
+  //     alert("ID 또는 비밀번호가 잘못되었습니다.");
+  //     resetInputs();
+  //   }
+  // };
+
+  // // 네이버 로그인 설정
+  // const clientId = "OqbYyPi3lOqgNJuqAvXL";
+  // const redirectUri = "http://3.34.6.50:8080/auth/naver/callback";
+
+  const resetInputs = () => {
+    // 초기화 함수
     setID("");
     setPW("");
   };
 
-  const [request, response, promptAsync] = useAuthRequest(
-    {
-      clientId,
-      redirectUri,
-      responseType: ResponseType.Code,
-      scopes: ["name"],
-      extraParams: { state: "STATE" },
-    },
-    {
-      authorizationEndpoint: "https://nid.naver.com/oauth2.0/authorize",
-      tokenEndpoint: "https://nid.naver.com/oauth2.0/token",
-    }
-  );
+  // const [request, response, promptAsync] = useAuthRequest(
+  //   {
+  //     clientId,
+  //     redirectUri,
+  //     responseType: ResponseType.Code,
+  //     scopes: ["name"],
+  //     extraParams: { state: "STATE" },
+  //   },
+  //   {
+  //     authorizationEndpoint: "https://nid.naver.com/oauth2.0/authorize",
+  //     tokenEndpoint: "https://nid.naver.com/oauth2.0/token",
+  //   }
+  // );
+
+  // useEffect(() => {
+  //   console.log("OAuth Response:", response);
+  //   if (response?.type === "success") {
+  //     const { code } = response.params;
+
+  //     fetch(`http://3.34.6.50:8080/auth/naver/callback?code=${code}`)
+  //       .then((res) => res.json())
+  //       .then((data) => {
+  //         setToken(data.access_token); // 토큰 저장
+  //         return fetchUserInfo(data.access_token); // 사용자 정보 가져오기
+  //       })
+  //       .then((userInfo) => {
+  //         setUserInfo(userInfo); // 사용자 정보 상태 업데이트
+  //         WebBrowser.dismissBrowser(); // 브라우저 창 닫기
+  //         navigation.navigate("Connect", { userInfo }); // Connect 화면으로 이동
+  //       })
+  //       .catch((error) => {
+  //         console.error("네이버 로그인 인증 오류:", error);
+  //         Alert.alert("로그인 오류", "네이버 로그인 인증에 실패했습니다.");
+  //       });
+  //   } else {
+  //     console.log("실패");
+  //   }
+  // }, [response, navigation]);
+
+  // // 토큰을 사용하여 사용자 정보를 가져오는 함수입니다.
+  // async function fetchUserInfo(accessToken) {
+  //   try {
+  //     const response = await fetch(`http://3.34.6.50:8080/api/user-info`, {
+  //       headers: {
+  //         Authorization: `Bearer ${accessToken}`,
+  //       },
+  //     });
+  //     const userInfo = await response.json();
+  //     return userInfo;
+  //   } catch (error) {
+  //     console.error("사용자 정보를 가져오는 중 오류 발생:", error);
+  //     throw new Error("Failed to fetch user information.");
+  //   }
+  // }
 
   useEffect(() => {
     if (response?.type === "success") {
@@ -112,19 +188,25 @@ const Login = () => {
       </TouchableOpacity>
       <View style={styles.container2}>
         <TouchableOpacity onPress={() => navigation.navigate("SignUp")}>
-          <Text style={styles.loginText}>회원가입   l   </Text>
+          <Text style={styles.loginText}>회원가입 l </Text>
         </TouchableOpacity>
         <TouchableOpacity onPress={() => navigation.navigate("SignUp")}>
           <Text style={styles.loginText}> 비밀번호 찾기</Text>
         </TouchableOpacity>
       </View>
-      <TouchableOpacity onPress={() => { promptAsync({ useProxy: false }); }}
-        disabled={!request}>
-        <Image source={require('../assets/Naver/btnG_아이콘원형.png')} style={{ width: 70, height: 70 }} />
+      {/* <TouchableOpacity
+        onPress={() => {
+          promptAsync({ useProxy: false });
+        }}
+        disabled={!request}
+      >
+        <Image
+          source={require("../assets/Naver/btnW_아이콘원형.png")}
+          style={{ width: 70, height: 70 }}
+        />
       </TouchableOpacity>
-      {token && <Text>토큰: {token}</Text>}
+      {token && <Text>토큰: {token}</Text>} */}
     </View>
-
   );
 };
 
@@ -136,7 +218,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFCCFF",
   },
   container2: {
-    flexDirection: 'row',
+    flexDirection: "row",
     marginBottom: 30,
     textAlign: "center",
     marginLeft: 10,
