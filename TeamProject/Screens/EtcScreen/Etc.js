@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, Text, Dimensions, Image } from 'react-native';
+import { View, StyleSheet, Text, Dimensions, Image, TouchableOpacity } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const { width } = Dimensions.get('window');
@@ -31,11 +31,13 @@ const Etc = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      {/* 상단의 두 개의 핑크 상자 */}
-      <View style={styles.boxContainer}>
-        <View style={[styles.box, styles.firstBox]} />
-        <View style={styles.box} />
+    <View style={styles.boxContainer}>
+      {/* 왼쪽 박스에 "만보기" 텍스트 추가 */}
+      <View style={[styles.box, styles.firstBox]}>
+        <Text style={styles.boxText} onPress={() => navigation.navigate('PedometerScreen')}>만보기</Text>
       </View>
+      <View style={styles.box} />
+    </View>
       
       {/* 첫 번째 실선 */}
       <View style={styles.dotsContainer}>

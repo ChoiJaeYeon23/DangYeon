@@ -26,6 +26,7 @@ import Gesigeul from '../Screens/BoardScreen/Gesigeul';
 import Comments from '../Screens/BoardScreen/Comments';
 import Etc from '../Screens/EtcScreen/Etc'
 import BucketList from '../Screens/EtcScreen/BucketList';
+import PedometerScreen from '../Screens/EtcScreen/PedometerScreen'
 
 const MainStack = createStackNavigator();
 const AuthStack = createStackNavigator();
@@ -303,6 +304,20 @@ function EtcStackScreen() {
                 component={BucketList}
                 options={{
                     title: "버킷리스트",
+                    headerShown: true,
+                    headerStyle: { backgroundColor: "#FFCCFF" },
+                    headerTintColor: "white",
+                    headerTitleStyle: {
+                        fontWeight: "bold",
+                        color: "white",
+                    },
+                }}
+            />
+             <EtcStack.Screen
+                name="PedometerScreen"
+                component={PedometerScreen}
+                options={{
+                    title: "만보기",
                     headerShown: true,
                     headerStyle: { backgroundColor: "#FFCCFF" },
                     headerTintColor: "white",

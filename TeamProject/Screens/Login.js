@@ -56,13 +56,18 @@ const Login = () => {
   useEffect(() => {
     if (response?.type === "success") {
       const { code } = response.params;
+      console.log("Authorization code:", code);
 
       fetch(`http://3.34.6.50:8080/auth/naver/callback?code=${code}`)
-        .then((response) => response.json())
-        .then((data) => { 
+        .then((fetchResponse) => {
+          console.log("Server response:", fetchResponse);
+          return fetchResponse.json();
+        })
+        .then((data) => {
+          console.log("Token and data received:", data);
           setToken(data.access_token);
           WebBrowser.dismissBrowser();
-          navigation.navigate("Connect", { userInfo }); // 네비게이션 이동 로깅
+          navigation.navigate("Connect", { userInfo: data }); // 수정: userInfo 전달
         })
         .catch((error) => {
           console.error("네이버 로그인 인증 오류:", error);
