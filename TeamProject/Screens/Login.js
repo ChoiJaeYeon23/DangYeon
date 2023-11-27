@@ -1,18 +1,7 @@
 import React, { useState, useEffect } from "react";
-import {
-  Image,
-  Text,
-  TouchableOpacity,
-  View,
-  TextInput,
-  StyleSheet,
-} from "react-native";
+import { Image, Text, TouchableOpacity, View, Alert, StyleSheet, TextInput } from "react-native";
 import * as WebBrowser from "expo-web-browser";
-import {
-  makeRedirectUri,
-  useAuthRequest,
-  ResponseType,
-} from "expo-auth-session";
+import { makeRedirectUri, useAuthRequest, ResponseType } from "expo-auth-session";
 import { useNavigation } from "@react-navigation/native";
 
 WebBrowser.maybeCompleteAuthSession();
@@ -23,19 +12,12 @@ const Login = () => {
   const [pw, setPW] = useState("");
   const navigation = useNavigation();
 
-  const users = [
-    //임시값
-    { ID: "qwe", PW: "123" },
-    { ID: "aaa", PW: "111" },
+  const users = [ //임시값
+    { ID: 'qwe', PW: '123' },
+    { ID: 'aaa', PW: '111' },
   ];
 
-  const resetInputs = () => {
-    // 초기화 함수
-    setID("");
-    setPW("");
-  };
-
-  const Login = () => {
+  const handleLogin = () => {
     const user = users.find((u) => u.ID === id && u.PW === pw);
 
     if (user) {
@@ -48,26 +30,62 @@ const Login = () => {
     }
   };
 
-  // 네이버 클라이언트 ID 설정 및 사용자 정의 리디렉션 URI 설정
+  // 네이버 로그인 설정
   const clientId = "OqbYyPi3lOqgNJuqAvXL";
   const redirectUri = "http://3.34.6.50:8080/auth/naver/callback";
 
-  // 네이버 인증 요청 구성
+  const resetInputs = () => { // 초기화 함수
+    setID("");
+    setPW("");
+  };
+
   const [request, response, promptAsync] = useAuthRequest(
     {
       clientId,
       redirectUri,
       responseType: ResponseType.Code,
       scopes: ["name"],
-      extraParams: {
-        state: "STATE",
-      },
+      extraParams: { state: "STATE" },
     },
     {
       authorizationEndpoint: "https://nid.naver.com/oauth2.0/authorize",
       tokenEndpoint: "https://nid.naver.com/oauth2.0/token",
     }
   );
+
+  useEffect(() => {
+    if (response?.type === "success") {
+      const { code } = response.params;
+
+      fetch(`http://3.34.6.50:8080/auth/naver/callback?code=${code}`)
+        .then((response) => response.json())
+        .then((data) => { 
+          setToken(data.access_token);
+          WebBrowser.dismissBrowser();
+          navigation.navigate("Connect", { userInfo }); // 네비게이션 이동 로깅
+        })
+        .catch((error) => {
+          console.error("네이버 로그인 인증 오류:", error);
+          Alert.alert("로그인 오류", "네이버 로그인 인증에 실패했습니다.");
+        });
+    }
+  }, [response]);
+
+  // 토큰을 사용하여 사용자 정보를 가져오는 함수입니다.
+  async function fetchUserInfo(accessToken) {
+    try {
+      const response = await fetch(`http://3.34.6.50:8080/api/user-info`, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+      const userInfo = await response.json();
+      return userInfo;
+    } catch (error) {
+      console.error("사용자 정보를 가져오는 중 오류 발생:", error);
+      throw new Error("Failed to fetch user information.");
+    }
+  }
 
   return (
     <View style={styles.container}>
@@ -84,30 +102,24 @@ const Login = () => {
         value={pw}
         onChangeText={setPW}
       />
-      <TouchableOpacity style={styles.loginBtn} onPress={Login}>
+      <TouchableOpacity style={styles.loginBtn} onPress={handleLogin}>
         <Text style={styles.loginText}>로그인</Text>
       </TouchableOpacity>
       <View style={styles.container2}>
         <TouchableOpacity onPress={() => navigation.navigate("SignUp")}>
-          <Text style={styles.loginText}>회원가입 l </Text>
+          <Text style={styles.loginText}>회원가입   l   </Text>
         </TouchableOpacity>
         <TouchableOpacity onPress={() => navigation.navigate("SignUp")}>
           <Text style={styles.loginText}> 비밀번호 찾기</Text>
         </TouchableOpacity>
       </View>
-      <TouchableOpacity
-        onPress={() => {
-          promptAsync({ useProxy: false });
-        }}
-        disabled={!request}
-      >
-        <Image
-          source={require("../assets/Naver/btnW_아이콘원형.png")}
-          style={{ width: 70, height: 70 }}
-        />
+      <TouchableOpacity onPress={() => { promptAsync({ useProxy: false }); }}
+        disabled={!request}>
+        <Image source={require('../assets/Naver/btnG_아이콘원형.png')} style={{ width: 70, height: 70 }} />
       </TouchableOpacity>
       {token && <Text>토큰: {token}</Text>}
     </View>
+
   );
 };
 
@@ -119,7 +131,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFCCFF",
   },
   container2: {
-    flexDirection: "row",
+    flexDirection: 'row',
     marginBottom: 30,
     textAlign: "center",
     marginLeft: 10,
@@ -145,6 +157,7 @@ const styles = StyleSheet.create({
     borderRadius: 7,
     backgroundColor: "white",
     borderWidth: 2,
+    marginBottom: 10,
     marginBottom: 20,
   },
   loginText: {

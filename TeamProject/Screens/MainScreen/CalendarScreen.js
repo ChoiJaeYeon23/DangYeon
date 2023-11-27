@@ -213,6 +213,7 @@ const styles = StyleSheet.create({
     },
     customHeaderText: {
         fontSize: 21,
+        textAlign: 'center',
     },
     eventListItem: {
         flexDirection: 'row',
@@ -275,6 +276,7 @@ const styles = StyleSheet.create({
     modalDateText: {
         fontSize: 18,
         marginBottom: 15,
+        textAlign: 'center',
     },
     input: {
         fontSize: 18,
@@ -293,7 +295,8 @@ const styles = StyleSheet.create({
     addButtonText: {
         color: 'white',
         fontSize: 40,
-        alignItems: 'center',
+        textAlign: 'center',
+        lineHeight: 45,
     },
     editButton: {
         borderWidth: 1,
@@ -305,7 +308,7 @@ const styles = StyleSheet.create({
     },
     editButtonText: {
         fontSize: 16,
-
+        textAlign: 'center',
     }
 });
 
