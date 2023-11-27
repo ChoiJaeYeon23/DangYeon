@@ -42,6 +42,37 @@ const io = socketIo(server, {
   },
 });
 
+//아래까지 db로 로그인
+//아래까지 db로 로그인
+//아래까지 db로 로그인
+//아래까지 db로 로그인
+
+io.on("login", (socket) => {
+  console.log(`A user connected2: ${socket.id}`);
+  socket.on("login check", (data2) => {
+    const { id, pw } = data2;
+    console.log(`Message from ${socket.id}: ${id}아이디 맞냐?위`);
+    console.log(`Message from ${socket.id}: ${pw}비번 맞냐?위`);
+    var sql6 = "SELECT * FROM userInfo WHERE id = ? AND pw = ?";
+    var sql6params = [id, pw];
+    db.query(sql6, sql6params, (err, results) => {
+      if (err) throw err;
+      console.log(`Message from ${socket.id}: ${id}아이디 맞냐?아래`);
+      console.log(`Message from ${socket.id}: ${pw}비번 맞냐?아래`);
+    });
+  });
+
+  // 연결 해제
+  socket.on("disconnect2", () => {
+    console.log(`User disconnected2: ${socket.id}`);
+  });
+});
+
+//위에까지 db로 로그인
+//위에까지 db로 로그인
+//위에까지 db로 로그인
+//위에까지 db로 로그인
+
 //네이버 로그인
 //네이버 로그인
 //네이버 로그인
@@ -162,25 +193,6 @@ app.get("/auth/naver/callback", async (req, res) => {
   }
 });
 
-// 클라이언트에게 데이터 전송을 위한 api 엔드포인트 생성
-app.get("/api/user-info/:userId", async (req, res) => {
-  try {
-    const userId = req.params.userId;
-    let sql = `SELECT * FROM userInfo WHERE id = '${userInfo.response.id}';`;
-    let result = await queryDatabase(sql, [userId]);
-    if (result.length > 0) {
-      res.status(200).json(result[0]);
-    } else {
-      res.status(404).send("사용자를 찾지 못했습니다.");
-    }
-  } catch (error) {
-    console.error(error);
-    res
-      .status(500)
-      .send("사용자 데이터를 검색하는 중에 오류가 발생하였습니다.");
-  }
-});
-
 //(서버에 정상적으로 연결되는지 확인하는 용도의 코드)
 app.get("/", (req, res) => {
   res.sendFile(__dirname + "/index.html");
@@ -191,21 +203,57 @@ app.get("/", (req, res) => {
 // WebSocket 연결 처리
 // WebSocket 연결 처리
 
+// 소켓 연결 및 이벤트 처리
 io.on("connection", (socket) => {
   console.log(`A user connected: ${socket.id}`);
 
-  // 메세지 받을 때 로그 추가
-  socket.on(`chat message`, (msg) => {
-    console.log(`Message from ${socket.id}: ${msg}`);
-    io.emit("chat message", msg);
+  // 커플 매칭 확인 및 룸 입장
+  socket.on("join room", (connectId) => {
+    var sql5 = "SELECT * FROM userInfo WHERE connect_id = ?";
+    var sql5params = [connectId];
+    // 데이터베이스에서 커플 매칭 확인
+    db.query(sql5, sql5params, (err, results) => {
+      if (err) throw err;
+      if (results.length > 0) {
+        // 매칭된 커플이면 룸에 입장
+        socket.join(connectId);
+        console.log(`User ${socket.id} joined room ${connectId}`);
+      }
+    });
   });
 
+  // 커플 룸 내에서 메시지 교환
+  socket.on("chat message", (data) => {
+    const { msg } = data;
+
+    // 메시지 받을 때 로그 추가
+    console.log(`Message from ${socket.id}: ${msg}`);
+
+    // 데이터베이스에 메시지 저장
+    var sql4 = "INSERT INTO chat(Message_text,MessageTime) VALUES(?,?,?)";
+    let now = new Date();
+    now.setHours(now.getHours() + 9); // UTC+9(대한민국,서울)로 시간 조정
+    let message_time = now.toISOString().slice(0, 19).replace("T", " ");
+
+    var sql4params = [msg, message_time];
+
+    db.query(sql4, sql4params, (err, result) => {
+      if (err) throw err;
+      console.log("Message recorded in database");
+    });
+
+    // 룸에 메시지 브로드캐스트
+    io.emit("chat message", msg, message_time);
+  });
+
+  // 연결 해제
   socket.on("disconnect", () => {
-    console.log(`User disconnected: ${socket.id}`); // 사용자가 연결을 해제 했을때의 로그 추가
+    console.log(`User disconnected: ${socket.id}`);
   });
 });
 
-const PORT = process.env.PORT || 8080;
+// 서버 시작
+const PORT = 8080; // 포트 설정
 server.listen(PORT, () => {
-  console.log(`Server is running on http://3.34.6.50:${PORT}`);
+  console.log(`Server is running on port ${PORT}`);
 });
