@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, Button, Platform } from 'react-native';
+import { View, Text, TouchableOpacity, Platform } from 'react-native';
 import * as Location from 'expo-location';
 import { Pedometer } from 'expo-sensors';
 
@@ -70,11 +70,11 @@ const PedometerScreen = () => {
   return (
     <View>
       <Text>걸음 수: {steps}</Text>
-      <Button
-        title="만보기 시작"
+      <TouchableOpacity
         onPress={startPedometer}
-        disabled={!isWithinDistance || isPedometerAvailable !== "yes"}
-      />
+        disabled={!isWithinDistance || isPedometerAvailable !== "yes"}>
+        <Text>만보기 시작</Text>
+      </TouchableOpacity>
     </View>
   );
 };
