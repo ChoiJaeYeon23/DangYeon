@@ -79,6 +79,8 @@ io.on("login", (socket) => {
 //네이버 로그인
 //네이버 로그인
 
+
+
 // 네이버 로그인 API 관련 설정
 const NAVER_CLIENT_ID = "OqbYyPi3lOqgNJuqAvXL";
 const NAVER_CLIENT_SECRET = "IKB4nzvJuE";
@@ -137,8 +139,8 @@ app.get("/auth/naver/callback", async (req, res) => {
     userInfo.response.birthday = formattedBirthday; // 합쳐진 날짜로 업데이트
 
     // 처리 결과 응답 (예시)
-    res.json(userInfo);
-    console.log(userInfo);
+     res.json(userInfo);
+     console.log(userInfo); // 로그인을 누가 했는지 정보를 띄우는 로그
 
     // db있는값 가져오기
     const checkAndInsertUser = async (userInfo) => {
@@ -193,10 +195,7 @@ app.get("/auth/naver/callback", async (req, res) => {
   }
 });
 
-//(서버에 정상적으로 연결되는지 확인하는 용도의 코드)
-app.get("/", (req, res) => {
-  res.sendFile(__dirname + "/index.html");
-});
+
 
 // WebSocket 연결 처리
 // WebSocket 연결 처리
@@ -256,4 +255,17 @@ io.on("connection", (socket) => {
 const PORT = 8080; // 포트 설정
 server.listen(PORT, () => {
   console.log(`Server is running on http://3.34.6.50:${PORT}`);
+});
+
+
+
+
+
+
+
+
+
+//(서버에 정상적으로 연결되는지 확인하는 용도의 코드)
+app.get("/", (req, res) => {
+  res.sendFile(__dirname + "/index.html");
 });
