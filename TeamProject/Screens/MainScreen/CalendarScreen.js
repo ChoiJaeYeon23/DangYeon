@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect  } from 'react';
 import { View, TouchableOpacity, StyleSheet, Text, TextInput, Modal, TouchableWithoutFeedback, ScrollView, Alert } from 'react-native';
 import { Calendar, LocaleConfig } from 'react-native-calendars';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 LocaleConfig.locales['kr'] = {
     monthNames: ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'],
@@ -36,6 +37,14 @@ const CalendarScreen = () => {
         setEditingEventIndex(null); // 편집 인덱스 초기화
     };
 
+    const saveEvents = async (updatedEvents) => { //이벤트 AsyncStorage에 저장
+        try {
+            await AsyncStorage.setItem('events', JSON.stringify(updatedEvents));
+        } catch (error) {
+            console.error('일정 저장 실패:', error);
+        }
+    };
+
     const handleAddEvent = () => {
         if (text.trim()) {
             const updatedEvents = {
@@ -43,6 +52,7 @@ const CalendarScreen = () => {
                 [selectedDate]: [...(events[selectedDate] || []), text.trim()],
             };
             setEvents(updatedEvents);
+            saveEvents(updatedEvents); // 변경된 events 저장
         }
         closeModal();
     };
@@ -58,6 +68,7 @@ const CalendarScreen = () => {
             const updatedEvents = { ...events };
             updatedEvents[selectedDate][editingEventIndex] = text.trim();
             setEvents(updatedEvents);
+            saveEvents(updatedEvents); // 변경된 events 저장
         }
         closeModal();
     };
@@ -72,6 +83,21 @@ const CalendarScreen = () => {
             ]
         );
     };
+
+    useEffect(() => {
+        const loadEvents = async () => {
+            try {
+                const storedEvents = await AsyncStorage.getItem('events');
+                if (storedEvents !== null) {
+                    setEvents(JSON.parse(storedEvents));
+                }
+            } catch (error) {
+                console.error('일정 로드 실패:', error);
+            }
+        };
+    
+        loadEvents();
+    }, []);
 
     const deleteEvent = (index) => {
         const updatedEvents = { ...events };
