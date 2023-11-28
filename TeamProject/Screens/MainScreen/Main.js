@@ -65,11 +65,11 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
     },
     map: {
-        paddingTop: 40, // 날씨 위젯 높이만큼 패딩을 줌
+        flex: 1,
         justifyContent: 'center', // 지도를 중앙에 배치
         borderWidth: 1, // 테두리 두께
         borderColor: 'black',
-        margin: 30,
+        margin: 20,
         marginTop: 90,
     }
 });

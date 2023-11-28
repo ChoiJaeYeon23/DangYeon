@@ -1,25 +1,16 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button, View, Text, Image, Alert, ScrollView, StyleSheet } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 
 const PictureMap = () => {
-  const [imageExifs, setImageExifs] = useState([]);
   const [imageUris, setImageUris] = useState([]);
   const [addresses, setAddresses] = useState([]);
 
   const regionData = {
-    '서울특별시': ['서울'],
-    '부산광역시': ['부산'],
-    '대구광역시': ['대구'],
-    '인천광역시': ['인천'],
-    '광주광역시': ['광주'],
-    '대전광역시': ['대전'],
-    '울산광역시': ['울산'],
-    '세종특별자치시': ['세종'],
     '경기도': [
       '수원', '성남', '의정부', '안양', '부천', '광명', '평택', '동두천', '안산', '고양', '과천', '구리', '남양주',
       '오산', '시흥', '군포', '의왕', '하남', '용인', '파주', '이천', '안성', '김포', '화성', '광주', '양주', '포천',
-      '여주', '연천', '가평', '양평'
+      '여주', '연천', '가평', '양평', '인천', '서울'
     ],
     '강원도': [
       '춘천', '원주', '강릉', '동해', '태백', '속초', '삼척', '홍천', '횡성', '영월', '평창', '정선', '철원',
@@ -30,14 +21,14 @@ const PictureMap = () => {
     ],
     '충청남도': [
       '천안', '공주', '보령', '아산', '서산', '논산', '계룡', '당진', '금산', '부여', '서천', '청양', '홍성',
-      '예산', '태안'
+      '예산', '태안', '대전', '세종'
     ],
     '전라북도': [
       '전주', '군산', '익산', '정읍', '남원', '김제', '완주', '진안', '무주', '장수', '임실', '순창', '고창', '부안'
     ],
     '전라남도': [
       '목포', '여수', '순천', '나주', '광양', '담양', '곡성', '구례', '고흥', '보성', '화순', '장흥', '강진', '해남',
-      '영암', '무안', '함평', '영광', '장성', '완도', '진도', '신안'
+      '영암', '무안', '함평', '영광', '장성', '완도', '진도', '신안', '광주'
     ],
     '경상북도': [
       '포항', '경주', '김천', '안동', '구미', '영주', '영천', '상주', '문경', '경산', '군위', '의성', '청송', '영양',
@@ -45,13 +36,15 @@ const PictureMap = () => {
     ],
     '경상남도': [
       '창원', '진주', '통영', '사천', '김해', '밀양', '거제', '양산', '의령', '함안', '창녕', '고성', '남해', '하동',
-      '산청', '함양', '거창', '합천'
+      '산청', '함양', '거창', '합천', '부산', '대구', '울산'
+    ],
+    '제주특별자치도':[
+      '제주'
     ]
   };
 
   // 각 도의 위치를 대략적으로 나타내는 좌표 (이 값들은 예시이며, 실제 값을 조정해야 합니다)
   const regionCoordinates = {
-    '서울특별시': { x: '25%', y: '35%' },
     '경기도': { x: '30%', y: '40%' },
     '강원도': { x: '45%', y: '30%' },
     '충청북도': { x: '35%', y: '50%' },
@@ -60,9 +53,7 @@ const PictureMap = () => {
     '전라남도': { x: '20%', y: '80%' },
     '경상북도': { x: '55%', y: '65%' },
     '경상남도': { x: '60%', y: '75%' },
-    '제주특별자치도': { x: '10%', y: '90%' },
   };
-
 
   const pickImage = async () => {
     const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -72,7 +63,7 @@ const PictureMap = () => {
     }
 
     let result = await ImagePicker.launchImageLibraryAsync({
-      allowsMultipleSelection: true,
+      allowsMultipleSelection: true, // 여러 사진 선택가능
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       exif: true,
     });
@@ -85,8 +76,8 @@ const PictureMap = () => {
   };
 
   const processImages = async (assets) => {
-    const exifs = [];
-    const addrs = [];
+    const exifs = []; //exif 데이터 저장
+    const addrs = []; //exif 데이터 (위도경도) -> 역지오코딩된 주소 데이터 저장
 
     for (const asset of assets) {
       if (asset.exif) {
@@ -95,17 +86,15 @@ const PictureMap = () => {
         const { GPSLatitude, GPSLongitude } = asset.exif;
         if (GPSLatitude && GPSLongitude) {
           const addr = await getReverseGeocodingData(GPSLatitude, GPSLongitude);
-          addrs.push(addr || '주소를 찾을 수 없음');
+          addrs.push(addr || '주소를 찾을 수 없음(시군구 도시 주소추가)');
         } else {
           addrs.push('GPS 데이터 없음');
         }
       } else {
         exifs.push('EXIF 데이터 없음');
-        addrs.push('주소 정보 없음');
       }
     }
 
-    setImageExifs(exifs);
     setAddresses(addrs);
   };
 
@@ -132,13 +121,18 @@ const PictureMap = () => {
   };
 
   const determineRegion = (address) => {
+    if (!address) {
+      return '주소 정보 없음';
+    }
+  
     for (let [region, cities] of Object.entries(regionData)) {
       const cityMatch = cities.some(city => address.includes(city));
       if (cityMatch) {
         return region;
       }
     }
-    return '지역을 결정할 수 없음'; // 주소가 어떤 지역에도 매칭되지 않을 경우 (regionData 함수에 해당되는 지역 배열에 추가해야함..)
+  
+    return '지역을 결정할 수 없음';
   };
 
   const renderImageOnMap = (uri, address) => {
@@ -151,10 +145,10 @@ const PictureMap = () => {
 
     const imageStyle = {
       position: 'absolute',
-      left: regionCoordinates[region].x,
-      top: regionCoordinates[region].y,
-      width: '5%', // 사진의 너비, 지도에 맞게 조정 필요
-      height: 'auto', // 사진의 높이는 너비에 맞게 자동 조정
+      left: coordinates.x,
+      top: coordinates.y,
+      width: 50, // 이미지 크기 조정
+      height: 50, // 이미지 크기 조정
       zIndex: 1,
     };
 
@@ -172,10 +166,10 @@ const PictureMap = () => {
       <View style={styles.container}>
         <Button title="이미지 선택" onPress={pickImage} />
         <View style={styles.mapContainer}>
-          {/* 대한민국 8도 지도 이미지 */}
+          {/* 지도 이미지 경로가 올바른지 확인하세요 */}
           <Image source={require('../../assets/8domap.png')} style={styles.mapStyle} />
           {/* 각 사진을 지도에 배치 */}
-          {addresses.map((address, index) => renderImageOnMap(imageUris[index], address))}
+          {imageUris.map((uri, index) => renderImageOnMap(uri, addresses[index]))}
         </View>
       </View>
     </ScrollView>
@@ -189,12 +183,13 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   mapContainer: {
-    width: '100%', // 지도의 크기에 맞게 조정
-    height: 400, // 지도의 높이에 맞게 조정
+    width: '100%', // 지도의 너비
+    height: 490, // 지도의 높이
+    position: 'relative', // 자식 요소들을 절대 위치로 배치하기 위함
   },
   mapStyle: {
     width: '100%',
-    height: '145%',
+    height: '100%',
   },
 });
 
