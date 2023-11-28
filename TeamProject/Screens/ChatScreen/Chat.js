@@ -42,7 +42,6 @@ const Chat = () => {
       // 서버에 메시지를 보냅니다.
       socket.emit("chat message", {
         text: message.trim(),
-        isUser: true // 이 플래그는 서버에서 처리하여 다시 클라이언트로 보내야 합니다.
       });
       setMessage(""); // 입력 필드 초기화
     }
