@@ -16,6 +16,7 @@ import {
 } from "expo-auth-session";
 import { useNavigation } from "@react-navigation/native";
 import io from "socket.io-client";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -34,38 +35,54 @@ const Login = () => {
     return () => newSocket.disconnect();
   }, []);
 
-  const handleLogin = () => {
-    if (socket && id && pw) {
-      socket.emit("login check", { id: id, pw: pw });
-      console.log(id);
-      console.log(pw);
-      setID("");
-      setPW("");
-    }
-  };
+  // const handleLogin = () => {
+  //   if (socket && id && pw) {
+  //     socket.emit("login check", { id: id, pw: pw });
+  //     console.log(id);
+  //     console.log(pw);
+  //     setID("");
+  //     setPW("");
+  //   }
+  // };
 
   const users = [
     //임시값
     { ID: "W2-rLkQcC4BYncLnw2qi5HTn256k-ZbswtV4m3GZAAM", PW: "456" },
-    { ID: "W3EII3mrgAT47ho8kFvl9322OYayzpeCA4leKP3L6R8", PW: "123" },
+    { ID: "aaa", PW: "111" },
   ];
 
-  // const handleLogin = () => {
-  //   const user = users.find((u) => u.ID === id && u.PW === pw);
+  const handleLogin = () => { //로컬 로그인
+    const user = users.find((u) => u.ID === id && u.PW === pw);
 
-  //   if (user) {
-  //     alert("로그인 성공");
-  //     resetInputs();
-  //     navigation.navigate("MainTab", { id });
-  //   } else {
-  //     alert("ID 또는 비밀번호가 잘못되었습니다.");
-  //     resetInputs();
-  //   }
-  // };
+    if (user) {
+      alert("로그인 성공");
+      AsyncStorage.setItem('userId', id);
+      resetInputs();
+      navigation.navigate("Connect", { id });
+    } else {
+      alert("ID 또는 비밀번호가 잘못되었습니다.");
+      resetInputs();
+    }
+  };
 
-  // // 네이버 로그인 설정
-   const clientId = "OqbYyPi3lOqgNJuqAvXL";
-   const redirectUri = "http://3.34.6.50:8080/auth/naver/callback";
+  useEffect(() => { //로컬
+    const loadUserId = async () => {
+      try {
+        const userId = await AsyncStorage.getItem('userId');
+        if (userId !== null) {
+          // userId를 사용하는 로직
+        }
+      } catch (error) {
+        console.error("사용자 ID를 가져오는 데 실패했습니다", error);
+      }
+    };
+    loadUserId();
+  }, []);
+
+  //네이버
+  //  네이버 로그인 설정
+  const clientId = "OqbYyPi3lOqgNJuqAvXL";
+  const redirectUri = "http://3.34.6.50:8080/auth/naver/callback";
 
   const resetInputs = () => {
     // 초기화 함수
@@ -87,22 +104,23 @@ const Login = () => {
     }
   );
 
-  
- 
   useEffect(() => {
-    console.log("OAuth Response:", response);
     if (response?.type === "success") {
       const { code } = response.params;
-      
+
       fetch(`http://3.34.6.50:8080/auth/naver/callback?code=${code}`)
         .then((res) => res.json())
         .then((data) => {
           setToken(data.access_token); // 토큰 저장
+          AsyncStorage.setItem('userToken', data.access_token); // AsyncStorage에 토큰 저장
           return fetchUserInfo(data.access_token); // 사용자 정보 가져오기
         })
         .then((userInfo) => {
-          setUserInfo(userInfo); // 사용자 정보 상태 업데이트
-          navigation.navigate("Connect", { userInfo }); // Connect 화면으로 이동
+          if (userInfo) {
+            navigation.navigate("Connect", { userInfo }); // Connect 화면으로 이동
+          } else {
+            throw new Error("User info not found");
+          }
         })
         .catch((error) => {
           console.error("네이버 로그인 인증 오류:", error);
@@ -123,6 +141,7 @@ const Login = () => {
         },
       });
       const userInfo = await response.json();
+      await AsyncStorage.setItem('userInfo', JSON.stringify(userInfo)); // 로컬 스토리지에 사용자 정보 저장
       return userInfo;
     } catch (error) {
       console.error("사용자 정보를 가져오는 중 오류 발생:", error);
@@ -159,6 +178,7 @@ const Login = () => {
       <TouchableOpacity
         onPress={() => {
           promptAsync({ useProxy: false });
+          navigation.navigate('SignUp')
         }}
         disabled={!request}
       >
@@ -167,16 +187,15 @@ const Login = () => {
           style={{ width: 70, height: 70 }}
         />
       </TouchableOpacity>
-      {token && <Text>토큰: {token}</Text>}
     </View>
   );
-      }
+}
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#FFCCFF",
+    backgroundColor: "#FFF9F9",
   },
   container2: {
     flexDirection: "row",
@@ -203,10 +222,9 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     borderRadius: 7,
-    backgroundColor: "white",
+    backgroundColor: 'white',
     borderWidth: 2,
     marginBottom: 10,
-    marginBottom: 20,
   },
   loginText: {
     color: "black",

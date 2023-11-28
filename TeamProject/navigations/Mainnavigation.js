@@ -177,7 +177,7 @@ function AuthStackScreen() {
                 component={Login}
                 options={{
                     title: "로그인",
-                    headerShown: true,
+                    headerShown: false,
                     headerStyle: { backgroundColor: "#FFCCFF" },
                     headerTintColor: "white",
                     headerTitleStyle: {
@@ -191,7 +191,7 @@ function AuthStackScreen() {
                 component={SignUp}
                 options={{
                     title: "회원가입",
-                    headerShown: true,
+                    headerShown: false,
                     headerStyle: { backgroundColor: "#FFCCFF" },
                     headerTintColor: "white",
                     headerTitleStyle: {
@@ -205,7 +205,7 @@ function AuthStackScreen() {
                 component={CoupleConnect}
                 options={{
                     title: "커플 연결?(CoupleConnect)",
-                    headerShown: true,
+                    headerShown: false,
                     headerStyle: { backgroundColor: "#FFCCFF" },
                     headerTintColor: "white",
                     headerTitleStyle: {
@@ -219,7 +219,7 @@ function AuthStackScreen() {
                 component={ProfileInput}
                 options={{
                     title: "프로필 입력화면?(ProfileInput)",
-                    headerShown: true,
+                    headerShown: false,
                     headerStyle: { backgroundColor: "#FFCCFF" },
                     headerTintColor: "white",
                     headerTitleStyle: {

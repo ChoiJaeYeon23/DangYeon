@@ -1,12 +1,14 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
     View,
     Text,
     StyleSheet,
     TextInput,
     TouchableOpacity,
-    Alert
+    Alert,
 } from "react-native";
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as Clipboard from 'expo-clipboard';
 
 const CoupleConnect = ({ navigation }) => {
     const [text, setText] = useState('')
@@ -19,6 +21,11 @@ const CoupleConnect = ({ navigation }) => {
         setText(inputText)
     }
 
+    const copyToClipboard = () => {
+        Clipboard.setString('47868'); // 코드 백이랑 연결 후 수정할거임
+        copyAlert();
+    };
+
     const copyAlert = () => //복사 알람
         Alert.alert(
             "복사",
@@ -28,6 +35,21 @@ const CoupleConnect = ({ navigation }) => {
             ],
             { cancelable: false }
         );
+
+    useEffect(() => {
+        const getToken = async () => {
+            try {
+                const token = await AsyncStorage.getItem('userToken');
+                if (token !== null) {
+                    // 토큰 사용
+                }
+            } catch (error) {
+                console.error("토큰 가져오기 실패", error);
+            }
+        };
+
+        getToken();
+    }, []);
 
     const Separator = () => <View style={styles.separator} />
 
@@ -41,7 +63,7 @@ const CoupleConnect = ({ navigation }) => {
                     <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
                         <Text style={styles.code}>47868</Text>
                     </View>
-                    <TouchableOpacity style={styles.button} onPress={copyAlert}>
+                    <TouchableOpacity style={styles.button} onPress={copyToClipboard}>
                         <Text style={styles.buttonText}>복사</Text>
                     </TouchableOpacity>
                 </View>
@@ -58,6 +80,9 @@ const CoupleConnect = ({ navigation }) => {
             </View>
             <TouchableOpacity onPress={goToProfileInput} style={styles.connectButton}>
                 <Text style={styles.connectButtonText}>연결하기</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => navigation.navigate("Login")} style={styles.connectButton}>
+                <Text style={styles.connectButtonText}>로그인 화면으로 이동하기</Text>
             </TouchableOpacity>
         </View>
     )
@@ -132,7 +157,7 @@ const styles = StyleSheet.create({
     },
     connectButton: {
         backgroundColor: '#FFCECE',
-        marginTop: 20,
+        marginTop: 10,
         paddingHorizontal: 20,
         paddingVertical: 10,
         borderWidth: 1,

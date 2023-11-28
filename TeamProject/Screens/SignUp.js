@@ -2,41 +2,57 @@ import { useState } from "react";
 import { View, Text, TextInput, TouchableOpacity, StyleSheet } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 
-
 const SignUp = () => {
-    const [id, setID] = useState("");
-    const [pw, setPW] = useState("");
+    const [name, setName] = useState(''); //이름
+    const [birthday, setBirthday] = useState(''); //생년월일
+    const [meetingDay, setMeetingDay] = useState(''); //처음 만난 날
+    const [bloodType, setBloodType] = useState(''); //혈액형
     const navigation = useNavigation();
 
     const resetInputs = () => { // 초기화 함수
-        setID("");
-        setPW("");
+        setName("");
+        setBirthday("");
+        setMeetingDay("");
+        setBloodType("");
     };
 
     const SignUp = () => {
-        //회원가입코드 짜기
         alert("회원가입 성공!");
         resetInputs();
-        navigation.navigate("Login");
+        navigation.navigate("Connect");
     };
 
     return (
         <View style={styles.container}>
             <TextInput
                 style={styles.inputTT}
-                placeholder="아이디"
-                value={id}
-                onChangeText={setID}
+                placeholder="이름"
+                value={name}
+                onChangeText={setName}
             />
             <TextInput
                 style={styles.inputTT}
-                placeholder="비밀번호"
+                placeholder="생년월일"
                 secureTextEntry
-                value={pw}
-                onChangeText={setPW}
+                value={birthday}
+                onChangeText={setBirthday}
+            />
+            <TextInput
+                style={styles.inputTT}
+                placeholder="처음 만난 날"
+                secureTextEntry
+                value={meetingDay}
+                onChangeText={setMeetingDay}
+            />
+            <TextInput
+                style={styles.inputTT}
+                placeholder="혈액형"
+                secureTextEntry
+                value={bloodType}
+                onChangeText={setBloodType}
             />
             <TouchableOpacity style={styles.loginBtn} onPress={SignUp}>
-                <Text style={styles.loginText}>회원가입</Text>
+                <Text style={styles.loginText}>회원가입 완료</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.loginBtn} onPress={() => navigation.navigate("Login")}>
                 <Text style={styles.loginText}>로그인 화면으로 돌아가기</Text>
@@ -50,7 +66,7 @@ const styles = StyleSheet.create({
         flex: 1,
         alignItems: "center",
         justifyContent: "center",
-        backgroundColor: "#FFCCFF",
+        backgroundColor: "#FFF9F9",
     },
     inputTT: {
         alignItems: "center",

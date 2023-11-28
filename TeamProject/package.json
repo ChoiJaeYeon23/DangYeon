@@ -11,6 +11,8 @@
   "dependencies": {
     "@expo/webpack-config": "^19.0.0",
     "@react-native-async-storage/async-storage": "^1.19.5",
+    "@react-native-clipboard/clipboard": "^1.12.1",
+    "@react-native-community/clipboard": "^1.5.1",
     "@react-native-community/datetimepicker": "7.2.0",
     "@react-native-seoul/naver-login": "^3.0.0",
     "@react-navigation/bottom-tabs": "^6.5.11",
@@ -20,6 +22,7 @@
     "date-fns": "^2.30.0",
     "expo": "~49.0.15",
     "expo-auth-session": "^5.2.0",
+    "expo-clipboard": "^4.5.0",
     "expo-image-picker": "~14.3.2",
     "expo-location": "~16.1.0",
     "expo-sensors": "~12.3.0",

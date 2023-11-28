@@ -28,7 +28,7 @@ const ProfileInput = ({ navigation }) => {
   const [isBloodTypeModalVisible, setIsBloodTypeModalVisible] = useState(false); // 혈액형 모달
 
   const goToMain = () => { //메인 화면으로 이동
-    navigation.navigate('Main');
+    navigation.navigate('MainTab');
   };
 
   // 생년월일 변경
