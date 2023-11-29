@@ -6,6 +6,8 @@ const cors = require("cors");
 const axios = require("axios");
 const app = express();
 const mysql = require("mysql"); // mysql 모듈 로드
+const session = require("express-session");
+const MySQLStore = require("express-mysql-session")(session); // express-mysql-session 모듈을 로드하되, 인자로 session을 넘겨주기
 
 app.use(bodyParser.json()); // json 데이터 처리를 위한 설정
 
@@ -26,6 +28,19 @@ db.connect((err) => {
   }
   console.log("Connected to database.");
 });
+
+const sessionStore = new MySQLStore({}, db);
+
+app.use(
+  session({
+    secret: "qwerasdfzx", //세션을 암호화하기위한 비밀키 키보드에서 랜덤으로 10자 타이핑함 글자수는 정해져있지는 않음
+    resave: false, // 세션 데이터가 변경되지 않았을 때 세션을 저장소에 다시 저장하지 않는다.
+    saveUninitialized: true, // 'true'로 설정하면 초기화되지 않은 세션(새로운 세션)도 저장소에 저장된다. 새로운 세션이란 아직 아무런 데이터가 설정되지 않았을 때를 의미
+    store: sessionStore, // 세션 데이터를 저장할 저장소를 정의
+  })
+);
+
+// 기존에 선언된 MySQL 데이터베이스 연결을 사용한다.
 
 //쿼리문
 const queryDatabase = (sql) => {
@@ -203,32 +218,32 @@ const io = socketIo(server, {
 //   }
 // });
 
+// 로그인 처리
+// 로그인 처리
+// 로그인 처리
 
-// 로그인 처리
-// 로그인 처리
-// 로그인 처리
-app.post("/api/login", (req ,res)=>{
-  console.log(req.body)
-  const {id, pw} = req.body;
+app.post("/api/login", (req, res) => {
+  console.log(req.body);
+  const { id, pw } = req.body;
 
   const query = "SELECT * FROM userInfo WHERE id = ? AND pw =? ";
 
-  db.query(
-    query, [id, pw], (err, result) =>{
-      if (err) {
-        console.error("Query error: ", err);
-        res.status(500).send({ message: "Database error", error: err });
+  db.query(query, [id, pw], (err, result) => {
+    if (err) {
+      console.error("Query error: ", err);
+      res.status(500).send({ message: "Database error", error: err });
+    } else {
+      if (result.length > 0) {
+        req.session.userId = result[0].id;
+        req.session.loggedIn = true;
+        console.log(req.session);
+        res.status(200).send({ message: "User login successfully" });
       } else {
-        if (result.length > 0) {
-          res.status(200).send({ message: "User login successfully" });
-        } else {
-          res.status(401).send({ message: "Invalid ID or password" });
-        }
+        res.status(401).send({ message: "Invalid ID or password" });
       }
     }
-  )
+  });
 });
-
 
 /// 회원가입 처리
 /// 회원가입 처리
@@ -275,6 +290,30 @@ app.post("/api/check-id", (req, res) => {
         // 사용 가능한 ID
         res.send({ isDuplicate: false });
       }
+    }
+  });
+});
+
+//커플 초대코드 저장하기
+//커플 초대코드 저장하기
+//커플 초대코드 저장하기
+
+app.post("/api/save-code", (req, res) => {
+  const userId = req.session.userId; // 세션에서 사용자 ID를 가져온다.
+  console.log(req.body);
+  const { connect_id } = req.body;
+  //로그인 상태 확인
+  if (!userId) {
+    return res.status(401).send({ message: "Unauthorized: No session found" });
+  }
+
+  const query = "UPDATE userInfo SET connect_id =? WHERE id =?";
+  console.log(connect_id);
+  db.query(query, [connect_id, userId], (err, results) => {
+    if (err) {
+      res.status(500).send({ message: "Database error", error: err.message });
+    } else {
+      res.status(200).send({ message: "Failed to save the code" });
     }
   });
 });

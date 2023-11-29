@@ -1,10 +1,16 @@
 import React, { useState } from "react";
-import { View, Text, TextInput, TouchableOpacity, StyleSheet } from "react-native";
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+} from "react-native";
 import { useNavigation } from "@react-navigation/native";
 
 const Login = () => {
-  const [id, setId] = useState('');
-  const [pw, setPw] = useState('');
+  const [id, setId] = useState("");
+  const [pw, setPw] = useState("");
   const navigation = useNavigation();
 
   const resetInputs = () => {
@@ -25,15 +31,17 @@ const Login = () => {
       },
       body: JSON.stringify(inputData),
     })
-    .then((response) => response.json())
-    .then((data) => {
-      alert("로그인 성공");
-      resetInputs();
-      navigation.navigate("Connect");
-    })
-    .catch((error) => {
-      alert("로그인 실패: 아이디 비밀번호를 다시 확인하세요: " + error.message);
-    });
+      .then((response) => response.json())
+      .then((data) => {
+        alert("로그인 성공");
+        resetInputs();
+        navigation.navigate("Connect");
+      })
+      .catch((error) => {
+        alert(
+          "로그인 실패: 아이디 비밀번호를 다시 확인하세요: " + error.message
+        );
+      });
   };
 
   const navigateToSignUp = () => {
@@ -55,10 +63,7 @@ const Login = () => {
         secureTextEntry={true}
         onChangeText={setPw}
       />
-      <TouchableOpacity
-        style={styles.button}
-        onPress={handleLogin}
-      >
+      <TouchableOpacity style={styles.button} onPress={handleLogin}>
         <Text style={styles.buttonText}>로그인</Text>
       </TouchableOpacity>
 
@@ -75,8 +80,6 @@ const Login = () => {
       >
         <Text style={styles.buttonText}>회원가입</Text>
       </TouchableOpacity>
-
-      
     </View>
   );
 };
