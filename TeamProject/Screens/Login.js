@@ -63,6 +63,13 @@ const Login = () => {
       </TouchableOpacity>
 
       <TouchableOpacity
+        style={styles.button}
+        onPress={()=>navigation.navigate("MainTab")}
+      >
+        <Text style={styles.buttonText}>로그인1111</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity
         style={[styles.button, styles.signupButton]}
         onPress={navigateToSignUp}
       >
