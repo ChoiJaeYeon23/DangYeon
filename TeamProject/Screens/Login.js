@@ -69,7 +69,7 @@ const Login = () => {
         <Text style={styles.buttonText}>회원가입</Text>
       </TouchableOpacity>
 
-      {/* 네이버 로그인 버튼과 관련된 코드는 생략되었습니다. */}
+      
     </View>
   );
 };
