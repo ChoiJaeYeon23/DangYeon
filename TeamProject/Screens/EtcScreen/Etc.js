@@ -1,33 +1,78 @@
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, Text, Dimensions, Image, TouchableOpacity } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Image, Dimensions, TouchableOpacity } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import moment from 'moment';
 
 const { width } = Dimensions.get('window');
 
-const Etc = ({ navigation }) => { 
-  const firstDots = Array.from({ length: 15 }, (_, i) => i);
-  const secondDots = Array.from({ length: width / 20 }, (_, i) => i);
-  const [bucketListItems, setBucketListItems] = useState([]);
+const whiteCandyImage = require('../../assets/Bincandy.png');
+const brownCandyImage = require('../../assets/candy.png');
 
-  const loadData = async () => {
-    try {
-      const jsonValue = await AsyncStorage.getItem('@bucketList');
-      if (jsonValue != null) {
-        const data = JSON.parse(jsonValue);
-        setBucketListItems(data.slice(0, 2)); // 최대 두 개의 항목만 설정
-      }
-    } catch(e) {
-      console.error("Error loading data", e);
-    }
-  };
+// 출석체크 상태에 따라 나타나는 이미지
+const Candy = ({ isComplete }) => {
+  const candyImage = isComplete ? brownCandyImage : whiteCandyImage;
+  return (
+    <Image source={candyImage} style={styles.candy} />
+  );
+};
+
+const Etc = ({ navigation, candyData }) => {
+  const firstDots = Array.from({ length: 15 }, (_, i) => i); // 점선
+  const secondDots = Array.from({ length: width / 20 }, (_, i) => i); // 점선
+  const [bucketListItems, setBucketListItems] = useState([]); // 버킷리스트 상태
+  const [attendance, setAttendance] = useState(Array(7).fill(false)); // 출석체크 상태
+  const [currentWeek, setCurrentWeek] = useState(0); // 현재 주차
+  const [currentMonth, setCurrentMonth] = useState(''); // 현재 월
+  
+  const calculateWeeks = () => {
+    const today = moment();
+    const currentMonth = today.format('M');
+    const monthStart = moment(today).startOf('month');
+    const weeksPassed = today.diff(monthStart, 'weeks') + 1;
+    
+    setCurrentWeek(weeksPassed);
+    setCurrentMonth(currentMonth);
+  }
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      loadData();
-    }, 1000); // 1초마다 데이터를 다시 로드하여 업데이트
+    // AsyncStorage에서 데이터 로드 및 주차 계산
+    const loadData = async () => {
+      try {
+        const jsonValue = await AsyncStorage.getItem('@bucketList');
+        if (jsonValue != null) {
+          const data = JSON.parse(jsonValue);
+          setBucketListItems(data.slice(0, 2));
+        }
+      } catch (e) {
+        console.error("Error loading data", e);
+      }
+    };
 
-    return () => clearInterval(interval); // 컴포넌트가 언마운트될 때 인터벌 정리
+    const loadAttendanceData = async () => {
+      try {
+        const attendanceValue = await AsyncStorage.getItem('@attendance');
+        if (attendanceValue != null) {
+          setAttendance(JSON.parse(attendanceValue));
+        }
+      } catch (e) {
+        console.error("Error loading attendance data", e);
+      }
+    };
+
+    loadData();
+    loadAttendanceData();
+    calculateWeeks(); // 주차 계산 함수 호출
   }, []);
+  // 출석체크 버튼 클릭 
+  const handleCandyClick = () => {
+    navigation.navigate('CalendarPage', { attendance });
+  };
+  // 출석체크 상태에 따라 이미지 달라지는 렌더링
+  const renderCandies = () => {
+    return attendance.map((isComplete, index) => (
+      <Candy key={index} isComplete={isComplete} />
+    ));
+  };
 
   return (
     <View style={styles.container}>
@@ -40,6 +85,11 @@ const Etc = ({ navigation }) => {
     </View>
       
       {/* 첫 번째 실선 */}
+      <View style={styles.boxContainer}>
+        <View style={[styles.box, styles.firstBox]} />
+        <View style={styles.box} />
+      </View>
+
       <View style={styles.dotsContainer}>
         {firstDots.map((_, index) => (
           <View key={index} style={styles.dot} />
@@ -61,21 +111,21 @@ const Etc = ({ navigation }) => {
           </View>
         ))}
       </View>
-      {/* 두 번째 점선 */}
+
       <View style={styles.secondDotsContainer}>
         {secondDots.map((_, index) => (
           <View key={`second-dot-${index}`} style={styles.secondDot} />
         ))}
       </View>
-      {/*출석체크 상자*/}
-      <View style={styles.Check}>
-        <Text
-          style={styles.CheckText}
-          onPress={() => navigation.navigate('BucketList')} 
-        >
-          출석체크
+
+      <TouchableOpacity onPress={handleCandyClick} style={styles.Check}>
+        <Text style={styles.CheckText}>
+          {currentMonth}월 {currentWeek}주째 출석체크
         </Text>
-      </View>
+        <View style={styles.candiesContainer}>
+          {renderCandies()}
+        </View>
+      </TouchableOpacity>
     </View>
   );
 };
@@ -83,53 +133,53 @@ const Etc = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFF9F9', 
+    backgroundColor: '#FFF9F9',
     alignItems: 'center',
-    paddingTop: 10, 
+    paddingTop: 10,
   },
   boxContainer: {
-    flexDirection: 'row', 
-    justifyContent: 'space-around', 
-    width: '100%', 
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    width: '100%',
   },
   box: {
-    width: width * 0.4, 
-    height: width * 0.6, 
-    backgroundColor: '#FFD9D9', 
+    width: width * 0.4,
+    height: width * 0.6,
+    backgroundColor: '#FFD9D9',
   },
   firstBox: {
-    marginBottom: 10, 
+    marginBottom: 10,
   },
   dotsContainer: {
     flexDirection: 'row',
     width: '90%',
     justifyContent: 'space-between',
-    marginVertical: 10, 
+    marginVertical: 10,
   },
   dot: {
-    width: 10, 
-    height: 1, 
-    backgroundColor: 'black', 
+    width: 10,
+    height: 1,
+    backgroundColor: 'black',
   },
   secondDotsContainer: {
     flexDirection: 'row',
     width: '90%',
     justifyContent: 'space-between',
-    marginVertical: 10, 
+    marginVertical: 10,
   },
   secondDot: {
     width: 10,
-    height: 1, 
-    backgroundColor: 'black', 
-    marginRight: 10, 
+    height: 1,
+    backgroundColor: 'black',
+    marginRight: 10,
   },
   ListBox: {
-    backgroundColor: '#FFFFFF', 
-    width: width * 0.8, 
-    height: width * 0.3, 
-    justifyContent: 'flex-start', // 여기를 변경
-    alignItems: 'flex-start', // 항목이 없을 때도 왼쪽 정렬 유지
-    marginVertical: 20, 
+    backgroundColor: '#FFFFFF',
+    width: width * 0.8,
+    height: width * 0.3,
+    justifyContent: 'flex-start',
+    alignItems: 'flex-start',
+    marginVertical: 20,
     paddingLeft: 15,
     paddingTop: 10,
   },
@@ -140,7 +190,7 @@ const styles = StyleSheet.create({
   listItem: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    marginTop: 15, // 상단 여백 추가
+    marginTop: 15,
     width: '100%',
     paddingLeft: 20,
   },
@@ -150,16 +200,25 @@ const styles = StyleSheet.create({
     marginRight: 10,
   },
   strikethrough: {
-    textDecorationLine: 'line-through', 
+    textDecorationLine: 'line-through',
     color: '#d3d3d3',
   },
   Check: {
-    backgroundColor: '#FFD9D9', 
+    backgroundColor: '#FFD9D9',
     width: width * 0.8,
-    height: width * 0.3, 
-    justifyContent: 'center', 
-    alignItems: 'center', 
-    marginVertical: 20, 
+    height: width * 0.3,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginVertical: 20,
+  },
+  candiesContainer: {
+    flexDirection: 'row',
+    marginTop: 10, // 상단 여백 추가
+  },
+  candy: {
+    width: 24,
+    height: 24,
+    marginHorizontal: 5,
   },
 });
 

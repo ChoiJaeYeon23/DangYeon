@@ -27,6 +27,7 @@ import Comments from '../Screens/BoardScreen/Comments';
 import Etc from '../Screens/EtcScreen/Etc'
 import BucketList from '../Screens/EtcScreen/BucketList';
 import PedometerScreen from '../Screens/EtcScreen/PedometerScreen'
+import CalendarPage from '../Screens/EtcScreen/CalendarPage';
 
 const MainStack = createStackNavigator();
 const AuthStack = createStackNavigator();
@@ -289,7 +290,7 @@ function EtcStackScreen() {
                 name="Etc"
                 component={Etc}
                 options={{
-                    title: "etc",
+                    title: "기타",
                     headerShown: true,
                     headerStyle: { backgroundColor: "#FFCCFF" },
                     headerTintColor: "white",
@@ -318,6 +319,20 @@ function EtcStackScreen() {
                 component={PedometerScreen}
                 options={{
                     title: "만보기",
+                    headerShown: true,
+                    headerStyle: { backgroundColor: "#FFCCFF" },
+                    headerTintColor: "white",
+                    headerTitleStyle: {
+                        fontWeight: "bold",
+                        color: "white",
+                    },
+                }}
+            />
+            <EtcStack.Screen
+                name="CalendarPage"
+                component={CalendarPage}
+                options={{
+                    title: "출석확인달력",
                     headerShown: true,
                     headerStyle: { backgroundColor: "#FFCCFF" },
                     headerTintColor: "white",
