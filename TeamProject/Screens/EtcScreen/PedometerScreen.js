@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, Platform } from 'react-native';
+import { View, Text, TouchableOpacity, Platform, StyleSheet } from 'react-native';
 import * as Location from 'expo-location';
 import { Pedometer } from 'expo-sensors';
 
@@ -73,10 +73,16 @@ const PedometerScreen = () => {
       <TouchableOpacity
         onPress={startPedometer}
         disabled={!isWithinDistance || isPedometerAvailable !== "yes"}>
-        <Text>만보기 시작</Text>
+        <Text style={styles.text2}>만보기 시작</Text>
       </TouchableOpacity>
     </View>
   );
 };
+
+const styles = StyleSheet.create({
+  text2: {
+    fontSize: 40
+  }
+})
 
 export default PedometerScreen;

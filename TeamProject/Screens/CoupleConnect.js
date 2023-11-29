@@ -119,7 +119,7 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         fontSize: 24,
         marginVertical: 8,
-        marginLeft: 90
+        marginLeft: 90,
     },
     button: {
         backgroundColor: '#EBDBDB',

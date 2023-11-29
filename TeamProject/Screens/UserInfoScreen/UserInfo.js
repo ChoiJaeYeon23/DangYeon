@@ -12,6 +12,7 @@ import {
     FlatList
 } from "react-native";
 import DateTimePicker from '@react-native-community/datetimepicker';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import calendar from '../../assets/calendar.png'
 import * as ImagePicker from 'expo-image-picker';
 
@@ -27,6 +28,44 @@ const UserInfo = ({ navigation }) => {
     const [isMeetingDayPickerVisible, setIsMeetingDayPickerVisible] = useState(false); //처음 만난 날 picker
     const [profilePic, setProfilePic] = useState(null); // 프로필 사진
     const [isBloodTypeModalVisible, setIsBloodTypeModalVisible] = useState(false); // 혈액형 모달
+
+    const saveProfileData = async () => {
+        try {
+          const profileData = {
+            name,
+            birthday,
+            bloodType,
+            meetingDay,
+            profilePic: profilePic ? profilePic.uri : null,
+          };
+          await AsyncStorage.setItem('userProfile', JSON.stringify(profileData));
+          alert('프로필이 저장되었습니다.');
+        } catch (error) {
+          alert('프로필 저장에 실패했습니다.'); 
+        }
+      };
+    
+      useEffect(() => {
+        const loadProfileData = async () => {
+          try {
+            const savedProfileData = await AsyncStorage.getItem('userProfile');
+            if (savedProfileData !== null) {
+              const { name, birthday, bloodType, meetingDay, profilePic } = JSON.parse(savedProfileData);
+              setName(name);
+              setBirthday(birthday);
+              setBloodType(bloodType);
+              setMeetingDay(meetingDay);
+              if (profilePic) {
+                setProfilePic({ uri: profilePic }); // URI를 사용하여 이미지 설정
+              }
+            }
+          } catch (error) {
+            console.error('프로필 로드 실패:', error);
+          }
+        };
+      
+        loadProfileData();
+      }, []);
 
     // 생년월일 변경
     const onBirthdayChange = (event, selectedDate) => {
@@ -96,14 +135,6 @@ const UserInfo = ({ navigation }) => {
     const goToLogout = () => { //로그아웃 화면으로 이동 (이름 수정 필요)
         navigation.navigate('Login');
     };
-
-    const saveAlert = () => //저장 완료 알람창
-        Alert.alert(
-            "저장 완료",
-            "저장이 완료되었습니다.",
-            [{ text: "확인", onPress: () => { } }],
-            { cancelable: false }
-        );
 
     // 혈액형 선택 모달 표시 함수
     const showBloodTypeModal = () => {
@@ -230,7 +261,7 @@ const UserInfo = ({ navigation }) => {
             </View>
             <Separator />
             <View style={styles.saveButtonContainer}>
-                <TouchableOpacity style={styles.Button} onPress={saveAlert}>
+                <TouchableOpacity style={styles.Button} onPress={saveProfileData}>
                     <Text style={styles.ButtonText}>저장</Text>
                 </TouchableOpacity>
                 <View style={styles.buttonContainer}>
