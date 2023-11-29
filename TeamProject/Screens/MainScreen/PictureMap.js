@@ -6,6 +6,10 @@ const PictureMap = () => {
   const [imageUris, setImageUris] = useState([]);
   const [addresses, setAddresses] = useState([]);
 
+  // 인천광역시, 서울특별시            => 경기도
+  // 대전광역시, 세종특별자치시        => 충청남도
+  // 광주광역시                       => 전라남도
+  // 부산광역시, 대구광역시, 울산광역시 => 경상남도
   const regionData = {
     '경기도': [
       '수원', '성남', '의정부', '안양', '부천', '광명', '평택', '동두천', '안산', '고양', '과천', '구리', '남양주',
@@ -133,7 +137,7 @@ const PictureMap = () => {
     }
   
     return '지역을 결정할 수 없음';
-  };
+  };  // 역지오코딩으로 나온 결과를 8도 중 하나(데이터는 region에 저장)로 변환해주는 함수
 
   const renderImageOnMap = (uri, address) => {
     const region = determineRegion(address);
