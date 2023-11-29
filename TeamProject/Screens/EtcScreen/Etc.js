@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Image, Dimensions, TouchableOpacity } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Image, Dimensions } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import moment from 'moment';
 
@@ -83,12 +83,7 @@ const Etc = ({ navigation, candyData }) => {
       </View>
       <View style={styles.box} />
     </View>
-      
-      {/* 첫 번째 실선 */}
-      <View style={styles.boxContainer}>
-        <View style={[styles.box, styles.firstBox]} />
-        <View style={styles.box} />
-      </View>
+    
 
       <View style={styles.dotsContainer}>
         {firstDots.map((_, index) => (
