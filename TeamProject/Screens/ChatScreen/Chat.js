@@ -11,6 +11,7 @@ import {
 } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import io from "socket.io-client";
+import * as ImagePicker from 'expo-image-picker';
 
 const Chat = () => {
   const [socket, setSocket] = useState(null);
@@ -55,16 +56,33 @@ const Chat = () => {
       setMessage("");
     }
   };
+  const sendImage = async () => {
+    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permissionResult.granted) {
+      Alert.alert('권한 필요', '갤러리에 접근하기 위한 권한이 필요합니다.');
+      return;
+    }
 
-  const sendImage = () => {};
+    let result = await ImagePicker.launchImageLibraryAsync({
+      allowsMultipleSelection: true, // 여러 사진 선택가능
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      exif: true,
+    });
 
-  const sendEmoticon = () => {};
+    if (!result.canceled && result.assets) {
+      const uris = result.assets.map(asset => asset.uri);
+      setImageUris(uris);
+      await processImages(result.assets);
+    }
+  };
+  
+  const sendEmoticon = () => { };
 
   return (
     <KeyboardAvoidingView
       style={styles.container}
-      behavior={(Platform.OS === "ios") === "50%"} // iOS는 padding을 사용하고 Android는 height 조정
-      keyboardVerticalOffset={(Platform.OS === "ios") === 64} // 필요에 따라 iOS에서 키보드 오프셋 조정
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
     >
       <View style={styles.container}>
         <FlatList
@@ -92,34 +110,38 @@ const Chat = () => {
           </TouchableOpacity>
         </View>
       </View>
-    </KeyboardAvoidingView>
+    </KeyboardAvoidingView >
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 10,
     backgroundColor: "#FFF9F9",
   },
   messageList: {
+    flex: 1,
     padding: 10,
     fontSize: 18,
   },
   inputSection: {
     flexDirection: "row",
+    padding: 10,
+    borderTopWidth: 1,
+    borderTopColor: "#ddd",
+    backgroundColor: "#FFF",
     alignItems: "center",
   },
   input: {
     flex: 1,
-    height: 40,
     borderWidth: 1,
+    borderColor: 'gray',
     padding: 10,
-    marginLeft: 5,
-    marginRight: 5,
+    marginRight: 10,
+    borderRadius: 15,
   },
   iconButton: {
-    marginHorizontal: 2,
+    marginRight: 5,
   },
   messageBubble: {
     padding: 10,
