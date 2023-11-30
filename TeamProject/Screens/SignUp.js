@@ -8,9 +8,11 @@ import {
   Platform,
   StyleSheet,
   Modal,
-  FlatList
+  FlatList,
+  KeyboardAvoidingView
 } from "react-native";
 import DateTimePicker from '@react-native-community/datetimepicker';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from "@react-navigation/native";
 
@@ -25,7 +27,18 @@ const SignUp = () => {
   const [isBirthdayPickerVisible, setIsBirthdayPickerVisible] = useState(false); //생년월일 picker
   const [isMeetingDayPickerVisible, setIsMeetingDayPickerVisible] = useState(false); //처음 만난 날 picker
   const [isBloodTypeModalVisible, setIsBloodTypeModalVisible] = useState(false); // 혈액형 모달
+  const [errorMessage, setErrorMessage] = useState(""); // 에러 메시지 상태
   const navigation = useNavigation();
+
+  const validateInput = () => {
+    if (!username) return "이름을 입력해주세요.";
+    if (!id) return "아이디를 입력해주세요.";
+    if (!pw) return "비밀번호를 입력해주세요.";
+    if (!birthday) return "생년월일을 입력해주세요.";
+    if (!meetingDay) return "처음 만난 날을 입력해주세요.";
+    if (!bloodType) return "혈액형을 선택해주세요.";
+    return "";
+  };
 
   const resetInputs = () => {
     // 초기화 함수
@@ -38,6 +51,14 @@ const SignUp = () => {
   };
 
   const SignUp = () => {
+    const error = validateInput();
+    if (error) {
+      setErrorMessage(error);
+      return; // 에러가 있으면 여기서 함수 종료
+    }
+    // 에러가 없으면 에러 메시지 상태를 초기화
+    setErrorMessage("");
+
     const userData = {
       username: username,
       id: id,
@@ -149,144 +170,165 @@ const SignUp = () => {
     </TouchableOpacity>
   );
 
-  // 중복 확인 버튼
-  <TouchableOpacity onPress={checkIdDuplicate}>
-    <Text>중복 확인</Text>
-  </TouchableOpacity>;
+  const Separator = () => <View style={styles.separator} />;
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.titleText}>회원가입을 진행해주세요.</Text>
-      <View style={styles.genderContainer}>
-        <TouchableOpacity
-          style={styles.genderButton}
-          onPress={() => setGender('여성')}>
-          <Text style={genderTextStyle('여성')}>여성</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.genderButton}
-          onPress={() => setGender('남성')}>
-          <Text style={genderTextStyle('남성')}>남성</Text>
-        </TouchableOpacity>
-      </View>
-      <View style={styles.inputRow}>
-        <Text style={styles.inputLabel}>이름</Text>
-        <TextInput
-          style={styles.inputTT}
-          placeholder="이름"
-          value={username}
-          onChangeText={setName}
-        />
-      </View>
-      <View style={styles.inputRow}>
-        <Text style={styles.inputLabel}>아이디</Text>
-        <TextInput
-          style={styles.inputTT}
-          placeholder="ID"
-          value={id}
-          onChangeText={setId}
-        />
-      </View>
-      <View style={styles.inputRow}>
-        <Text style={styles.inputLabel}>비밀번호</Text>
-        <TextInput
-          style={styles.inputTT}
-          placeholder="PassWord"
-          value={pw}
-          onChangeText={setPw}
-        />
-      </View>
-      <View style={styles.inputRow}>
-        <Text style={styles.inputLabel}>생년월일</Text>
-        <View style={styles.dateInputContainer}>
-          <TextInput
-            value={birthday}
-            placeholder="0000-00-00"
-            style={styles.dateInput}
-            editable={false}
-          />
-          <TouchableOpacity onPress={showBirthdayPicker}>
-            <Image source={require('../assets/calendar.png')} style={styles.calendar} />
-          </TouchableOpacity>
-        </View>
-        <View style={styles.datePickerContainer}>
-          {isBirthdayPickerVisible && (
-            <DateTimePicker
-              testID="birthdayPicker"
-              value={birthday ? new Date(birthday) : new Date()}
-              mode="date"
-              display="calendar"
-              onChange={onBirthdayChange}
-            />
-          )}
-        </View>
-      </View>
-      <View style={styles.inputRow}>
-        <Text style={styles.inputLabel}>처음 만난 날</Text>
-        <View style={styles.dateInputContainer}>
-          <TextInput
-            value={meetingDay}
-            placeholder="0000-00-00"
-            style={styles.dateInput}
-            editable={false}
-            onPress={showMeetingDayPicker}
-          />
-          <TouchableOpacity onPress={showMeetingDayPicker}>
-            <Image source={require('../assets/calendar.png')} style={styles.calendar} />
-          </TouchableOpacity>
-        </View>
-        <View style={styles.datePickerContainer}>
-          {isMeetingDayPickerVisible && (
-            <DateTimePicker
-              testID="meetingDayPicker"
-              value={meetingDay ? new Date(meetingDay) : new Date()}
-              mode="date"
-              display="calendar"
-              onChange={onMeetingDayChange}
-            />
-          )}
-        </View>
-      </View>
-      <View style={styles.inputRowColumn}>
-        <Text style={styles.inputLabel}>혈액형</Text>
-        <TouchableOpacity onPress={showBloodTypeModal}>
-          <Text style={styles.bloodText}>{bloodType ? `${bloodType}형` : "혈액형 선택"}</Text>
-        </TouchableOpacity>
-        <Modal
-          animationType="slide"
-          transparent={true}
-          visible={isBloodTypeModalVisible}
-          onRequestClose={() => {
-            setIsBloodTypeModalVisible(false);
-          }}>
-          <TouchableOpacity
-            style={styles.centeredView}
-            activeOpacity={1}
-            onPressOut={() => setIsBloodTypeModalVisible(false)}
-          >
-            <View style={styles.modalView}>
-              <FlatList
-                data={bloodTypes}
-                renderItem={renderBloodTypeItem}
-                keyExtractor={(item) => item}
-              />
-            </View>
-          </TouchableOpacity>
-        </Modal>
-      </View>
-      <TouchableOpacity onPress={checkIdDuplicate}>
-        <Text>중복 확인</Text>
-      </TouchableOpacity>
-      <TouchableOpacity style={styles.loginBtn} onPress={SignUp}>
-        <Text style={styles.loginText}>회원가입 완료</Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        style={styles.loginBtn}
-        onPress={() => navigation.navigate("Login")}
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === "ios" ? "padding" : "height"} // iOS는 'padding', Android는 'height'
+      keyboardVerticalOffset={Platform.OS === "ios" ? 100 : 0}
+    >
+      <KeyboardAwareScrollView
+        style={{ flex: 1 }}
+        contentContainerStyle={styles.scrollViewContent}
+        keyboardShouldPersistTaps='handled'
       >
-        <Text style={styles.loginText}>로그인 화면으로 돌아가기</Text>
-      </TouchableOpacity>
-    </View>
+        <View style={styles.container}>
+          <Text style={styles.titleText}>회원가입을 진행해주세요.</Text>
+          <Separator />
+          <View style={styles.inputRow}>
+            <Text style={styles.inputLabel}>성별</Text>
+            <TouchableOpacity
+              style={styles.genderButton}
+              onPress={() => setGender('여성')}>
+              <Text style={genderTextStyle('여성')}>여성</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.genderButton}
+              onPress={() => setGender('남성')}>
+              <Text style={genderTextStyle('남성')}>남성</Text>
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.inputRow}>
+            <Text style={styles.inputLabel}>이름</Text>
+            <TextInput
+              style={styles.inputTT}
+              placeholder="이름"
+              value={username}
+              onChangeText={setName}
+            />
+          </View>
+          <View style={styles.inputRow}>
+            <Text style={styles.inputLabel}>아이디</Text>
+            <View style={styles.idInputContainer}>
+              <TextInput
+                style={styles.inputTT}
+                placeholder="ID"
+                value={id}
+                onChangeText={setId}
+              />
+              <View style={styles.buttonContainer}>
+                <TouchableOpacity style={styles.checkDuplicateButton} onPress={checkIdDuplicate}>
+                  <Text style={styles.checkDuplicateButtonText}>ID 중복 확인</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+          <View style={styles.inputRow}>
+            <Text style={styles.inputLabel}>비밀번호</Text>
+            <TextInput
+              style={styles.inputTT}
+              placeholder="PassWord"
+              value={pw}
+              onChangeText={setPw}
+            />
+          </View>
+
+          <View style={styles.inputRow}>
+            <Text style={styles.inputLabel}>생년월일</Text>
+            <View style={styles.dateInputContainer}>
+              <TextInput
+                value={birthday}
+                placeholder="0000-00-00"
+                style={styles.dateInput}
+                editable={false}
+              />
+              <TouchableOpacity onPress={showBirthdayPicker}>
+                <Image source={require('../assets/calendar.png')} style={styles.calendar} />
+              </TouchableOpacity>
+            </View>
+            <View style={styles.datePickerContainer}>
+              {isBirthdayPickerVisible && (
+                <DateTimePicker
+                  testID="birthdayPicker"
+                  value={birthday ? new Date(birthday) : new Date()}
+                  mode="date"
+                  display="calendar"
+                  onChange={onBirthdayChange}
+                />
+              )}
+            </View>
+          </View>
+          <View style={styles.inputRow}>
+            <Text style={styles.inputLabel}>처음 만난 날</Text>
+            <View style={styles.dateInputContainer}>
+              <TextInput
+                value={meetingDay}
+                placeholder="0000-00-00"
+                style={styles.dateInput}
+                editable={false}
+                onPress={showMeetingDayPicker}
+              />
+              <TouchableOpacity onPress={showMeetingDayPicker}>
+                <Image source={require('../assets/calendar.png')} style={styles.calendar} />
+              </TouchableOpacity>
+            </View>
+            <View style={styles.datePickerContainer}>
+              {isMeetingDayPickerVisible && (
+                <DateTimePicker
+                  testID="meetingDayPicker"
+                  value={meetingDay ? new Date(meetingDay) : new Date()}
+                  mode="date"
+                  display="calendar"
+                  onChange={onMeetingDayChange}
+                />
+              )}
+            </View>
+          </View>
+          <View style={styles.inputRowColumn}>
+            <Text style={styles.inputLabel}>혈액형</Text>
+            <TouchableOpacity onPress={showBloodTypeModal}>
+              <Text style={styles.bloodText}>{bloodType ? `${bloodType}형` : "혈액형 선택"}</Text>
+            </TouchableOpacity>
+            <Modal
+              animationType="slide"
+              transparent={true}
+              visible={isBloodTypeModalVisible}
+              onRequestClose={() => {
+                setIsBloodTypeModalVisible(false);
+              }}>
+              <TouchableOpacity
+                style={styles.centeredView}
+                activeOpacity={1}
+                onPressOut={() => setIsBloodTypeModalVisible(false)}
+              >
+                <View style={styles.modalView}>
+                  <FlatList
+                    data={bloodTypes}
+                    renderItem={renderBloodTypeItem}
+                    keyExtractor={(item) => item}
+                  />
+                </View>
+              </TouchableOpacity>
+            </Modal>
+          </View>
+          <Separator />
+          {errorMessage ? (
+            <Text style={styles.errorText}>{errorMessage}</Text>
+          ) : null}
+          <TouchableOpacity style={styles.loginBtn} onPress={SignUp}>
+            <Text style={styles.loginText}>회원가입 완료</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.loginBtn}
+            onPress={() => navigation.navigate("Login")}
+          >
+            <Text style={styles.loginText}>로그인 화면으로 돌아가기</Text>
+          </TouchableOpacity>
+        </View>
+      </KeyboardAwareScrollView>
+    </KeyboardAvoidingView>
   );
 };
 
@@ -298,20 +340,19 @@ const styles = StyleSheet.create({
     padding: 20,
     backgroundColor: '#FFF9F9',
   },
+  scrollViewContent: {
+    flexGrow: 1,
+    paddingBottom: 200, // 여분의 공간을 늘림
+  },
   titleText: {
     textAlign: 'center',
-    marginBottom: 12,
+    marginBottom: 10,
     color: '#544848',
     fontSize: 24,
     fontWeight: 'bold',
   },
-  genderContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    marginBottom: 20,
-  },
   genderButton: {
-    padding: 10,
+    padding: 8,
     marginHorizontal: 10,
   },
   genderText: {
@@ -330,14 +371,21 @@ const styles = StyleSheet.create({
     marginBottom: 15,
     marginRight: 50,
   },
+  idInputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    width: '95%',
+  },
   inputRowColumn: {
     flexDirection: 'row',
     alignItems: 'center',
     width: '60%',
     marginBottom: 15,
-    marginRight: 30,
+    marginRight: 45,
   },
   inputTT: {
+    flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
     width: '75%',
@@ -357,10 +405,26 @@ const styles = StyleSheet.create({
     width: '40%',
     marginRight: 15,
   },
+  buttonContainer: {
+    flex: 1,
+    alignItems: 'flex-end',
+  },
+  checkDuplicateButton: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    backgroundColor: '#FFCECE',
+    borderWidth: 1,
+    borderRadius: 5,
+    marginLeft: 20,
+  },
+  checkDuplicateButtonText: {
+    color: '#544848',
+    textAlign: 'center',
+  },
   dateInputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    width: '70%',
+    width: '65%',
     borderBottomWidth: 1,
     borderBottomColor: '#A0A0A0',
     marginBottom: 15,
@@ -386,14 +450,15 @@ const styles = StyleSheet.create({
     height: 45,
     justifyContent: 'center',
     alignItems: 'center',
-    borderRadius: 7,
-    backgroundColor: 'white',
-    borderWidth: 2,
-    marginBottom: 10,
+    borderRadius: 10,
+    backgroundColor: '#FFCECE',
+    borderWidth: 1,
+    marginTop: 10,
   },
   loginText: {
-    color: 'black',
+    color: '#544848',
     fontWeight: 'bold',
+    fontSize: 18,
   },
   bloodText: {
     fontSize: 18,
@@ -432,6 +497,19 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
     elevation: 5,
+  },
+  separator: {
+    height: 1,
+    width: '80%',
+    backgroundColor: '#737373',
+    marginVertical: 15,
+    marginBottom: 20,
+  },
+  errorText: {
+    color: 'red',
+    fontSize: 16,
+    marginBottom: 10,
+    textAlign: 'center',
   },
 });
 
