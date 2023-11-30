@@ -21,9 +21,6 @@ const UserInfo = ({ navigation }) => {
     const [birthday, setBirthday] = useState(''); //생년월일
     const [meetingDay, setMeetingDay] = useState(''); //처음 만난 날
     const [bloodType, setBloodType] = useState(''); //혈액형
-
-    const [date, setDate] = useState(new Date()); // 날짜 picker
-    const [showDatePicker, setShowDatePicker] = useState(false);
     const [isBirthdayPickerVisible, setIsBirthdayPickerVisible] = useState(false); //생년월일 picker
     const [isMeetingDayPickerVisible, setIsMeetingDayPickerVisible] = useState(false); //처음 만난 날 picker
     const [profilePic, setProfilePic] = useState(null); // 프로필 사진
@@ -31,41 +28,41 @@ const UserInfo = ({ navigation }) => {
 
     const saveProfileData = async () => {
         try {
-          const profileData = {
-            name,
-            birthday,
-            bloodType,
-            meetingDay,
-            profilePic: profilePic ? profilePic.uri : null,
-          };
-          await AsyncStorage.setItem('userProfile', JSON.stringify(profileData));
-          alert('프로필이 저장되었습니다.');
+            const profileData = {
+                name,
+                birthday,
+                bloodType,
+                meetingDay,
+                profilePic: profilePic ? profilePic.uri : null,
+            };
+            await AsyncStorage.setItem('userProfile', JSON.stringify(profileData));
+            alert('프로필이 저장되었습니다.');
         } catch (error) {
-          alert('프로필 저장에 실패했습니다.'); 
+            alert('프로필 저장에 실패했습니다.');
         }
-      };
-    
-      useEffect(() => {
+    };
+
+    useEffect(() => {
         const loadProfileData = async () => {
-          try {
-            const savedProfileData = await AsyncStorage.getItem('userProfile');
-            if (savedProfileData !== null) {
-              const { name, birthday, bloodType, meetingDay, profilePic } = JSON.parse(savedProfileData);
-              setName(name);
-              setBirthday(birthday);
-              setBloodType(bloodType);
-              setMeetingDay(meetingDay);
-              if (profilePic) {
-                setProfilePic({ uri: profilePic }); // URI를 사용하여 이미지 설정
-              }
+            try {
+                const savedProfileData = await AsyncStorage.getItem('userProfile');
+                if (savedProfileData !== null) {
+                    const { name, birthday, bloodType, meetingDay, profilePic } = JSON.parse(savedProfileData);
+                    setName(name);
+                    setBirthday(birthday);
+                    setBloodType(bloodType);
+                    setMeetingDay(meetingDay);
+                    if (profilePic) {
+                        setProfilePic({ uri: profilePic }); // URI를 사용하여 이미지 설정
+                    }
+                }
+            } catch (error) {
+                console.error('프로필 로드 실패:', error);
             }
-          } catch (error) {
-            console.error('프로필 로드 실패:', error);
-          }
         };
-      
+
         loadProfileData();
-      }, []);
+    }, []);
 
     // 생년월일 변경
     const onBirthdayChange = (event, selectedDate) => {
@@ -90,16 +87,6 @@ const UserInfo = ({ navigation }) => {
     const showMeetingDayPicker = () => {
         setIsMeetingDayPickerVisible(true);
     };
-    const onChange = (event, selectedDate) => {
-        const currentDate = selectedDate || date;
-        setShowDatePicker(Platform.OS === 'ios' ? true : false);
-        setDate(currentDate);
-        setBirthday(currentDate.toISOString().split('T')[0]); // 날짜 포맷을 "YYYY-MM-DD"로 설정
-    };
-
-    const showDatepicker = () => {
-        setShowDatePicker(true); // 날짜 선택기를 표시하기 위한 상태를 true로 설정
-    };
 
     // 이름 입력을 처리하는 함수
     const handleNameChange = text => {
@@ -118,7 +105,6 @@ const UserInfo = ({ navigation }) => {
 
         let result = await ImagePicker.launchImageLibraryAsync({
             mediaTypes: ImagePicker.MediaTypeOptions.Images,
-            allowsMultipleSelection: true,
         });
 
         if (!result.canceled && result.assets) {
@@ -132,7 +118,7 @@ const UserInfo = ({ navigation }) => {
         navigation.navigate('CheckCoupleBreak');
     };
 
-    const goToLogout = () => { //로그아웃 화면으로 이동 (이름 수정 필요)
+    const goToLogout = () => { //로그아웃 화면으로 이동
         navigation.navigate('Login');
     };
 
@@ -162,6 +148,9 @@ const UserInfo = ({ navigation }) => {
     return (
         <View style={styles.container}>
             <View style={styles.headerContainer}>
+                {!profilePic && (
+                    <Text style={styles.photoPromptText}>프로필 사진을 입력해주세요!</Text>
+                )}
                 <TouchableOpacity style={styles.iconContainer} onPress={pickImage}>
                     {profilePic ? (
                         <Image source={{ uri: profilePic.uri }} style={{ width: 50, height: 50, borderRadius: 25 }} />
@@ -289,21 +278,39 @@ const styles = StyleSheet.create({
         backgroundColor: '#FFF9F9',
     },
     headerContainer: {
+        alignSelf: 'center',
         alignItems: 'center',
+        justifyContent: 'center',
         flexDirection: 'row',
+        marginTop: 20,
     },
     titleText: {
         textAlign: 'center',
         color: '#544848',
-        fontSize: 24,
+        fontSize: 28,
         fontWeight: 'bold',
     },
     iconContainer: {
+        alignItems: 'center',
+        justifyContent: 'center',
         marginRight: 20,
+        position: 'relative',
     },
     icon: {
-        width: 30,
-        height: 30,
+        width: 35,
+        height: 35,
+    },
+    photoPromptText: {
+        position: 'absolute',
+        bottom: '100%',
+        right: '25%',
+        fontSize: 13,
+        color: '#707070',
+        textAlign: 'center',
+        backgroundColor: 'rgba(255,255,255,0.8)',
+        paddingHorizontal: 10, 
+        borderRadius: 10, 
+        marginBottom: 10,
     },
     inputRow: {
         flexDirection: 'row',
@@ -447,7 +454,7 @@ const styles = StyleSheet.create({
         height: 25,
     },
     datePickerContainer: {
-        marginLeft: -20,
+        marginLeft: -25,
         width: '9%',
     },
 });
