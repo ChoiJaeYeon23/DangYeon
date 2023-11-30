@@ -65,165 +65,13 @@ const io = socketIo(server, {
   },
 });
 
-//아래까지 db로 로그인
-//아래까지 db로 로그인
-//아래까지 db로 로그인
-//아래까지 db로 로그인
-
-// app.post("/api/login", (req, res) => {
-//   const { username, password } = req.body;
-
-//   if (!username || !password) {
-//     return res.status(400).send("ID와 비밀번호를 입력해주세요.");
-//   }
-
-//   // 사용자 인증 쿼리
-//   const query = "SELECT * FROM users WHERE username = ? AND password = ?";
-//   db.query(query, [username, password], (err, results) => {
-//     if (err) {
-//       return res.status(500).send("서버 오류가 발생했습니다.");
-//     }
-//     if (results.length > 0) {
-//       // 인증 성공: JWT 토큰 생성 및 전송 로직 추가 필요
-//       res.send("로그인 성공");
-//     } else {
-//       // 인증 실패
-//       res.status(401).send("ID 또는 비밀번호가 잘못되었습니다.");
-//     }
-//   });
-// });
-
-//위에까지 db로 로그인
-//위에까지 db로 로그인
-//위에까지 db로 로그인
-//위에까지 db로 로그인
-
-//네이버 로그인
-//네이버 로그인
-//네이버 로그인
-//네이버 로그인
-//네이버 로그인
-
-// // 네이버 로그인 API 관련 설정
-// const NAVER_CLIENT_ID = "OqbYyPi3lOqgNJuqAvXL";
-// const NAVER_CLIENT_SECRET = "IKB4nzvJuE";
-// const NAVER_REDIRECT_URI = "http://3.34.6.50:8080/auth/naver/callback";
-
-// // 네이버 로그인 URL로 리디렉션하는 엔드포인트
-// app.get("/auth/naver", (req, res) => {
-//   res.send("로그인 시도");
-// });
-
-// // 네이버 로그인 콜백 처리 엔드포인트
-// app.get("/auth/naver/callback", async (req, res) => {
-//   try {
-//     const code = req.query.code;
-
-//     // 토큰 요청
-//     const tokenResponse = await axios.post(
-//       "https://nid.naver.com/oauth2.0/token",
-//       null,
-//       {
-//         params: {
-//           grant_type: "authorization_code",
-//           client_id: NAVER_CLIENT_ID,
-//           client_secret: NAVER_CLIENT_SECRET,
-//           redirect_uri: NAVER_REDIRECT_URI,
-//           code: code,
-//         },
-//       }
-//     );
-
-//     const { access_token } = tokenResponse.data;
-
-//     // 사용자 정보 요청
-//     const userInfoResponse = await axios.get(
-//       "https://openapi.naver.com/v1/nid/me",
-//       {
-//         headers: {
-//           Authorization: `Bearer ${access_token}`,
-//         },
-//       }
-//     );
-
-//     // 사용자 정보 처리
-//     const userInfo = userInfoResponse.data;
-
-//     // 네이버 API로부터 받은 userInfo 객체에서 birthyear와 birthday를 추출하고 합치는 함수
-//     const formatNaverBirthday = (birthyear, birthday) => {
-//       return `${birthyear}-${birthday}`;
-//     };
-
-//     // 사용자 정보 처리 부분에서
-//     const formattedBirthday = formatNaverBirthday(
-//       userInfo.response.birthyear,
-//       userInfo.response.birthday
-//     );
-//     userInfo.response.birthday = formattedBirthday; // 합쳐진 날짜로 업데이트
-
-//     // 처리 결과 응답 (예시)
-//     res.json(userInfo);
-//     console.log(userInfo); // 로그인을 누가 했는지 정보를 띄우는 로그
-
-//     // db있는값 가져오기
-//     const checkAndInsertUser = async (userInfo) => {
-//       try {
-//         // 첫 번째 쿼리 실행
-//         let sql = `SELECT * FROM userInfo WHERE id = '${userInfo.response.id}';`;
-//         let data1 = await queryDatabase(sql);
-
-//         if (data1[0] == undefined) {
-//           console.log("신규 가입자");
-
-//           // 신규 사용자 등록
-//           let sql2 = `INSERT INTO userInfo (id, username,  birthday) VALUES (
-//             '${userInfo.response.id}',
-//             '${userInfo.response.user}',
-//             '${userInfo.response.birthday}'
-//             );`;
-//           queryDatabase(sql2);
-//         }
-
-//         /* 사용자가 입력하는 추가 정보들을 받아와서 DB에 저장하기
-//         else {
-//       // 기존 사용자 정보 업데이트
-//       let bloodType = userInfo.response.bloodType; // 혈액형
-//       let profilePicture = userInfo.response.profilePicture; // 프로필 사진
-//       let coupleId = userInfo.response.coupleId; // 커플 ID
-
-//       let updateSql = `UPDATE userInfo SET blood_type ='${userInfo.response.blood_type}',
-//       user_image = '${userInfo.response.user_image}',
-//       couple_id = '${userInfo.response.couple_id}' WHERE id = '${userInfo.response.id}';`;
-//       await queryDatabase(updateSql, [bloodType, user_image couple_id, userInfo.response.id]);
-//     }
-//   } catch (error) {
-//     throw error;
-//   }
-// };
-// */
-//         // 결과 확인을 위한 추가 쿼리
-//         let sql3 = "SELECT * FROM userInfo;";
-//         db.query(sql3, (error, data, fields) => {
-//           if (error) throw error;
-//           console.log(data);
-//         });
-//       } catch (error) {
-//         throw error;
-//       }
-//     };
-//     checkAndInsertUser(userInfo);
-//   } catch (error) {
-//     console.error(error);
-//     res.status(500).send("오류 발생");
-//   }
-// });
-
 // 로그인 처리
 // 로그인 처리
 // 로그인 처리
 
 app.post("/api/login", (req, res) => {
   console.log(req.body);
+  console.log(session);
   const { id, pw } = req.body;
 
   const query = "SELECT * FROM userInfo WHERE id = ? AND pw =? ";
@@ -236,13 +84,38 @@ app.post("/api/login", (req, res) => {
       if (result.length > 0) {
         req.session.userId = result[0].id;
         req.session.loggedIn = true;
-        console.log(req.session);
-        res.status(200).send({ message: "User login successfully" });
+        if (result[0].connect_id) {
+          // connect_id 컬럼에 값이 존재하는 경우
+          res.json({ status: "redirect", message: "Connect_id가 있습니다." });
+        } else {
+          // connect_id 컬럼이 비어 있는 경우
+          res.json({ status: "stay", message: "connect_id가 없습니다." });
+        }
       } else {
         res.status(401).send({ message: "Invalid ID or password" });
       }
     }
   });
+});
+
+// 로그아웃 함수
+// 로그아웃 함수
+// 로그아웃 함수
+
+app.post("/api/logout", (req, res) => {
+  console.log(session);
+  if (req.session) {
+    req.session.destroy((err) => {
+      if (err) {
+        res.status(500).send("로그아웃 실패");
+      } else {
+        res.send("로그아웃 성공");
+      }
+    });
+  } else {
+    // 세션이 존재하지 않는 경우
+    res.status(400).send("세션이 존재하지 않습니다.");
+  }
 });
 
 /// 회원가입 처리
@@ -314,6 +187,32 @@ app.post("/api/save-code", (req, res) => {
       res.status(500).send({ message: "Database error", error: err.message });
     } else {
       res.status(200).send({ message: "Failed to save the code" });
+    }
+  });
+});
+
+//커플 연결 끊기
+//커플 연결 끊기
+//커플 연결 끊기
+
+app.post("/api/couple_break", (req, res) => {
+  const userId = req.session.userId; // 세션에서 사용자 ID 가져오기
+
+  // 로그인 상태 확인
+  if (!userId) {
+    return res.status(401).send({ message: "Unauthorized: No session found" });
+  }
+
+  // DB에서 해당 사용자의 connect_id를 NULL로 변경
+  const query = "UPDATE userInfo SET connect_id = NULL WHERE id = ?";
+  db.query(query, [userId], (err, result) => {
+    if (err) {
+      // DB 오류 처리
+      console.error("Query error:", err);
+      res.status(500).send({ message: "Database error", error: err });
+    } else {
+      // connect_id를 제거했음을 알림
+      res.send({ message: "connect_id 제거에 성공하였습니다." });
     }
   });
 });

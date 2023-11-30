@@ -33,9 +33,16 @@ const Login = () => {
     })
       .then((response) => response.json())
       .then((data) => {
-        alert("로그인 성공");
         resetInputs();
-        navigation.navigate("Connect");
+        if (data.status === "redirect") {
+          // connect_id가 있는 경우 Main 화면으로 넘어감.
+          navigation.navigate("MainTab");
+        } else if (data.status === "stay") {
+          // connect_id가 없는 경우 Connect 화면으로 넘어감.
+          navigation.navigate("Connect");
+        } else {
+          alert("로그인 상태를 확인할 수 없습니다.");
+        }
       })
       .catch((error) => {
         alert(
@@ -69,7 +76,7 @@ const Login = () => {
 
       <TouchableOpacity
         style={styles.button}
-        onPress={()=>navigation.navigate("MainTab")}
+        onPress={() => navigation.navigate("MainTab")}
       >
         <Text style={styles.buttonText}>로그인1111</Text>
       </TouchableOpacity>
