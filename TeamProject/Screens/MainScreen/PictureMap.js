@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import { Button, View, Text, Image, Alert, ScrollView, StyleSheet, TouchableWithoutFeedback, Modal,TouchableOpacity } from 'react-native';
+import React, { useState } from 'react';
+import { View, Image, Alert, ScrollView, StyleSheet, TouchableWithoutFeedback, Modal, TouchableOpacity } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
+import addimage from '../../assets/add_image.png'
 
 const PictureMap = () => {
   const [regionImages, setRegionImages] = useState({}); // 지역별 사진 URI를 저장하는 객체
@@ -176,11 +177,11 @@ const PictureMap = () => {
   };
 
   // 사진선택시 모달을 통해 사진선택하게 만든 함수 및 각 지역에 배열형태로 사진 저장
-  const renderModalContent = () => { 
+  const renderModalContent = () => {
     if (!currentRegion || !regionImages[currentRegion]) return null;
 
     return (
-      <ScrollView style = {styles.modalContent}>
+      <ScrollView style={styles.modalContent}>
         {regionImages[currentRegion].map(uri => (
           <TouchableOpacity key={uri} onPress={() => onImageSelect(uri)}>
             <Image source={{ uri }} style={styles.modalImage} />
@@ -192,8 +193,10 @@ const PictureMap = () => {
 
 
   return (
-    <ScrollView>
-      <Button title="이미지 선택" onPress={pickImage} />
+    <View style={styles.container}>
+      <TouchableOpacity onPress={pickImage}>
+        <Image source={addimage} style={styles.addImage} />
+      </TouchableOpacity>
       <View style={styles.mapContainer}>
         <Image source={require('../../assets/8domap.png')} style={styles.mapStyle} />
         {Object.keys(regionImages).map(region => renderImageOnMap(region))}
@@ -201,7 +204,8 @@ const PictureMap = () => {
       <Modal visible={modalVisible} animationType="slide" onRequestClose={() => setModalVisible(false)}>
         {renderModalContent()}
       </Modal>
-    </ScrollView>
+    </View>
+
   );
 };
 
@@ -213,7 +217,7 @@ const styles = StyleSheet.create({
   },
   mapContainer: {
     width: '100%',
-    height: 490,
+    height: 475,
     position: 'relative',
   },
   mapStyle: {
@@ -228,6 +232,12 @@ const styles = StyleSheet.create({
     height: 200,
     margin: 10,
   },
+  addImage: {
+    left:'44%',
+    width:35,
+    height:30,
+    marginBottom:3
+  }
 });
 
 export default PictureMap;
