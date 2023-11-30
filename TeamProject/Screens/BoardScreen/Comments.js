@@ -9,7 +9,7 @@ import {
   Platform,
   KeyboardAvoidingView,
 } from 'react-native';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view'; // 키보드창
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const Comments = ({ route }) => {
@@ -82,6 +82,7 @@ const Comments = ({ route }) => {
         style={styles.scrollView}
         contentContainerStyle={styles.scrollViewContent}
         keyboardShouldPersistTaps="handled"
+        extraScrollHeight={20} // 추가된 부분
       >
         {commentList.map((item, index) => (
           <View key={index} style={styles.commentItem}>
@@ -99,6 +100,7 @@ const Comments = ({ route }) => {
           placeholder="댓글을 입력하세요"
           onChangeText={handleCommentChange}
           value={comment}
+          autoFocus={true} // 키보드 부분
         />
         <TouchableOpacity
           style={styles.saveButton}
