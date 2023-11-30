@@ -4,8 +4,6 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import moment from 'moment';
 import PictureMap from './PictureMap';
 import Weather from './Weather';
-import CalendarScreen from './CalendarScreen';
-
 
 const whiteCandyImage = require('../../assets/Bincandy.png'); 
 const brownCandyImage = require('../../assets/candy.png'); 
@@ -55,10 +53,6 @@ const Main = ({ navigation }) => {
       AsyncStorage.setItem('@attendance', JSON.stringify(newAttendance));
       setMessage('출석이 완료되었습니다!');
     }
-  };
-
-  const goToPictureMap = () => {
-    navigation.navigate('PictureMap');
   };
 
   const goToCalendar = () => {
