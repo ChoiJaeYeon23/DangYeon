@@ -96,16 +96,6 @@ const ProfileInput = ({ navigation }) => {
   const showMeetingDayPicker = () => {
     setIsMeetingDayPickerVisible(true);
   };
-  const onChange = (event, selectedDate) => {
-    const currentDate = selectedDate || date;
-    setShowDatePicker(Platform.OS === 'ios' ? true : false);
-    setDate(currentDate);
-    setBirthday(currentDate.toISOString().split('T')[0]); // 날짜 포맷을 "YYYY-MM-DD"로 설정
-  };
-
-  const showDatepicker = () => {
-    setShowDatePicker(true); // 날짜 선택기를 표시하기 위한 상태를 true로 설정
-  };
 
   // 성별 선택에 따른 텍스트 스타일 변경
   const genderTextStyle = (selectedGender) => [
