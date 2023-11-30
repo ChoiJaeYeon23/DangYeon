@@ -176,12 +176,13 @@ const SignUp = () => {
     <KeyboardAvoidingView
       style={{ flex: 1 }}
       behavior={Platform.OS === "ios" ? "padding" : "height"} // iOS는 'padding', Android는 'height'
-      keyboardVerticalOffset={Platform.OS === "ios" ? 100 : 0}
+      keyboardVerticalOffset={Platform.OS === "ios" ? 10 : 0}
     >
       <KeyboardAwareScrollView
-        style={{ flex: 1 }}
-        contentContainerStyle={styles.scrollViewContent}
+      style={{ flex: 1 }}
+      contentContainerStyle={{ flexGrow: 1 }}
         keyboardShouldPersistTaps='handled'
+        extraScrollHeight={20} 
       >
         <View style={styles.container}>
           <Text style={styles.titleText}>회원가입을 진행해주세요.</Text>
@@ -199,7 +200,6 @@ const SignUp = () => {
               <Text style={genderTextStyle('남성')}>남성</Text>
             </TouchableOpacity>
           </View>
-
           <View style={styles.inputRow}>
             <Text style={styles.inputLabel}>이름</Text>
             <TextInput
@@ -207,6 +207,7 @@ const SignUp = () => {
               placeholder="이름"
               value={username}
               onChangeText={setName}
+              autoFocus="true"
             />
           </View>
           <View style={styles.inputRow}>
@@ -329,6 +330,7 @@ const SignUp = () => {
         </View>
       </KeyboardAwareScrollView>
     </KeyboardAvoidingView>
+
   );
 };
 
@@ -339,10 +341,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     padding: 20,
     backgroundColor: '#FFF9F9',
-  },
-  scrollViewContent: {
-    flexGrow: 1,
-    paddingBottom: 200, // 여분의 공간을 늘림
   },
   titleText: {
     textAlign: 'center',
