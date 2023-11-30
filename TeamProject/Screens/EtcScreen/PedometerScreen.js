@@ -1,88 +1,63 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, Platform, StyleSheet } from 'react-native';
-import * as Location from 'expo-location';
+import { useState, useEffect } from 'react';
+import { StyleSheet, Text, View } from 'react-native';
 import { Pedometer } from 'expo-sensors';
 
 const PedometerScreen = () => {
-  const [userPosition, setUserPosition] = useState(null);
-  const [steps, setSteps] = useState(0);
-  const [isPedometerAvailable, setIsPedometerAvailable] = useState("checking");
+  // 만보기가 사용 가능한지 여부를 저장하는 상태
+  const [isPedometerAvailable, setIsPedometerAvailable] = useState('checking');
+  // 지난 24시간 동안의 걸음 수를 저장하는 상태
+  const [pastStepCount, setPastStepCount] = useState(0);
+  // 현재 걸음 수를 저장하는 상태
+  const [currentStepCount, setCurrentStepCount] = useState(0);
 
-  const YOUR_DISTANCE_THRESHOLD = 0.5; // 거리 임계값
-  const otherUserPosition = {
-    latitude: 37.7749,
-    longitude: -122.4194,
-  };
-
-  // 라디안으로 변환하는 함수
-  const deg2rad = (deg) => {
-    return deg * (Math.PI / 180);
-  };
-
-  // 두 위치 간의 거리 계산 함수
-  const checkDistance = (userPosition, otherUserPosition) => {
-    // 거리 계산 로직...
-  };
-
-  // 위치 권한 요청 및 위치 추적
-  const requestLocationPermissionAndTrack = async () => {
-    let { status } = await Location.requestForegroundPermissionsAsync();
-    if (status !== 'granted') {
-      console.log('Permission to access location was denied');
-      return;
-    }
-
-    Location.watchPositionAsync({ accuracy: Location.Accuracy.High, distanceInterval: 50 }, (position) => {
-      setUserPosition({
-        latitude: position.coords.latitude,
-        longitude: position.coords.longitude,
-      });
-    });
-  };
+  let subscription = null; // subscription을 외부 변수로 선언
 
   useEffect(() => {
-    requestLocationPermissionAndTrack();
+    // 만보기 기능 사용 가능 여부 확인
+    Pedometer.isAvailableAsync().then(isAvailable => {
+      setIsPedometerAvailable(String(isAvailable));
 
-    Pedometer.isAvailableAsync().then(
-      (result) => {
-        setIsPedometerAvailable(result ? "yes" : "no");
-      },
-      (error) => {
-        setIsPedometerAvailable("no");
+      if (isAvailable) {
+        const end = new Date();
+        const start = new Date();
+        start.setDate(end.getDate() - 1);
+
+        // 지난 24시간 동안의 걸음 수 가져오기
+        Pedometer.getStepCountAsync(start, end).then(pastStepCountResult => {
+          setPastStepCount(pastStepCountResult.steps);
+        });
+
+        // 실시간 걸음 수 감시 시작
+        subscription = Pedometer.watchStepCount(result => {
+          setCurrentStepCount(result.steps);
+        });
       }
-    );
-
-    const subscription = Pedometer.watchStepCount((result) => {
-      setSteps(result.steps);
     });
 
-    return () => subscription.remove();
+    // 구독 해제
+    return () => {
+      if (subscription) {
+        subscription.remove();
+      }
+    };
   }, []);
 
-  const startPedometer = () => {
-    Pedometer.startPedometerUpdatesFromDate(new Date().getTime(), (data) => {
-      setSteps(data.numberOfSteps);
-    });
-  };
-
-  const isWithinDistance = userPosition && checkDistance(userPosition, otherUserPosition);
-
   return (
-    <View>
-      <Text>걸음 수: {steps}</Text>
-      <TouchableOpacity
-        onPress={startPedometer}
-        disabled={!isWithinDistance || isPedometerAvailable !== "yes"}>
-        <Text style={styles.text2}>만보기 시작</Text>
-      </TouchableOpacity>
+    <View style={styles.container}>
+      <Text>만보기 기능 사용 가능 여부 : {isPedometerAvailable}</Text>
+      <Text>지난 24시간 동안 걸음 수 : {pastStepCount}</Text>
+      <Text>현재 걸음 수 : {currentStepCount}</Text>
     </View>
   );
-};
+}
 
 const styles = StyleSheet.create({
-  text2: {
-    fontSize: 40
-  }
-})
+  container: {
+    flex: 1,
+    marginTop: 15,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+});
 
-export default PedometerScreen;
+export default PedometerScreen
