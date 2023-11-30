@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Button, View, Text, Image, Alert, ScrollView, StyleSheet } from 'react-native';
+import { Button, View, Text, Image, Alert, ScrollView, StyleSheet, TouchableWithoutFeedback } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 
 const PictureMap = () => {
-  const [imageUris, setImageUris] = useState([]);
-  const [addresses, setAddresses] = useState([]);
+  const [regionImages, setRegionImages] = useState({}); // 지역별 사진 URI를 저장하는 객체
+  const [selectedImage, setSelectedImage] = useState({}); // 각 지역별로 선택된 이미지 URI를 저장
 
   // 인천광역시, 서울특별시            => 경기도
   // 대전광역시, 세종특별자치시        => 충청남도
@@ -47,7 +47,7 @@ const PictureMap = () => {
     ]
   };
 
-  // 각 도의 위치를 대략적으로 나타내는 좌표 (이 값들은 예시이며, 실제 값을 조정해야 합니다)
+  // 각 도의 위치를 화면상 대략적으로 나타내는 좌표
   const regionCoordinates = {
     '경기도': { x: '30.5%', y: '20%' },
     '강원도': { x: '52%', y: '16%' },
@@ -75,32 +75,32 @@ const PictureMap = () => {
 
     if (!result.canceled && result.assets) {
       const uris = result.assets.map(asset => asset.uri);
-      setImageUris(uris);
       await processImages(result.assets);
     }
   };
 
   const processImages = async (assets) => {
-    const exifs = []; //exif 데이터 저장
     const addrs = []; //exif 데이터 (위도경도) -> 역지오코딩된 주소 데이터 저장
+    let newRegionImages = { ...regionImages }; // 현재 지역별 사진 데이터 복사
 
     for (const asset of assets) {
       if (asset.exif) {
-        exifs.push(asset.exif);
 
         const { GPSLatitude, GPSLongitude } = asset.exif;
         if (GPSLatitude && GPSLongitude) {
           const addr = await getReverseGeocodingData(GPSLatitude, GPSLongitude);
+          const region = determineRegion(addr || '');
+          newRegionImages[region] = newRegionImages[region] || [];
+          newRegionImages[region].push(asset.uri);
           addrs.push(addr || '주소를 찾을 수 없음(시군구 도시 주소추가)');
         } else {
           addrs.push('GPS 데이터 없음');
         }
       } else {
-        exifs.push('EXIF 데이터 없음');
       }
     }
+    setRegionImages(newRegionImages); // 지역별 사진 데이터 업데이트
 
-    setAddresses(addrs);
   };
 
   const getReverseGeocodingData = async (lat, lon) => {
@@ -140,41 +140,54 @@ const PictureMap = () => {
     return '지역을 결정할 수 없음';
   };  // 역지오코딩으로 나온 결과를 8도 중 하나(데이터는 region에 저장)로 변환해주는 함수
 
-  const renderImageOnMap = (uri, address) => {
-    const region = determineRegion(address);
+  const renderImageOnMap = (region) => {
+    const uris = regionImages[region];
     const coordinates = regionCoordinates[region];
 
-    if (!coordinates) {
-      return null; // 좌표가 없는 경우 렌더링하지 않음
+    if (!coordinates || !uris || uris.length === 0) {
+      return null;
     }
 
     const imageStyle = {
       position: 'absolute',
       left: coordinates.x,
       top: coordinates.y,
-      width: 50, // 이미지 크기 조정
-      height: 50, // 이미지 크기 조정
+      width: 50,
+      height: 50,
       zIndex: 1,
+      borderRadius: 50
     };
 
+    // 선택된 이미지 또는 첫 번째 이미지를 기본적으로 표시
+    const imageUri = selectedImage[region] || uris[0];
+
     return (
-      <Image
-        key={uri}
-        source={{ uri }}
-        style={imageStyle}
-      />
+      <TouchableWithoutFeedback key={region} onPress={() => onRegionPress(region)}>
+        <Image source={{ uri: imageUri }} style={imageStyle} />
+      </TouchableWithoutFeedback>
     );
   };
+
+
+  // 같은 도(예를들어 경기도)에 사진이 2개이상 들어갔을때 겉으로 표시될 사진 고르는 함수
+  const onRegionPress = (region) => {
+    if (regionImages[region] && regionImages[region].length > 1) {    // 지역별 사진이 1개 이상 있을 때만 작동
+      // 일단? 간단하게 터치시 다음 사진을 보여주는방식임
+      const currentIndex = regionImages[region].indexOf(selectedImage[region]) || 0;
+      const nextIndex = (currentIndex + 1) % regionImages[region].length;
+      setSelectedImage({ ...selectedImage, [region]: regionImages[region][nextIndex] });
+    }
+  };
+
 
   return (
     <ScrollView>
       <View style={styles.container}>
         <Button title="이미지 선택" onPress={pickImage} />
         <View style={styles.mapContainer}>
-          {/* 지도 이미지 경로가 올바른지 확인하세요 */}
           <Image source={require('../../assets/8domap.png')} style={styles.mapStyle} />
           {/* 각 사진을 지도에 배치 */}
-          {imageUris.map((uri, index) => renderImageOnMap(uri, addresses[index]))}
+          {Object.keys(regionImages).map(region => renderImageOnMap(region))}
         </View>
       </View>
     </ScrollView>
@@ -188,9 +201,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   mapContainer: {
-    width: '100%', // 지도의 너비
-    height: 490, // 지도의 높이
-    position: 'relative', // 자식 요소들을 절대 위치로 배치하기 위함
+    width: '100%',
+    height: 490,
+    position: 'relative', 
   },
   mapStyle: {
     width: '100%',
