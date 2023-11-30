@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Button, View, Text, Image, Alert, ScrollView, StyleSheet, TouchableWithoutFeedback } from 'react-native';
+import { Button, View, Text, Image, Alert, ScrollView, StyleSheet, TouchableWithoutFeedback, Modal,TouchableOpacity } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 
 const PictureMap = () => {
   const [regionImages, setRegionImages] = useState({}); // 지역별 사진 URI를 저장하는 객체
   const [selectedImage, setSelectedImage] = useState({}); // 각 지역별로 선택된 이미지 URI를 저장
+  const [modalVisible, setModalVisible] = useState(false);
+  const [currentRegion, setCurrentRegion] = useState(null);
 
   // 인천광역시, 서울특별시            => 경기도
   // 대전광역시, 세종특별자치시        => 충청남도
@@ -80,27 +82,21 @@ const PictureMap = () => {
   };
 
   const processImages = async (assets) => {
-    const addrs = []; //exif 데이터 (위도경도) -> 역지오코딩된 주소 데이터 저장
-    let newRegionImages = { ...regionImages }; // 현재 지역별 사진 데이터 복사
+    let newRegionImages = { ...regionImages };
 
     for (const asset of assets) {
       if (asset.exif) {
-
         const { GPSLatitude, GPSLongitude } = asset.exif;
         if (GPSLatitude && GPSLongitude) {
           const addr = await getReverseGeocodingData(GPSLatitude, GPSLongitude);
           const region = determineRegion(addr || '');
           newRegionImages[region] = newRegionImages[region] || [];
           newRegionImages[region].push(asset.uri);
-          addrs.push(addr || '주소를 찾을 수 없음(시군구 도시 주소추가)');
-        } else {
-          addrs.push('GPS 데이터 없음');
         }
-      } else {
       }
     }
-    setRegionImages(newRegionImages); // 지역별 사진 데이터 업데이트
 
+    setRegionImages(newRegionImages);
   };
 
   const getReverseGeocodingData = async (lat, lon) => {
@@ -169,27 +165,42 @@ const PictureMap = () => {
   };
 
 
-  // 같은 도(예를들어 경기도)에 사진이 2개이상 들어갔을때 겉으로 표시될 사진 고르는 함수
   const onRegionPress = (region) => {
-    if (regionImages[region] && regionImages[region].length > 1) {    // 지역별 사진이 1개 이상 있을 때만 작동
-      // 일단? 간단하게 터치시 다음 사진을 보여주는방식임
-      const currentIndex = regionImages[region].indexOf(selectedImage[region]) || 0;
-      const nextIndex = (currentIndex + 1) % regionImages[region].length;
-      setSelectedImage({ ...selectedImage, [region]: regionImages[region][nextIndex] });
-    }
+    setCurrentRegion(region);
+    setModalVisible(true);
+  };
+
+  const onImageSelect = (uri) => {
+    setSelectedImage({ ...selectedImage, [currentRegion]: uri });
+    setModalVisible(false);
+  };
+
+  // 사진선택시 모달을 통해 사진선택하게 만든 함수 및 각 지역에 배열형태로 사진 저장
+  const renderModalContent = () => { 
+    if (!currentRegion || !regionImages[currentRegion]) return null;
+
+    return (
+      <ScrollView style = {styles.modalContent}>
+        {regionImages[currentRegion].map(uri => (
+          <TouchableOpacity key={uri} onPress={() => onImageSelect(uri)}>
+            <Image source={{ uri }} style={styles.modalImage} />
+          </TouchableOpacity>
+        ))}
+      </ScrollView>
+    );
   };
 
 
   return (
     <ScrollView>
-      <View style={styles.container}>
-        <Button title="이미지 선택" onPress={pickImage} />
-        <View style={styles.mapContainer}>
-          <Image source={require('../../assets/8domap.png')} style={styles.mapStyle} />
-          {/* 각 사진을 지도에 배치 */}
-          {Object.keys(regionImages).map(region => renderImageOnMap(region))}
-        </View>
+      <Button title="이미지 선택" onPress={pickImage} />
+      <View style={styles.mapContainer}>
+        <Image source={require('../../assets/8domap.png')} style={styles.mapStyle} />
+        {Object.keys(regionImages).map(region => renderImageOnMap(region))}
       </View>
+      <Modal visible={modalVisible} animationType="slide" onRequestClose={() => setModalVisible(false)}>
+        {renderModalContent()}
+      </Modal>
     </ScrollView>
   );
 };
@@ -203,11 +214,19 @@ const styles = StyleSheet.create({
   mapContainer: {
     width: '100%',
     height: 490,
-    position: 'relative', 
+    position: 'relative',
   },
   mapStyle: {
     width: '100%',
     height: '100%',
+  },
+  modalContent: {
+    paddingTop: '10%'
+  },
+  modalImage: {
+    width: 200,
+    height: 200,
+    margin: 10,
   },
 });
 
