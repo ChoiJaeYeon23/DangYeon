@@ -35,34 +35,29 @@ const Etc = ({ navigation, candyData }) => {
   }
 
   useEffect(() => {
-    // AsyncStorage에서 데이터 로드 및 주차 계산
-    const loadData = async () => {
-      try {
-        const jsonValue = await AsyncStorage.getItem('@bucketList');
-        if (jsonValue != null) {
-          const data = JSON.parse(jsonValue);
-          setBucketListItems(data.slice(0, 2));
-        }
-      } catch (e) {
-        console.error("Error loading data", e);
-      }
-    };
-
+    // AsyncStorage에서 출석체크 데이터와 현재 주차 정보를 로드하는 함수
     const loadAttendanceData = async () => {
       try {
         const attendanceValue = await AsyncStorage.getItem('@attendance');
         if (attendanceValue != null) {
           setAttendance(JSON.parse(attendanceValue));
         }
+
+        const today = moment();
+        const currentMonth = today.format('M');
+        const monthStart = moment(today).startOf('month');
+        const weeksPassed = today.diff(monthStart, 'weeks') + 1;
+    
+        setCurrentWeek(weeksPassed);
+        setCurrentMonth(currentMonth);
       } catch (e) {
         console.error("Error loading attendance data", e);
       }
     };
 
-    loadData();
     loadAttendanceData();
-    calculateWeeks(); // 주차 계산 함수 호출
   }, []);
+
   // 출석체크 버튼 클릭 
   const handleCandyClick = () => {
     navigation.navigate('CalendarPage', { attendance });
