@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { StyleSheet, Text, View, Alert } from 'react-native';
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Pedometer } from 'expo-sensors';
 import * as Location from 'expo-location';
 
@@ -17,15 +18,58 @@ const PedometerScreen = () => {
     let { status } = await Location.requestForegroundPermissionsAsync();
     if (status !== 'granted') {
       Alert.alert("위치 권한 필요", "앱이 위치 정보에 접근하려면 위치 권한이 필요합니다.");
+      setErrorMsg('위치 권한이 거부되었습니다.');
       return;
     }
 
-    let currentLocation = await Location.getCurrentPositionAsync({});
-    setLocation(currentLocation);
+    let currentLocation = await Location.getCurrentPositionAsync({
+      accuracy: Location.Accuracy.High
+    });
 
-    // 가상의 조건으로 근접 여부 확인 (실제 구현 시 수정 필요)
-    if (currentLocation.coords.latitude < 10 && currentLocation.coords.longitude < 10) {
+    // 상대방의 위치 데이터를 서버로부터 가져옴 (가정)
+    let partnerLocation = await getPartnerLocationFromServer();
+
+    // 두 위치가 일정 거리 이내인지 확인 (예: 100미터 이내)
+    if (isWithinDistance(currentLocation, partnerLocation, 100)) {
       Alert.alert("알람", "사랑의 걸음, 함께 시작해볼까요?");
+    }
+  };
+
+
+  // 두 위치가 주어진 거리 이내에 있는지 확인하는 함수
+  const isWithinDistance = (loc1, loc2, maxDistance) => {
+    let distance = getDistanceBetweenLocations(loc1.coords, loc2.coords);
+    return distance <= maxDistance;
+  };
+
+  // 두 위치 사이의 거리 계산 함수
+  const getDistanceBetweenLocations = (coords1, coords2) => {
+    // 여기에 Haversine 공식 또는 다른 방법을 사용하여 거리 계산
+  };
+
+  // 상대방 위치 데이터를 서버로부터 가져오는 함수 (가상 구현)
+  const getPartnerLocationFromServer = async () => {
+    // 서버로부터 상대방 위치 데이터를 받아오는 로직 구현
+    try {
+      // 서버 URL 및 필요한 인증 정보 (예: 사용자 토큰)
+      const url = "";
+      const response = await fetch(url, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          // 인증 토큰이 필요한 경우 아래 헤더에 추가
+          // "Authorization": "Bearer YOUR_TOKEN"
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('서버로부터 응답을 받는 데 실패했습니다.');
+      }
+      const data = await response.json();
+      return data; // 서버로부터 받은 위치 데이터
+    } catch (error) {
+      console.error("서버 요청 실패:", error);
+      return null; // 에러 발생 시 null 반환
     }
   };
 
