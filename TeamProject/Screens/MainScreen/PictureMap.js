@@ -116,7 +116,7 @@ const PictureMap = () => {
           const addr = await getReverseGeocodingData(GPSLatitude, GPSLongitude);
           const region = determineRegion(addr || '');
           newRegionImages[region] = newRegionImages[region] || [];
-          newRegionImages[region].push(asset.uri);
+          newRegionImages[region].push({ uri: asset.uri, region: region });
         }
       }
     }
@@ -204,10 +204,13 @@ const PictureMap = () => {
 
     return (
       <ScrollView style={styles.modalContent} contentContainerStyle={styles.scrollViewContent}>
-        {regionImages[currentRegion].map(uri => (
-          <TouchableOpacity key={uri} onPress={() => onImageSelect(uri)}>
-            <Image source={{ uri }} style={styles.modalImage} />
-          </TouchableOpacity>
+        {regionImages[currentRegion].map(({ uri, region }, index) => (
+          <View key={uri + index} style={styles.imageContainer}> {/* key를 고유하게 설정 */}
+            <TouchableOpacity onPress={() => onImageSelect(uri)}>
+              <Image source={{ uri }} style={styles.modalImage} />
+            </TouchableOpacity>
+            <Text style={styles.regionText}>{region}</Text>
+          </View>
         ))}
       </ScrollView>
     );

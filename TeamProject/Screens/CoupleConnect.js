@@ -6,8 +6,10 @@ import {
   TextInput,
   TouchableOpacity,
   Alert,
+  KeyboardAvoidingView,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import * as Clipboard from "expo-clipboard";
 
 const CoupleConnect = ({ navigation }) => {
@@ -41,12 +43,12 @@ const CoupleConnect = ({ navigation }) => {
         }
       })
       .then((data) => {
-        Alert.alert("성공", "초대 코드가 저장되었습니다.");
+        Alert.alert("성공", "초대 코드가 맞습니다!");
         navigation.navigate("MainTab");
       })
       .catch((error) => {
         console.error("Error saving data :", error);
-        Alert.alert("실패", "초대 코드를 저장에 실패했습니다.");
+        Alert.alert("실패", "초대 코드가 다릅니다!");
       });
   };
 
@@ -70,17 +72,8 @@ const CoupleConnect = ({ navigation }) => {
     Clipboard.setString(uniqueNumber);
 
     // 사용자에게 알림을 표시합니다.
-    Alert.alert("복사됨", `클립보드에 복사된 숫자: ${uniqueNumber}`);
+    Alert.alert("복사", `클립보드에 복사된 숫자: ${uniqueNumber}`);
   };
-
-  const copyAlert = () =>
-    //복사 알람
-    Alert.alert(
-      "복사",
-      "복사되었습니다.",
-      [{ text: "확인", onPress: () => {} }],
-      { cancelable: false }
-    );
 
   useEffect(() => {
     const getToken = async () => {
@@ -100,42 +93,52 @@ const CoupleConnect = ({ navigation }) => {
   const Separator = () => <View style={styles.separator} />;
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.titleText}>서로의 초대코드를 입력하세요.</Text>
-      <Separator />
-      <Text style={styles.codeTitle}>내 초대코드</Text>
-      <View style={styles.codeContainer}>
-        <View style={{ flexDirection: "row", alignItems: "center" }}>
-          <View
-            style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
-          >
-            <Text style={styles.code}>.</Text>
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      keyboardVerticalOffset={Platform.OS === "ios" ? 10 : 0}
+    >
+      <KeyboardAwareScrollView
+        style={{ flex: 1 }}
+        resetScrollToCoords={{ x: 0, y: 0 }}
+        contentContainerStyle={{ flexGrow: 1 }}
+        scrollEnabled={false}
+        keyboardShouldPersistTaps='handled'
+      >
+        <View style={styles.container}>
+          <Text style={styles.titleText}>서로의 초대코드를 입력하세요.</Text>
+          <Separator />
+          <Text style={styles.codeTitle}>내 초대코드</Text>
+          <View style={{ flexDirection: "row", alignItems: "center" }}>
+            <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+              <Text style={styles.code}>{generatedRandom}</Text>
+            </View>
+            <TouchableOpacity style={styles.button} onPress={copyToClipboard}>
+              <Text style={styles.buttonText}>복사</Text>
+            </TouchableOpacity>
           </View>
-          <TouchableOpacity style={styles.button} onPress={copyToClipboard}>
-            <Text style={styles.buttonText}>복사</Text>
+          <Separator />
+          <View style={styles.inputContainer}>
+            <Text style={styles.inputTitle}>상대방의 초대코드를 입력하세요.</Text>
+            <TextInput
+              onChangeText={onChangeText}
+              value={text}
+              placeholder="전달받은 코드 입력"
+              style={styles.input}
+            />
+          </View>
+          <TouchableOpacity onPress={goToProfileInput} style={styles.connectButton}>
+            <Text style={styles.connectButtonText}>연결하기</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => navigation.navigate("Login")}
+            style={styles.connectButton}
+          >
+            <Text style={styles.connectButtonText}>로그인 화면으로 이동하기</Text>
           </TouchableOpacity>
         </View>
-      </View>
-      <Separator />
-      <View style={styles.inputContainer}>
-        <Text style={styles.inputTitle}>상대방의 초대코드를 입력하세요.</Text>
-        <TextInput
-          onChangeText={onChangeText}
-          value={text}
-          placeholder="전달받은 코드 입력"
-          style={styles.input}
-        />
-      </View>
-      <TouchableOpacity onPress={goToProfileInput} style={styles.connectButton}>
-        <Text style={styles.connectButtonText}>연결하기</Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        onPress={() => navigation.navigate("Login")}
-        style={styles.connectButton}
-      >
-        <Text style={styles.connectButtonText}>로그인 화면으로 이동하기</Text>
-      </TouchableOpacity>
-    </View>
+      </KeyboardAwareScrollView>
+    </KeyboardAvoidingView>
   );
 };
 
@@ -149,7 +152,7 @@ const styles = StyleSheet.create({
   },
   titleText: {
     textAlign: "center",
-    marginBottom: 10,
+    marginBottom: 20,
     color: "#544848",
     fontSize: 24,
     fontWeight: "bold",
@@ -163,14 +166,15 @@ const styles = StyleSheet.create({
   codeTitle: {
     textAlign: "center",
     fontSize: 22,
-    marginBottom: 10,
+    marginBottom: 20,
     color: "#544848",
+    fontWeight: "bold",
   },
   code: {
     textAlign: "center",
-    fontSize: 24,
+    fontSize: 18,
     marginVertical: 8,
-    marginLeft: 90,
+    marginLeft: 60,
   },
   button: {
     backgroundColor: "#EBDBDB",
@@ -208,7 +212,7 @@ const styles = StyleSheet.create({
   },
   connectButton: {
     backgroundColor: "#FFCECE",
-    marginTop: 10,
+    marginTop: 20,
     paddingHorizontal: 20,
     paddingVertical: 10,
     borderWidth: 1,
@@ -225,8 +229,7 @@ const styles = StyleSheet.create({
     height: 1,
     width: "80%",
     backgroundColor: "#737373",
-    marginVertical: 15,
-    marginBottom: 35,
+    marginBottom: 50,
   },
 });
 
