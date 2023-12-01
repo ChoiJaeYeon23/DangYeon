@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Image, Alert, ScrollView, StyleSheet, TouchableWithoutFeedback, Modal, TouchableOpacity } from 'react-native';
+import { View, Image, Alert, Text, ScrollView, StyleSheet, TouchableWithoutFeedback, Modal, TouchableOpacity } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import addimage from '../../assets/add_image.png'
 
@@ -133,7 +133,6 @@ const PictureMap = () => {
         return region;
       }
     }
-
     return '지역을 결정할 수 없음';
   };  // 역지오코딩으로 나온 결과를 8도 중 하나(데이터는 region에 저장)로 변환해주는 함수
 
@@ -181,7 +180,7 @@ const PictureMap = () => {
     if (!currentRegion || !regionImages[currentRegion]) return null;
 
     return (
-      <ScrollView style={styles.modalContent}>
+      <ScrollView style={styles.modalContent} contentContainerStyle={styles.scrollViewContent}>
         {regionImages[currentRegion].map(uri => (
           <TouchableOpacity key={uri} onPress={() => onImageSelect(uri)}>
             <Image source={{ uri }} style={styles.modalImage} />
@@ -190,7 +189,6 @@ const PictureMap = () => {
       </ScrollView>
     );
   };
-
 
   return (
     <View style={styles.container}>
@@ -225,12 +223,17 @@ const styles = StyleSheet.create({
     height: '100%',
   },
   modalContent: {
-    paddingTop: '10%'
+    paddingTop: '20%'
+  },
+  scrollViewContent: {
+    paddingBottom: 80,
   },
   modalImage: {
     width: 200,
     height: 200,
     margin: 10,
+    borderRadius: 10,
+    alignSelf: 'center',
   },
   addImage: {
     left:'44%',
