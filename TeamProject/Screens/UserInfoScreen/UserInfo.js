@@ -66,6 +66,40 @@ const UserInfo = ({ navigation }) => {
     loadProfileData();
   }, []);
 
+  //회원탈퇴 클라이언트 요청 코드
+  const member_withdrawal = () => {
+    Alert.alert(
+      "회원 탈퇴",
+      "회원을 탈퇴할 경우 모든 데이터가 삭제됩니다. 계속 하시겠습니까?",
+      [
+        { text: "취소", onPress: () => {}, style: "cancel" },
+        { text: "탈퇴", onPress: () => memberDelete() }, //memberDelete :  사용자가 "탈퇴" 버튼을 눌렀을 때 호출되는 이벤트 핸들러
+      ],
+      { cancelable: false }
+    );
+  };
+  const memberDelete = () => {
+    fetch("http://3.34.6.50:8080/api/member_withdrawal", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    })
+      .then((response) => {
+        if (response.ok) {
+          //탈퇴가 성공적으로 이루어지면 클라이언트에게 알림
+          Alert.alert("탈퇴 완료", "회원 탈퇴가 정상적으로 처리되었습니다.", [
+            { text: "확인", onPress: () => navigation.navigate("Login") },
+          ]);
+        } else {
+          throw new Error("회원탈퇴에 실패하였습니다.");
+        }
+      })
+      .catch((error) => {
+        Alert.alert("오류", error.message);
+      });
+  };
+
   // 생년월일 변경
   const onBirthdayChange = (event, selectedDate) => {
     const currentDate = selectedDate || new Date();
@@ -299,6 +333,12 @@ const UserInfo = ({ navigation }) => {
           <TouchableOpacity onPress={goToLogout} style={styles.Button2}>
             <Text style={styles.ButtonText2}>로그아웃</Text>
           </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.memberDelete}
+            onPress={member_withdrawal}
+          >
+            <Text style={styles.memberDeleteText}>회원 탈퇴</Text>
+          </TouchableOpacity>
         </View>
       </View>
     </View>
@@ -491,6 +531,17 @@ const styles = StyleSheet.create({
   datePickerContainer: {
     marginLeft: -25,
     width: "9%",
+  },
+  memberDelete: {
+    backgroundColor: "red", // 버튼 색상은 적절하게 조정하세요.
+    padding: 10,
+    borderRadius: 5,
+    marginTop: 20,
+  },
+  memberDeleteText: {
+    color: "white",
+    textAlign: "center",
+    fontWeight: "bold",
   },
 });
 

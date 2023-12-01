@@ -217,6 +217,27 @@ app.post("/api/couple_break", (req, res) => {
   });
 });
 
+// 회원 탈퇴 기능
+// 회원 탈퇴 기능
+// 회원 탈퇴 기능
+
+app.post("/api/member_withdrawal", (req, res) => {
+  const userId = req.session.userId; // 세션에서 사용자 id가져오기
+
+  //DB에서 해당 사용자의 ID를 확인하후 모든 정보 삭제
+  const query = "DELETE FROM userInfo WHERE id =?";
+  db.query(query, [userId], (err, result) => {
+    if (err) {
+      //DB오류처리
+      console.error("Query error:", err);
+      res.status(500).send({ message: "Database error", error: err });
+    } else {
+      req.session.destroy(); // 세션도 삭제
+      res.send({ message: "사용자의 데이터가 모두 제거 되었습니다." });
+    }
+  });
+});
+
 // WebSocket 연결 처리
 // WebSocket 연결 처리
 // WebSocket 연결 처리
