@@ -249,7 +249,7 @@ io.on("connection", (socket) => {
     console.log(`Message from ${socket.id}: ${msg}`);
 
     // 데이터베이스에 메시지 저장
-    var sql4 = "INSERT INTO chat(Message_text,MessageTime) VALUES(?,?,?)";
+    var sql4 = "INSERT INTO chat(Message_text,MessageTime) VALUES(?,?)";
     let now = new Date();
     now.setHours(now.getHours() + 9); // UTC+9(대한민국,서울)로 시간 조정
     let message_time = now.toISOString().slice(0, 19).replace("T", " ");
