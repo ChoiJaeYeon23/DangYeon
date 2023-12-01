@@ -7,6 +7,7 @@ const axios = require("axios");
 const app = express();
 const mysql = require("mysql"); // mysql 모듈 로드
 const session = require("express-session");
+const sharedsession = require("express-socket.io-session");
 const MySQLStore = require("express-mysql-session")(session); // express-mysql-session 모듈을 로드하되, 인자로 session을 넘겨주기
 
 app.use(bodyParser.json()); // json 데이터 처리를 위한 설정
@@ -30,7 +31,6 @@ db.connect((err) => {
 });
 
 const sessionStore = new MySQLStore({}, db);
-
 app.use(
   session({
     secret: "qwerasdfzx", //세션을 암호화하기위한 비밀키 키보드에서 랜덤으로 10자 타이핑함 글자수는 정해져있지는 않음
@@ -42,28 +42,33 @@ app.use(
 
 // 기존에 선언된 MySQL 데이터베이스 연결을 사용한다.
 
-//쿼리문
-const queryDatabase = (sql) => {
-  return new Promise((resolve, reject) => {
-    db.query(sql, (error, data, fields) => {
-      if (error) {
-        reject(error);
-      } else {
-        resolve(data);
-      }
-    });
-  });
-};
-
 app.use(cors());
 
 const server = http.createServer(app);
 const io = socketIo(server, {
   cors: {
-    origin: "*", // 모든 도메인에서의 WebSocket 요청을 허용
+    origin: "*",
     methods: ["GET", "POST"],
   },
 });
+
+// 세션 미들웨어 구성
+const expressSession = session({
+  secret: "qwerasdfzx",
+  resave: false,
+  saveUninitialized: true,
+  store: sessionStore,
+});
+
+// Express에 세션 미들웨어 적용
+app.use(expressSession);
+
+// Socket.IO에 세션 미들웨어 적용
+io.use(
+  sharedsession(expressSession, {
+    autoSave: true,
+  })
+);
 
 // 로그인 처리
 // 로그인 처리
@@ -211,6 +216,33 @@ app.post("/api/save-code", (req, res) => {
   });
 });
 
+// 내정보 업데이트
+// 내정보 업데이트
+// 내정보 업데이트
+app.post("/api/my_dataUpdate", (req, res) => {
+  const userId = req.session.userId; // 세션에서 사용저 id 가져오기
+  const { username, birthday, meetingDay, user_image } = req.body;
+
+  if (!userId) {
+    return res.status(401).send({ message: "Unauthorized: No session found" });
+  }
+
+  const query =
+    "UPDATE userInfo SET username = ? ,birthday, meetingDay, user_image ";
+  db.query(
+    query,
+    [name, birthday, bloodType, meetingDay, userId],
+    (err, result) => {
+      if (err) {
+        console.err("Query error:", err);
+        res.status(500).send({ message: "Database error", error: err });
+      } else {
+        res.send({ message: "사용자 정보를 수정하는데 성공하였습니다!" });
+      }
+    }
+  );
+});
+
 // 연인 커플코드 추가하기
 // 연인 커플코드 추가하기
 // 연인 커플코드 추가하기
@@ -309,54 +341,83 @@ app.post("/api/member_withdrawal", (req, res) => {
 // WebSocket 연결 처리
 // WebSocket 연결 처리
 // WebSocket 연결 처리
-// WebSocket 연결 처리
 
-// 소켓 연결 및 이벤트 처리
-io.on("connection", (socket) => {
-  console.log(`A user connected: ${socket.id}`);
+io.on("connection", (socket, req) => {
+  console.log(`사용자가 Socket에 연결되었습니다. : ${socket.id}`);
+  // 세션에서 사용자 ID 가져오기
+  const userId = socket.handshake.session.userId;
+  console.log(`사용자 ID: ${userId}`);
+  // 커플 매칭 확인 및 ROOM 입장
 
-  // 커플 매칭 확인 및 룸 입장
-  socket.on("join room", (connectId) => {
-    var sql5 = "SELECT * FROM userInfo WHERE connect_id = ?";
-    var sql5params = [connectId];
-    // 데이터베이스에서 커플 매칭 확인
-    db.query(sql5, sql5params, (err, results) => {
-      if (err) throw err;
-      if (results.length > 0) {
-        // 매칭된 커플이면 룸에 입장
-        socket.join(connectId);
-        console.log(`User ${socket.id} joined room ${connectId}`);
+  socket.on("join room", () => {
+    console.log(`사용자가 "join room" 이벤트를 트리거했습니다.`);
+
+    var sql5 = "SELECT * FROM couple_connection_check WHERE user_id = ?";
+    var sql5params = [userId];
+    db.query(sql5, sql5params, (err, result) => {
+      if (err) {
+        console.error("Database error:", err);
+        return;
+      }
+
+      if (result.length > 0) {
+        let userConnectId = result[0].connect_id_me;
+        let partnerConnectId = result[0].connect_id_lover;
+
+        console.log(
+          `userConnectId: ${userConnectId}, partnerConnectId: ${partnerConnectId}`
+        );
+
+        // 매칭되는 파트너 찾기
+        var sql6 =
+          "SELECT * FROM couple_connection_check WHERE connect_id_me = ? AND connect_id_lover = ?";
+        var sql6params = [partnerConnectId, userConnectId];
+
+        db.query(sql6, sql6params, (err, matchResult) => {
+          if (err) {
+            console.error("Database error:", err);
+            return;
+          }
+
+          if (matchResult.length > 0) {
+            // 두 사용자가 서로를 connect_id로 가지고 있다면, 룸에 할당
+            let roomId = userConnectId + "-" + partnerConnectId;
+            socket.join(roomId);
+            console.log(`사용자 ${socket.id} joined room ${roomId}`);
+          }
+        });
       }
     });
   });
 
   // 커플 룸 내에서 메시지 교환
   socket.on("chat message", (data) => {
-    const { msg } = data;
+    console.log(`사용자가 "chat message" 이벤트를 트리거했습니다.`);
 
-    // 메시지 받을 때 로그 추가
-    console.log(`Message from ${socket.id}: ${msg}`);
+    const { msg, room_id } = data;
+    console.log(`Received message: ${msg}, Room ID: ${room_id}`);
 
-    // 데이터베이스에 메시지 저장
-    var sql4 = "INSERT INTO chat(Message_text,MessageTime) VALUES(?,?)";
+    var sql4 =
+      "INSERT INTO chat(Message_text, MessageTime, room_id) VALUES(?, ?, ?)";
     let now = new Date();
-    now.setHours(now.getHours() + 9); // UTC+9(대한민국,서울)로 시간 조정
-    let message_time = now.toISOString().slice(0, 19).replace("T", " ");
-
-    var sql4params = [msg, message_time];
+    now.setHours(now.getHours() + 9);
+    let Message_time = now.toISOString().slice(0, 19).replace("T", " ");
+    var sql4params = [msg, Message_time, room_id];
 
     db.query(sql4, sql4params, (err, result) => {
-      if (err) throw err;
-      console.log("Message recorded in database");
+      if (err) {
+        console.error("Error recording message:", err);
+        return;
+      }
+      console.log("Message recorded in databases");
     });
 
-    // 룸에 메시지 브로드캐스트
-    io.emit("chat message", msg, message_time);
+    socket.to(room_id).emit("chat message", msg, Message_time);
   });
 
   // 연결 해제
   socket.on("disconnect", () => {
-    console.log(`User disconnected: ${socket.id}`);
+    console.log(`사용자가 연결을 끊었습니다: ${socket.id}`);
   });
 });
 
@@ -366,7 +427,7 @@ server.listen(PORT, () => {
   console.log(`Server is running on http://3.34.6.50:${PORT}`);
 });
 
-//(서버에 정상적으로 연결되는지 확인하는 용도의 코드)
+// (서버에 정상적으로 연결되는지 확인하는 용도의 코드)
 app.get("/", (req, res) => {
   res.sendFile(__dirname + "/index.html");
 });

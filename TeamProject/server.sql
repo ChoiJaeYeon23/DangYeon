@@ -25,6 +25,7 @@ CREATE TABLE postInfo(
 -- 채팅 테이블
 CREATE TABLE chat(
     message_id INTEGER AUTO_INCREMENT PRIMARY KEY,
+    room_id INTEGER,
     Message_text VARCHAR(100),
     MessageTime DATETIME
 );
