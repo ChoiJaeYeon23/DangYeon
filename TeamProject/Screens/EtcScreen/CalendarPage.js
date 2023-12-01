@@ -12,55 +12,57 @@ LocaleConfig.locales['ko'] = {
   dayNamesShort: ['일', '월', '화', '수', '목', '금', '토'],
   today: '오늘',
 };
-// 캘린더 한국어로 설정
 LocaleConfig.defaultLocale = 'ko';
 
-// 현재 날짜 확인 및 출석체크 마킹
-const CustomDay = ({ date, marking = {} }) => {
-  const currentDate = moment().format('YYYY-MM-DD');
-  const isCurrentDate = date.dateString === currentDate;
+const CustomDay = ({ date, marking }) => {
+  const isMarked = marking && marking.customStyles;
 
   return (
-    <View>
-      <Text>{date.day}</Text>
-      {isCurrentDate && <Image source={CandyImage} style={{ width: 10, height: 10 }} />}
-      {marking.marked && <Image source={CandyImage} style={{ width: 10, height: 10 }} />}
+    <View style={styles.customDayContainer}>
+      <Text style={styles.customDayText}>{date.day}</Text>
+      {isMarked && (
+        <Image source={marking.customStyles.image} style={styles.candyImage} />
+      )}
     </View>
   );
 };
 
 const CalendarPage = () => {
-  // 출석체크 표시한 날짜들을 저장하는 곳
   const [markedDates, setMarkedDates] = useState({});
-  
+
   useEffect(() => {
-    // 출석체크 데이터 로드
     loadAttendanceData();
   }, []);
 
   const loadAttendanceData = async () => {
     try {
-      // AsyncStorage에서 출석체크 데이터 및 처리
       const attendanceValue = await AsyncStorage.getItem('@attendance');
       if (attendanceValue != null) {
-        const attendanceData = JSON.parse(attendanceValue);
-        markAttendanceDates(attendanceData);
+        const attendance = JSON.parse(attendanceValue);
+        const newMarkedDates = {};
+        
+        attendance.forEach((attended, index) => {
+          const day = moment().startOf('isoWeek').add(index, 'days');
+          if (attended) {
+            newMarkedDates[day.format('YYYY-MM-DD')] = {
+              customStyles: {
+                container: {
+                  backgroundColor: '#FFF9F9',
+                },
+                text: {
+                  color: 'black',
+                },
+                image: CandyImage, // 캔디 이미지 설정
+              },
+            };
+          }
+        });
+
+        setMarkedDates(newMarkedDates);
       }
-    } catch (e) {
-      console.error("Error loading attendance data", e);
+    } catch (error) {
+      console.error("Error loading attendance data", error);
     }
-  };
-  // 출석체크 데이터를 캘린더에 표시
-  const markAttendanceDates = (attendance) => {
-    // 각 날짜별 출석체크 여부에 따라 표시
-    let dates = {};
-    attendance.forEach((isComplete, index) => {
-      const date = moment().startOf('month').add(index, 'days').format('YYYY-MM-DD');
-      if (isComplete) {
-        dates[date] = { marked: true, dotColor: 'black' };
-      }
-    });
-    setMarkedDates(dates);
   };
 
   return (
@@ -68,7 +70,9 @@ const CalendarPage = () => {
       <Calendar
         markedDates={markedDates}
         markingType={'custom'}
-        dayComponent={({date, marking}) => <CustomDay date={date} marking={marking} />}
+        dayComponent={({ date, marking }) => (
+          <CustomDay date={date} marking={marking} />
+        )}
       />
     </View>
   );
@@ -80,6 +84,18 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  customDayContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  customDayText: {
+    fontSize: 16,
+    color: 'black',
+  },
+  candyImage: {
+    width: 20,
+    height: 20,
   },
 });
 
