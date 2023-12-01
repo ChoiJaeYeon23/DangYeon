@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Image, Alert, Text, ScrollView, StyleSheet, TouchableWithoutFeedback, Modal, TouchableOpacity } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { AntDesign } from '@expo/vector-icons';
 import addimage from '../../assets/add_image.png'
 
 const PictureMap = () => {
@@ -116,7 +117,7 @@ const PictureMap = () => {
           const addr = await getReverseGeocodingData(GPSLatitude, GPSLongitude);
           const region = determineRegion(addr || '');
           newRegionImages[region] = newRegionImages[region] || [];
-          newRegionImages[region].push({ uri: asset.uri, region: region });
+          newRegionImages[region].push({ uri: asset.uri, address: addr }); // 이미지 객체에 주소 추가
         }
       }
     }
@@ -179,7 +180,7 @@ const PictureMap = () => {
     };
 
     // 선택된 이미지 또는 첫 번째 이미지를 기본적으로 표시
-    const imageUri = selectedImage[region] || uris[0];
+    const imageUri = selectedImage[region] || uris[0].uri
 
     return (
       <TouchableWithoutFeedback key={region} onPress={() => onRegionPress(region)}>
@@ -198,21 +199,43 @@ const PictureMap = () => {
     setModalVisible(false);
   };
 
+  // 사진 삭제 함수
+  const deleteImage = (region, uriToDelete) => {
+    const updatedImages = regionImages[region].filter(imageData => imageData.uri !== uriToDelete);
+    const updatedRegionImages = { ...regionImages, [region]: updatedImages }; // 업데이트된 이미지 목록으로 상태를 설정
+    setRegionImages(updatedRegionImages);
+    saveImages(updatedRegionImages);
+  };
+
   // 사진선택시 모달을 통해 사진선택하게 만든 함수 및 각 지역에 배열형태로 사진 저장
   const renderModalContent = () => {
     if (!currentRegion || !regionImages[currentRegion]) return null;
 
     return (
-      <ScrollView style={styles.modalContent} contentContainerStyle={styles.scrollViewContent}>
-        {regionImages[currentRegion].map(({ uri, region }, index) => (
-          <View key={uri + index} style={styles.imageContainer}> {/* key를 고유하게 설정 */}
-            <TouchableOpacity onPress={() => onImageSelect(uri)}>
-              <Image source={{ uri }} style={styles.modalImage} />
-            </TouchableOpacity>
-            <Text style={styles.regionText}>{region}</Text>
-          </View>
-        ))}
-      </ScrollView>
+      <View>
+        <TouchableOpacity
+          style={styles.closeButton}
+          onPress={() => setModalVisible(false)}
+        >
+          <AntDesign name="close" size={30} color="black" />
+        </TouchableOpacity>
+        <ScrollView style={styles.modalContent} contentContainerStyle={styles.scrollViewContent}>
+          {regionImages[currentRegion].map((imageData, index) => (
+            <View key={index} style={styles.imageContainer}>
+              <TouchableOpacity
+                style={styles.deleteButton}
+                onPress={() => deleteImage(currentRegion, imageData.uri)}
+              >
+                <Text style={styles.deleteButtonText}>사진 삭제</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => onImageSelect(imageData.uri)}>
+                <Image source={{ uri: imageData.uri }} style={styles.modalImage} />
+              </TouchableOpacity>
+              <Text style={styles.addressText}>{imageData.address}</Text>
+            </View>
+          ))}
+        </ScrollView>
+      </View>
     );
   };
 
@@ -229,7 +252,6 @@ const PictureMap = () => {
         {renderModalContent()}
       </Modal>
     </View>
-
   );
 };
 
@@ -239,9 +261,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  closeButton: {
+    position: 'absolute',
+    right: 20,
+    top: 50,
+    zIndex: 1, // 다른 요소 위에 보이도록 zIndex 설정
+  },
   mapContainer: {
     width: '100%',
-    height: 475,
+    height: 505,
     position: 'relative',
   },
   mapStyle: {
@@ -249,7 +277,7 @@ const styles = StyleSheet.create({
     height: '100%',
   },
   modalContent: {
-    paddingTop: '20%'
+    paddingTop: '10%'
   },
   scrollViewContent: {
     paddingBottom: 80,
@@ -257,7 +285,7 @@ const styles = StyleSheet.create({
   modalImage: {
     width: 200,
     height: 200,
-    margin: 10,
+    margin: 15,
     borderRadius: 10,
     alignSelf: 'center',
   },
@@ -265,8 +293,29 @@ const styles = StyleSheet.create({
     left: '44%',
     width: 35,
     height: 30,
-    marginBottom: 3
-  }
+    marginTop: 5
+  },
+  imageContainer: {
+    marginBottom: 10,
+    alignItems: 'center',
+  },
+  addressText: {
+    textAlign: 'center',
+    paddingTop: 5,
+    fontSize: 12
+  },
+  deleteButton: {
+    position: 'absolute',
+    left: '5%',
+    top: '50%',
+    backgroundColor: 'red',
+    padding: 5,
+    borderRadius: 10,
+    zIndex: 2,
+  },
+  deleteButtonText: {
+    color: 'white',
+  },
 });
 
 export default PictureMap;
