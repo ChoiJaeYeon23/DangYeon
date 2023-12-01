@@ -13,7 +13,7 @@ import {
   KeyboardAvoidingView,
 } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import calendar from "../../assets/calendar.png";
 import * as ImagePicker from "expo-image-picker";
@@ -28,6 +28,7 @@ const UserInfo = ({ navigation }) => {
     useState(false); //처음 만난 날 picker
   const [profilePic, setProfilePic] = useState(null); // 프로필 사진
   const [isBloodTypeModalVisible, setIsBloodTypeModalVisible] = useState(false); // 혈액형 모달
+  const [connect_id, setConnectId] = useState(""); // 연인 코드 추가
 
   const saveProfileData = async () => {
     try {
@@ -74,7 +75,7 @@ const UserInfo = ({ navigation }) => {
       "회원 탈퇴",
       "회원을 탈퇴할 경우 모든 데이터가 삭제됩니다. 계속 하시겠습니까?",
       [
-        { text: "취소", onPress: () => { }, style: "cancel" },
+        { text: "취소", onPress: () => {}, style: "cancel" },
         { text: "탈퇴", onPress: () => memberDelete() }, //memberDelete :  사용자가 "탈퇴" 버튼을 눌렀을 때 호출되는 이벤트 핸들러
       ],
       { cancelable: false }
@@ -102,6 +103,33 @@ const UserInfo = ({ navigation }) => {
       });
   };
 
+  //연인 코드 입력값을 상태에 저장하는 함수
+  const handleConnectIdChange = (text) => {
+    setConnectId(text);
+  };
+  // 연인 커플 코드 추가
+  const addLoverCode = () => {
+    fetch("http://3.34.6.50:8080/api/add_lover_code", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ connect_id }),
+    })
+      .then((response) => {
+        if (response.ok) {
+          return response.json();
+        }
+        throw new Error("서버 응답에 실패하였습니다.");
+      })
+      .then((data) => {
+        Alert.alert("성공", "연인의 코드를 추가하였습니다.");
+      })
+      .catch((error) => {
+        console.error("Error:", error);
+        Alert.alert("실패", "연인의 코드를 추가하는데 실패하였습니다.");
+      });
+  };
   // 생년월일 변경
   const onBirthdayChange = (event, selectedDate) => {
     const currentDate = selectedDate || new Date();
@@ -215,7 +243,7 @@ const UserInfo = ({ navigation }) => {
       <KeyboardAwareScrollView
         style={{ flex: 1 }}
         contentContainerStyle={{ flexGrow: 1 }}
-        keyboardShouldPersistTaps='handled'
+        keyboardShouldPersistTaps="handled"
         extraScrollHeight={20}
       >
         <View style={styles.container}>
@@ -347,8 +375,20 @@ const UserInfo = ({ navigation }) => {
                 <Text style={styles.ButtonText2}>로그아웃</Text>
               </TouchableOpacity>
             </View>
-            <TouchableOpacity style={styles.memberDelete} onPress={member_withdrawal}>
+            <TouchableOpacity
+              style={styles.memberDelete}
+              onPress={member_withdrawal}
+            >
               <Text style={styles.memberDeleteText}>회원 탈퇴</Text>
+            </TouchableOpacity>
+            <TextInput
+              value={connect_id}
+              onChangeText={handleConnectIdChange}
+              placeholder="연인 코드 입력"
+              style={styles.input}
+            />
+            <TouchableOpacity style={styles.button} onPress={addLoverCode}>
+              <Text style={styles.buttonText}>연인 코드 추가</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -552,6 +592,19 @@ const styles = StyleSheet.create({
   memberDeleteText: {
     color: "red",
     textAlign: "center",
+    fontWeight: "bold",
+    fontSize: 16,
+  },
+  button: {
+    backgroundColor: "#FFCECE",
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 5,
+    marginTop: 10,
+    alignSelf: "flex-end", // 버튼을 오른쪽 정렬
+  },
+  buttonText: {
+    color: "#544848",
     fontWeight: "bold",
     fontSize: 16,
   },

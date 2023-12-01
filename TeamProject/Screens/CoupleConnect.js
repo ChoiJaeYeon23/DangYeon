@@ -42,7 +42,7 @@ const CoupleConnect = ({ navigation }) => {
       })
       .then((data) => {
         Alert.alert("성공", "초대 코드가 저장되었습니다.");
-        navigation.navigate("Profile");
+        navigation.navigate("MainTab");
       })
       .catch((error) => {
         console.error("Error saving data :", error);

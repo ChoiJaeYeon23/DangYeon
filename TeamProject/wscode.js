@@ -71,29 +71,46 @@ const io = socketIo(server, {
 
 app.post("/api/login", (req, res) => {
   console.log(req.body);
-  console.log(session);
   const { id, pw } = req.body;
 
-  const query = "SELECT * FROM userInfo WHERE id = ? AND pw =? ";
-
-  db.query(query, [id, pw], (err, result) => {
+  const userInfoQuery = "SELECT * FROM userInfo WHERE id = ? AND pw = ?";
+  db.query(userInfoQuery, [id, pw], (err, userInfoResult) => {
     if (err) {
       console.error("Query error: ", err);
       res.status(500).send({ message: "Database error", error: err });
-    } else {
-      if (result.length > 0) {
-        req.session.userId = result[0].id;
-        req.session.loggedIn = true;
-        if (result[0].connect_id) {
-          // connect_id 컬럼에 값이 존재하는 경우
-          res.json({ status: "redirect", message: "Connect_id가 있습니다." });
-        } else {
-          // connect_id 컬럼이 비어 있는 경우
-          res.json({ status: "stay", message: "connect_id가 없습니다." });
+      return;
+    }
+    if (userInfoResult.length > 0) {
+      req.session.userId = userInfoResult[0].id;
+      req.session.loggedIn = true;
+      console.log(req.session);
+      // 로그인을 성공한후 couple_connection_check 테이블에서 user_id를 조회한 후 connect_id_me가 존재하거나 없으면 그에 따른 다른 응답을 클라이언트쪽으로 보냄
+      const connectCheckQuery =
+        "SELECT * FROM couple_connection_check WHERE user_id = ?";
+      db.query(
+        connectCheckQuery,
+        [userInfoResult[0].id],
+        (err, connectCheckResult) => {
+          if (err) {
+            console.error("Query error: ", err);
+            res.status(500).send({ message: "Database error", error: err });
+            return;
+          }
+
+          if (
+            connectCheckResult.length > 0 &&
+            connectCheckResult[0].connect_id_me
+          ) {
+            // connect_id_me 컬럼에 값이 존재하는 경우
+            res.json({ status: "redirect", message: "Connect_id가 있습니다." });
+          } else {
+            // connect_id_me 컬럼이 비어 있는 경우
+            res.json({ status: "stay", message: "connect_id가 없습니다." });
+          }
         }
-      } else {
-        res.status(401).send({ message: "Invalid ID or password" });
-      }
+      );
+    } else {
+      res.status(401).send({ message: "Invalid ID or password" });
     }
   });
 });
@@ -173,6 +190,7 @@ app.post("/api/check-id", (req, res) => {
 
 app.post("/api/save-code", (req, res) => {
   const userId = req.session.userId; // 세션에서 사용자 ID를 가져온다.
+  console.log(req.session);
   console.log(req.body);
   const { connect_id } = req.body;
   //로그인 상태 확인
@@ -180,13 +198,42 @@ app.post("/api/save-code", (req, res) => {
     return res.status(401).send({ message: "Unauthorized: No session found" });
   }
 
-  const query = "UPDATE userInfo SET connect_id =? WHERE id =?";
+  const query =
+    "INSERT INTO couple_connection_check (user_id, connect_id_me) VALUES (?, ?)";
+
   console.log(connect_id);
-  db.query(query, [connect_id, userId], (err, results) => {
+  db.query(query, [userId, connect_id], (err, results) => {
     if (err) {
       res.status(500).send({ message: "Database error", error: err.message });
     } else {
       res.status(200).send({ message: "Failed to save the code" });
+    }
+  });
+});
+
+// 연인 커플코드 추가하기
+// 연인 커플코드 추가하기
+// 연인 커플코드 추가하기
+app.post("/api/add_lover_code", (req, res) => {
+  const userId = req.session.userId; // 세션에서 사용자 ID 가져오기
+  const { connect_id } = req.body;
+
+  console.log(req.session, connect_id); // 세션과 connect_id 로깅
+
+  if (!userId) {
+    return res.status(401).send({ message: "Unauthorized: No session found" });
+  }
+
+  // connect_id_lover 값을 현재 세션의 사용자 ID에 해당하는 행에만 업데이트
+  const query =
+    "UPDATE couple_connection_check SET connect_id_lover = ? WHERE user_id = ?";
+
+  db.query(query, [connect_id, userId], (err, result) => {
+    if (err) {
+      console.error("Query error", err);
+      res.status(500).send({ message: "Database error", error: err });
+    } else {
+      res.send({ message: "Couple connection saved successfully" });
     }
   });
 });
@@ -203,8 +250,9 @@ app.post("/api/couple_break", (req, res) => {
     return res.status(401).send({ message: "Unauthorized: No session found" });
   }
 
-  // DB에서 해당 사용자의 connect_id를 NULL로 변경
-  const query = "UPDATE userInfo SET connect_id = NULL WHERE id = ?";
+  // DB에서 해당 사용자의 connect_id_me를 NULL로 변경
+  const query =
+    "UPDATE couple_connection_check SET connect_id_lover = NULL WHERE user_id = ?";
   db.query(query, [userId], (err, result) => {
     if (err) {
       // DB 오류 처리
