@@ -272,17 +272,37 @@ app.post("/api/couple_break", (req, res) => {
 app.post("/api/member_withdrawal", (req, res) => {
   const userId = req.session.userId; // 세션에서 사용자 id가져오기
 
-  //DB에서 해당 사용자의 ID를 확인하후 모든 정보 삭제
-  const query = "DELETE FROM userInfo WHERE id =?";
-  db.query(query, [userId], (err, result) => {
+  if (!userId) {
+    return res.status(401).send({ message: "Unauthorized: No session found" });
+  }
+
+  // couple_connection_check 테이블에서 해당 사용자의 참조를 먼저 삭제
+  const deleteReferencesQuery =
+    "DELETE FROM couple_connection_check WHERE user_id = ? OR connect_id_lover = ?";
+  db.query(deleteReferencesQuery, [userId, userId], (err, result) => {
     if (err) {
-      //DB오류처리
-      console.error("Query error:", err);
-      res.status(500).send({ message: "Database error", error: err });
-    } else {
-      req.session.destroy(); // 세션도 삭제
-      res.send({ message: "사용자의 데이터가 모두 제거 되었습니다." });
+      console.error("Error deleting user references:", err);
+      return res.status(500).send({ message: "Database error", error: err });
     }
+
+    // 이제 userInfo 테이블에서 사용자 정보를 안전하게 삭제
+    const deleteUserQuery = "DELETE FROM userInfo WHERE id = ?";
+    db.query(deleteUserQuery, [userId], (err, result) => {
+      if (err) {
+        console.error("Error deleting user:", err);
+        res.status(500).send({ message: "Database error", error: err });
+      } else {
+        req.session.destroy((error) => {
+          if (error) {
+            console.error("Session destruction error:", error);
+            return res
+              .status(500)
+              .send({ message: "Error destroying session", error: error });
+          }
+          res.send({ message: "사용자의 데이터가 모두 제거 되었습니다." });
+        });
+      }
+    });
   });
 });
 
