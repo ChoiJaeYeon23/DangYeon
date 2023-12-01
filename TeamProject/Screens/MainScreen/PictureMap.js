@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Image, Alert, Text, ScrollView, StyleSheet, TouchableWithoutFeedback, Modal, TouchableOpacity } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import addimage from '../../assets/add_image.png'
 
 const PictureMap = () => {
@@ -82,6 +83,29 @@ const PictureMap = () => {
     }
   };
 
+  useEffect(() => {
+    loadImages();
+  }, []);
+
+  const loadImages = async () => {
+    try {
+      const storedImages = await AsyncStorage.getItem('regionImages');
+      if (storedImages !== null) {
+        setRegionImages(JSON.parse(storedImages));
+      }
+    } catch (error) {
+      console.error('Failed to load images', error);
+    }
+  };
+
+  const saveImages = async (images) => {
+    try {
+      await AsyncStorage.setItem('regionImages', JSON.stringify(images));
+    } catch (error) {
+      console.error('Failed to save images', error);
+    }
+  };
+
   const processImages = async (assets) => {
     let newRegionImages = { ...regionImages };
 
@@ -96,8 +120,8 @@ const PictureMap = () => {
         }
       }
     }
-
     setRegionImages(newRegionImages);
+    saveImages(newRegionImages);
   };
 
   const getReverseGeocodingData = async (lat, lon) => {
@@ -163,7 +187,6 @@ const PictureMap = () => {
       </TouchableWithoutFeedback>
     );
   };
-
 
   const onRegionPress = (region) => {
     setCurrentRegion(region);
@@ -236,10 +259,10 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
   },
   addImage: {
-    left:'44%',
-    width:35,
-    height:30,
-    marginBottom:3
+    left: '44%',
+    width: 35,
+    height: 30,
+    marginBottom: 3
   }
 });
 
