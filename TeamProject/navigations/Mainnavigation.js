@@ -11,7 +11,6 @@ import etc from '../assets/etc.png'
 
 import Login from '../Screens/Login';
 import SignUp from "../Screens/SignUp";
-import ProfileInput from "../Screens/ProfileInput";
 import CoupleConnect from "../Screens/CoupleConnect";
 import Main from '../Screens/MainScreen/Main';
 import PictureMap from '../Screens/MainScreen/PictureMap'
@@ -206,20 +205,6 @@ function AuthStackScreen() {
                 component={CoupleConnect}
                 options={{
                     title: "커플 연결?(CoupleConnect)",
-                    headerShown: false,
-                    headerStyle: { backgroundColor: "#FFCCFF" },
-                    headerTintColor: "white",
-                    headerTitleStyle: {
-                        fontWeight: "bold",
-                        color: "white",
-                    },
-                }}
-            />
-            <AuthStack.Screen
-                name="Profile"
-                component={ProfileInput}
-                options={{
-                    title: "프로필 입력화면?(ProfileInput)",
                     headerShown: false,
                     headerStyle: { backgroundColor: "#FFCCFF" },
                     headerTintColor: "white",
