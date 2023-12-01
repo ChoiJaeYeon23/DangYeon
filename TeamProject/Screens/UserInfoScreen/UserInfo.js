@@ -130,6 +130,35 @@ const UserInfo = ({ navigation }) => {
         Alert.alert("실패", "연인의 코드를 추가하는데 실패하였습니다.");
       });
   };
+
+  // // 내정보 수정하기 클라이언트 요청 코드
+  // // 스타일과 꾸미는건 해줘...
+  // const UpdateMyData = () => {
+  //   name, birthday, meetingDay, user_image;
+  // };
+
+  // fetch("http://3.34.6.50:8080/api/my_dataUpdate"),
+  //   {
+  //     method: "POST",
+  //     headers: {
+  //       "Content-Type": "application/json",
+  //     },
+  //     body: JSON.stringify(UpdateMyData),
+  //   }
+  //     .then((response) => {
+  //       if (response.ok) {
+  //         return response.json();
+  //       }
+  //       throw new Error("서버에서 처리하는데 문제가 발생하였습니다.");
+  //     })
+  //     .then((data) => {
+  //       Alert.alert("성공", "정보가 업데이트되었습니다.");
+  //     })
+  //     .catch((error) => {
+  //       console.error("Error:", error);
+  //       Alert.alert("실패", "정보 업데이트에 실패하였습니다.");
+  //     });
+
   // 생년월일 변경
   const onBirthdayChange = (event, selectedDate) => {
     const currentDate = selectedDate || new Date();

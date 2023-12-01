@@ -11,22 +11,27 @@ import {
 } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import io from "socket.io-client";
-import * as ImagePicker from 'expo-image-picker';
 
 const Chat = () => {
   const [socket, setSocket] = useState(null);
-  const [message, setMessage] = useState(""); // 사용자 입력 메세지
-  const [messages, setMessages] = useState([]); // 렌더링메세지
-
+  const [message, setMessage] = useState("");
+  const [messages, setMessages] = useState([]);
+  const [roomID, setRoomId] = useState(null);
   const flatListRef = useRef();
 
   useEffect(() => {
     const newSocket = io("http://3.34.6.50:8080");
     setSocket(newSocket);
 
-    newSocket.on("chat message", (message) => {
-      setMessages((prevMessages) => [...prevMessages, message]);
-      // 메시지 상태가 업데이트 될 때마다 최신 메시지로 스크롤합니다.
+    // 방 ID 할당받는 이벤트 리스너
+    newSocket.on("assign room", (id) => {
+      setRoomId(id);
+      newSocket.emit("join room"); // 서버에 방 입장 이벤트 전송
+    });
+
+    // 채팅 메시지 수신 이벤트 리스너
+    newSocket.on("chat message", (msgData) => {
+      setMessages((prevMessages) => [...prevMessages, msgData]);
       if (flatListRef.current) {
         flatListRef.current.scrollToEnd({ animated: true });
       }
@@ -35,48 +40,33 @@ const Chat = () => {
     return () => newSocket.disconnect();
   }, []);
 
+  const sendMessage = () => {
+    if (socket && message && roomID) {
+      const msgData = {
+        msg: message.trim(),
+        room_id: roomID,
+        isUserMessage: true,
+      };
+
+      socket.emit("chat message", msgData);
+      setMessage("");
+      setMessages((prevMessages) => [...prevMessages, msgData]); // 화면에 메시지 표시
+    }
+  };
+
   const renderMessage = ({ item }) => {
-    const isUserMessage = item.isUser; // 메시지 객체의 isUser 속성을 기반으로 사용자 메시지 여부 판단
+    // 메시지 렌더링 시 사용자 메시지 여부에 따라 스타일 결정
     return (
       <View
         style={[
           styles.messageBubble,
-          isUserMessage ? styles.userMessage : styles.otherMessage,
+          item.isUserMessage ? styles.userMessage : styles.otherMessage,
         ]}
       >
-        <Text>{item.text}</Text>
+        <Text>{item.msg}</Text>
       </View>
     );
   };
-
-  const sendMessage = () => {
-    if (socket && message) {
-      socket.emit("chat message", { msg: message.trim(), coupleId: null });
-      console.log(message);
-      setMessage("");
-    }
-  };
-  const sendImage = async () => {
-    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (!permissionResult.granted) {
-      Alert.alert('권한 필요', '갤러리에 접근하기 위한 권한이 필요합니다.');
-      return;
-    }
-
-    let result = await ImagePicker.launchImageLibraryAsync({
-      allowsMultipleSelection: true, // 여러 사진 선택가능
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      exif: true,
-    });
-
-    if (!result.canceled && result.assets) {
-      const uris = result.assets.map(asset => asset.uri);
-      setImageUris(uris);
-      await processImages(result.assets);
-    }
-  };
-  
-  const sendEmoticon = () => { };
 
   return (
     <KeyboardAvoidingView
@@ -88,17 +78,11 @@ const Chat = () => {
         <FlatList
           ref={flatListRef}
           data={messages}
-          renderItem={({ item }) => <Text>{item}</Text>}
+          renderItem={renderMessage}
           keyExtractor={(item, index) => index.toString()}
           style={styles.messageList}
         />
         <View style={styles.inputSection}>
-          <TouchableOpacity onPress={sendImage} style={styles.iconButton}>
-            <Feather name="image" size={24} color="black" />
-          </TouchableOpacity>
-          <TouchableOpacity onPress={sendEmoticon} style={styles.iconButton}>
-            <Feather name="smile" size={24} color="black" />
-          </TouchableOpacity>
           <TextInput
             style={styles.input}
             value={message}
@@ -110,7 +94,7 @@ const Chat = () => {
           </TouchableOpacity>
         </View>
       </View>
-    </KeyboardAvoidingView >
+    </KeyboardAvoidingView>
   );
 };
 
@@ -122,7 +106,6 @@ const styles = StyleSheet.create({
   messageList: {
     flex: 1,
     padding: 10,
-    fontSize: 18,
   },
   inputSection: {
     flexDirection: "row",
@@ -135,13 +118,10 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
     borderWidth: 1,
-    borderColor: 'gray',
+    borderColor: "gray",
     padding: 10,
     marginRight: 10,
     borderRadius: 15,
-  },
-  iconButton: {
-    marginRight: 5,
   },
   messageBubble: {
     padding: 10,
@@ -151,17 +131,11 @@ const styles = StyleSheet.create({
   },
   userMessage: {
     alignSelf: "flex-end",
-    padding: 10,
     backgroundColor: "#DCF8C6",
-    borderRadius: 20,
-    marginBottom: 10,
   },
   otherMessage: {
     alignSelf: "flex-start",
-    padding: 10,
     backgroundColor: "#ECECEC",
-    borderRadius: 20,
-    marginBottom: 10,
   },
 });
 
