@@ -99,13 +99,14 @@ const CalendarScreen = () => {
         loadEvents();
     }, []);
 
-    const deleteEvent = (index) => {
+    const deleteEvent = async (index) => {
         const updatedEvents = { ...events };
         updatedEvents[selectedDate].splice(index, 1);
         if (updatedEvents[selectedDate].length === 0) {
             delete updatedEvents[selectedDate];
         }
         setEvents(updatedEvents);
+        await saveEvents(updatedEvents); // 업데이트된 events를 AsyncStorage에 저장
     };
 
     const renderEvents = () => {
