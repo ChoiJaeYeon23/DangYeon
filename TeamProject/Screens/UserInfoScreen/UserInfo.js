@@ -10,8 +10,10 @@ import {
   Platform,
   Modal,
   FlatList,
+  KeyboardAvoidingView,
 } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import calendar from "../../assets/calendar.png";
 import * as ImagePicker from "expo-image-picker";
@@ -72,7 +74,7 @@ const UserInfo = ({ navigation }) => {
       "회원 탈퇴",
       "회원을 탈퇴할 경우 모든 데이터가 삭제됩니다. 계속 하시겠습니까?",
       [
-        { text: "취소", onPress: () => {}, style: "cancel" },
+        { text: "취소", onPress: () => { }, style: "cancel" },
         { text: "탈퇴", onPress: () => memberDelete() }, //memberDelete :  사용자가 "탈퇴" 버튼을 눌렀을 때 호출되는 이벤트 핸들러
       ],
       { cancelable: false }
@@ -205,143 +207,153 @@ const UserInfo = ({ navigation }) => {
   const Separator = () => <View style={styles.separator} />;
 
   return (
-    <View style={styles.container}>
-      <View style={styles.headerContainer}>
-        {!profilePic && (
-          <Text style={styles.photoPromptText}>
-            프로필 사진을 입력해주세요!
-          </Text>
-        )}
-        <TouchableOpacity style={styles.iconContainer} onPress={pickImage}>
-          {profilePic ? (
-            <Image
-              source={{ uri: profilePic.uri }}
-              style={{ width: 50, height: 50, borderRadius: 25 }}
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      keyboardVerticalOffset={Platform.OS === "ios" ? 20 : 0}
+    >
+      <KeyboardAwareScrollView
+        style={{ flex: 1 }}
+        contentContainerStyle={{ flexGrow: 1 }}
+        keyboardShouldPersistTaps='handled'
+        extraScrollHeight={20}
+      >
+        <View style={styles.container}>
+          <View style={styles.headerContainer}>
+            {!profilePic && (
+              <Text style={styles.photoPromptText}>
+                프로필 사진을 입력해주세요!
+              </Text>
+            )}
+            <TouchableOpacity style={styles.iconContainer} onPress={pickImage}>
+              {profilePic ? (
+                <Image
+                  source={{ uri: profilePic.uri }}
+                  style={{ width: 50, height: 50, borderRadius: 25 }}
+                />
+              ) : (
+                <Image
+                  source={require("../../assets/imageicon.png")}
+                  style={styles.icon}
+                />
+              )}
+            </TouchableOpacity>
+            <Text style={styles.titleText}>수쨩 💖 원우</Text>
+          </View>
+          <Separator />
+          <View style={styles.inputRow}>
+            <Text style={styles.inputLabel}>이름</Text>
+            <TextInput
+              onChangeText={handleNameChange}
+              value={name}
+              placeholder="수쨩"
+              style={styles.input}
             />
-          ) : (
-            <Image
-              source={require("../../assets/imageicon.png")}
-              style={styles.icon}
-            />
-          )}
-        </TouchableOpacity>
-        <Text style={styles.titleText}>수쨩 💖 원우</Text>
-      </View>
-      <Separator />
-      <View style={styles.inputRow}>
-        <Text style={styles.inputLabel}>이름</Text>
-        <TextInput
-          onChangeText={handleNameChange}
-          value={name}
-          placeholder="수쨩"
-          style={styles.input}
-        />
-      </View>
-      <View style={styles.inputRow}>
-        <Text style={styles.inputLabel}>생년월일</Text>
-        <View style={styles.dateInputContainer}>
-          <TextInput
-            value={birthday}
-            placeholder="2003-02-17"
-            style={styles.dateInput}
-            editable={false}
-          />
-          <TouchableOpacity onPress={showBirthdayPicker}>
-            <Image source={calendar} style={styles.calendar} />
-          </TouchableOpacity>
-        </View>
-        <View style={styles.datePickerContainer}>
-          {isBirthdayPickerVisible && (
-            <DateTimePicker
-              testID="birthdayPicker"
-              value={birthday ? new Date(birthday) : new Date()}
-              mode="date"
-              display="calendar"
-              onChange={onBirthdayChange}
-            />
-          )}
-        </View>
-      </View>
-      <View style={styles.inputRow}>
-        <Text style={styles.inputLabel}>처음 만난 날</Text>
-        <View style={styles.dateInputContainer}>
-          <TextInput
-            value={meetingDay}
-            placeholder="2023-10-17"
-            style={styles.dateInput}
-            editable={false}
-            onPress={showMeetingDayPicker}
-          />
-          <TouchableOpacity onPress={showMeetingDayPicker}>
-            <Image source={calendar} style={styles.calendar} />
-          </TouchableOpacity>
-        </View>
-        <View style={styles.datePickerContainer}>
-          {isMeetingDayPickerVisible && (
-            <DateTimePicker
-              testID="meetingDayPicker"
-              value={meetingDay ? new Date(meetingDay) : new Date()}
-              mode="date"
-              display="default"
-              onChange={onMeetingDayChange}
-            />
-          )}
-        </View>
-      </View>
-      <View style={styles.inputRowColumn}>
-        <Text style={styles.inputLabel}>혈액형</Text>
-        <TouchableOpacity onPress={showBloodTypeModal}>
-          <Text style={styles.bloodText}>
-            {bloodType ? `${bloodType}형` : "혈액형 선택"}
-          </Text>
-        </TouchableOpacity>
-        <Modal
-          animationType="slide"
-          transparent={true}
-          visible={isBloodTypeModalVisible}
-          onRequestClose={() => {
-            setIsBloodTypeModalVisible(false);
-          }}
-        >
-          <TouchableOpacity
-            style={styles.centeredView}
-            activeOpacity={1}
-            onPressOut={() => setIsBloodTypeModalVisible(false)}
-          >
-            <View style={styles.modalView}>
-              <FlatList
-                data={bloodTypes}
-                renderItem={renderBloodTypeItem}
-                keyExtractor={(item) => item}
+          </View>
+          <View style={styles.inputRow}>
+            <Text style={styles.inputLabel}>생년월일</Text>
+            <View style={styles.dateInputContainer}>
+              <TextInput
+                value={birthday}
+                placeholder="2003-02-17"
+                style={styles.dateInput}
+                editable={false}
               />
+              <TouchableOpacity onPress={showBirthdayPicker}>
+                <Image source={calendar} style={styles.calendar} />
+              </TouchableOpacity>
             </View>
-          </TouchableOpacity>
-        </Modal>
-      </View>
-      <Separator />
-      <View style={styles.saveButtonContainer}>
-        <TouchableOpacity style={styles.Button} onPress={saveProfileData}>
-          <Text style={styles.ButtonText}>저장</Text>
-        </TouchableOpacity>
-        <View style={styles.buttonContainer}>
-          <TouchableOpacity onPress={couplebreak} style={styles.Button2}>
-            <Text style={styles.ButtonText2}>커플 연결 끊기</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.Button2}>
-            <Text style={styles.ButtonText3}>l</Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={goToLogout} style={styles.Button2}>
-            <Text style={styles.ButtonText2}>로그아웃</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.memberDelete}
-            onPress={member_withdrawal}
-          >
-            <Text style={styles.memberDeleteText}>회원 탈퇴</Text>
-          </TouchableOpacity>
+            <View style={styles.datePickerContainer}>
+              {isBirthdayPickerVisible && (
+                <DateTimePicker
+                  testID="birthdayPicker"
+                  value={birthday ? new Date(birthday) : new Date()}
+                  mode="date"
+                  display="calendar"
+                  onChange={onBirthdayChange}
+                />
+              )}
+            </View>
+          </View>
+          <View style={styles.inputRow}>
+            <Text style={styles.inputLabel}>처음 만난 날</Text>
+            <View style={styles.dateInputContainer}>
+              <TextInput
+                value={meetingDay}
+                placeholder="2023-10-17"
+                style={styles.dateInput}
+                editable={false}
+                onPress={showMeetingDayPicker}
+              />
+              <TouchableOpacity onPress={showMeetingDayPicker}>
+                <Image source={calendar} style={styles.calendar} />
+              </TouchableOpacity>
+            </View>
+            <View style={styles.datePickerContainer}>
+              {isMeetingDayPickerVisible && (
+                <DateTimePicker
+                  testID="meetingDayPicker"
+                  value={meetingDay ? new Date(meetingDay) : new Date()}
+                  mode="date"
+                  display="default"
+                  onChange={onMeetingDayChange}
+                />
+              )}
+            </View>
+          </View>
+          <View style={styles.inputRowColumn}>
+            <Text style={styles.inputLabel}>혈액형</Text>
+            <TouchableOpacity onPress={showBloodTypeModal}>
+              <Text style={styles.bloodText}>
+                {bloodType ? `${bloodType}형` : "혈액형 선택"}
+              </Text>
+            </TouchableOpacity>
+            <Modal
+              animationType="slide"
+              transparent={true}
+              visible={isBloodTypeModalVisible}
+              onRequestClose={() => {
+                setIsBloodTypeModalVisible(false);
+              }}
+            >
+              <TouchableOpacity
+                style={styles.centeredView}
+                activeOpacity={1}
+                onPressOut={() => setIsBloodTypeModalVisible(false)}
+              >
+                <View style={styles.modalView}>
+                  <FlatList
+                    data={bloodTypes}
+                    renderItem={renderBloodTypeItem}
+                    keyExtractor={(item) => item}
+                  />
+                </View>
+              </TouchableOpacity>
+            </Modal>
+          </View>
+          <Separator />
+          <View style={styles.saveButtonContainer}>
+            <TouchableOpacity style={styles.Button} onPress={saveProfileData}>
+              <Text style={styles.ButtonText}>저장</Text>
+            </TouchableOpacity>
+            <View style={styles.buttonContainer}>
+              <TouchableOpacity onPress={couplebreak} style={styles.Button2}>
+                <Text style={styles.ButtonText2}>커플 연결 끊기</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.Button2}>
+                <Text style={styles.ButtonText3}>l</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={goToLogout} style={styles.Button2}>
+                <Text style={styles.ButtonText2}>로그아웃</Text>
+              </TouchableOpacity>
+            </View>
+            <TouchableOpacity style={styles.memberDelete} onPress={member_withdrawal}>
+              <Text style={styles.memberDeleteText}>회원 탈퇴</Text>
+            </TouchableOpacity>
+          </View>
         </View>
-      </View>
-    </View>
+      </KeyboardAwareScrollView>
+    </KeyboardAvoidingView>
   );
 };
 
@@ -358,7 +370,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     flexDirection: "row",
-    marginTop: 20,
+    marginTop: 40,
   },
   titleText: {
     textAlign: "center",
@@ -444,7 +456,7 @@ const styles = StyleSheet.create({
   },
   ButtonText: {
     color: "#544848",
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: "bold",
     textAlign: "center",
   },
@@ -533,15 +545,15 @@ const styles = StyleSheet.create({
     width: "9%",
   },
   memberDelete: {
-    backgroundColor: "red", // 버튼 색상은 적절하게 조정하세요.
     padding: 10,
-    borderRadius: 5,
-    marginTop: 20,
+    borderRadius: 10,
+    marginTop: 30,
   },
   memberDeleteText: {
-    color: "white",
+    color: "red",
     textAlign: "center",
     fontWeight: "bold",
+    fontSize: 16,
   },
 });
 
