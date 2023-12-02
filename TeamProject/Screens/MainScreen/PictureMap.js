@@ -226,7 +226,7 @@ const PictureMap = () => {
                 style={styles.deleteButton}
                 onPress={() => deleteImage(currentRegion, imageData.uri)}
               >
-                <Text style={styles.deleteButtonText}>사진 삭제</Text>
+                <AntDesign name="delete" size={24} color="black" />
               </TouchableOpacity>
               <TouchableOpacity onPress={() => onImageSelect(imageData.uri)}>
                 <Image source={{ uri: imageData.uri }} style={styles.modalImage} />
@@ -306,9 +306,8 @@ const styles = StyleSheet.create({
   },
   deleteButton: {
     position: 'absolute',
-    left: '5%',
+    left: '8%',
     top: '50%',
-    backgroundColor: 'red',
     padding: 5,
     borderRadius: 10,
     zIndex: 2,
