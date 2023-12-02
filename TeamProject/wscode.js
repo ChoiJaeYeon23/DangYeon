@@ -10,6 +10,7 @@ const sharedsession = require("express-socket.io-session");
 const MySQLStore = require("express-mysql-session")(session); // express-mysql-session 모듈을 로드하되, 인자로 session을 넘겨주기
 
 app.use(bodyParser.json()); // json 데이터 처리를 위한 설정
+const app = express();
 
 //DB연동
 var db = mysql.createConnection({
@@ -41,8 +42,6 @@ app.use(
 
 // Express 앱에 세션 미들웨어 적용
 app.use(cors());
-app.use(cors());
-app.use(expressSession); // 여기서 세션 미들웨어 적용
 
 
 const server = http.createServer(app);
@@ -55,7 +54,7 @@ const io = socketIo(server, {
 
 // Socket.IO에 세션 미들웨어 적용
 io.use(
-  sharedsession(expressSession, {
+  sharedsession(session, {
     autoSave: true,
   })
 );
@@ -218,7 +217,7 @@ app.post("/api/my_dataUpdate", (req, res) => {
   }
 
   const query =
-    "UPDATE userInfo SET username = ? ,birthday, meetingDay, user_image ";
+    "UPDATE userInfo SET username = ? ,birthday = ?, meetingDay =?, user_image=? ";
   db.query(
     query,
     [name, birthday, bloodType, meetingDay, userId],
@@ -328,6 +327,31 @@ app.post("/api/member_withdrawal", (req, res) => {
   });
 });
 
+// Picutre map부분
+// Picutre map부분
+
+const util = require('util');
+const dbQuery = util.promisify(db.query).bind(db); // db.query를 프로미스로 변환
+
+app.post('/api/upload-image', async (req, res) => {
+  try {
+    const { uri, region } = req.body;
+    console.log(uri);
+    console.log(region);
+
+    // 데이터베이스에 저장하기 위한 쿼리
+    const query = 'INSERT INTO picture (image_uri, image_region) VALUES (?, ?)';
+    
+    // 비동기 쿼리 실행
+    await dbQuery(query, [uri, region]);
+    console.log('DB업로드 완료')
+  } catch (err) {
+    console.log('DB업로드 실패')
+    console.error(err);
+  }
+});
+
+
 // WebSocket 연결 처리
 // WebSocket 연결 처리
 // WebSocket 연결 처리
@@ -338,7 +362,6 @@ io.on("connection", (socket, req) => {
   if(socket.handshake.session){
     const userId = socket.handshake.session.userId;
   }
-  
   console.log(`사용자 ID: ${userId}`);
   // 커플 매칭 확인 및 ROOM 입장
 
