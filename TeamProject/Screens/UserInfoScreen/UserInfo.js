@@ -75,7 +75,7 @@ const UserInfo = ({ navigation }) => {
       "회원 탈퇴",
       "회원을 탈퇴할 경우 모든 데이터가 삭제됩니다. 계속 하시겠습니까?",
       [
-        { text: "취소", onPress: () => {}, style: "cancel" },
+        { text: "취소", onPress: () => { }, style: "cancel" },
         { text: "탈퇴", onPress: () => memberDelete() }, //memberDelete :  사용자가 "탈퇴" 버튼을 눌렀을 때 호출되는 이벤트 핸들러
       ],
       { cancelable: false }
@@ -271,9 +271,10 @@ const UserInfo = ({ navigation }) => {
     >
       <KeyboardAwareScrollView
         style={{ flex: 1 }}
-        contentContainerStyle={{ flexGrow: 1 }}
+        contentContainerStyle={{ flexGrow: 1, justifyContent: 'space-between' }}
         keyboardShouldPersistTaps="handled"
-        extraScrollHeight={20}
+        enableOnAndroid={true}
+        enableAutomaticScroll={Platform.OS === 'ios'}
       >
         <View style={styles.container}>
           <View style={styles.headerContainer}>
@@ -410,15 +411,17 @@ const UserInfo = ({ navigation }) => {
             >
               <Text style={styles.memberDeleteText}>회원 탈퇴</Text>
             </TouchableOpacity>
-            <TextInput
-              value={connect_id}
-              onChangeText={handleConnectIdChange}
-              placeholder="연인 코드 입력"
-              style={styles.input}
-            />
-            <TouchableOpacity style={styles.button} onPress={addLoverCode}>
-              <Text style={styles.buttonText}>연인 코드 추가</Text>
-            </TouchableOpacity>
+            <View style={styles.inputRow}>
+              <TextInput
+                value={connect_id}
+                onChangeText={handleConnectIdChange}
+                placeholder="연인 코드 입력"
+                style={styles.input2}
+              />
+              <TouchableOpacity style={styles.button} onPress={addLoverCode}>
+                <Text style={styles.buttonText}>추가</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
       </KeyboardAwareScrollView>
@@ -475,14 +478,14 @@ const styles = StyleSheet.create({
     alignItems: "center",
     width: "60%",
     marginBottom: 20,
-    marginRight: 30,
+    marginRight: 40,
   },
   inputRowColumn: {
     flexDirection: "row",
     alignItems: "center",
     width: "60%",
     marginBottom: 15,
-    marginRight: 30,
+    marginRight: 35,
   },
   inputLabel: {
     fontSize: 20,
@@ -616,7 +619,7 @@ const styles = StyleSheet.create({
   memberDelete: {
     padding: 10,
     borderRadius: 10,
-    marginTop: 30,
+    marginTop: 25,
   },
   memberDeleteText: {
     color: "red",
@@ -624,13 +627,22 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     fontSize: 16,
   },
+  input2: {
+    height: 30,
+    width: '140%',
+    borderBottomWidth: 1,
+    borderBottomColor: '#A0A0A0',
+    fontSize: 16,
+    textAlign: 'center',
+  },
   button: {
     backgroundColor: "#FFCECE",
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: 5,
-    marginTop: 10,
-    alignSelf: "flex-end", // 버튼을 오른쪽 정렬
+    paddingHorizontal: 7,
+    paddingVertical: 7,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: "black",
+    marginLeft: 10,
   },
   buttonText: {
     color: "#544848",

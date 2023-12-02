@@ -1,5 +1,4 @@
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native'
-import * as ImagePicker from 'expo-image-picker';
 
 const CoupleBreak = ({ navigation }) => {
 
