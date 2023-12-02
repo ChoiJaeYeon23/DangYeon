@@ -4,8 +4,7 @@ const http = require("http");
 const socketIo = require("socket.io");
 const cors = require("cors");
 const axios = require("axios");
-const app = express();
-const mysql = require("mysql"); // mysql 모듈 로드
+const mysql = require("mysql");
 const session = require("express-session");
 const sharedsession = require("express-socket.io-session");
 const MySQLStore = require("express-mysql-session")(session); // express-mysql-session 모듈을 로드하되, 인자로 session을 넘겨주기
@@ -40,9 +39,11 @@ app.use(
   })
 );
 
-// 기존에 선언된 MySQL 데이터베이스 연결을 사용한다.
-
+// Express 앱에 세션 미들웨어 적용
 app.use(cors());
+app.use(cors());
+app.use(expressSession); // 여기서 세션 미들웨어 적용
+
 
 const server = http.createServer(app);
 const io = socketIo(server, {
@@ -51,17 +52,6 @@ const io = socketIo(server, {
     methods: ["GET", "POST"],
   },
 });
-
-// 세션 미들웨어 구성
-const expressSession = session({
-  secret: "qwerasdfzx",
-  resave: false,
-  saveUninitialized: true,
-  store: sessionStore,
-});
-
-// Express에 세션 미들웨어 적용
-app.use(expressSession);
 
 // Socket.IO에 세션 미들웨어 적용
 io.use(
@@ -345,7 +335,10 @@ app.post("/api/member_withdrawal", (req, res) => {
 io.on("connection", (socket, req) => {
   console.log(`사용자가 Socket에 연결되었습니다. : ${socket.id}`);
   // 세션에서 사용자 ID 가져오기
-  const userId = socket.handshake.session.userId;
+  if(socket.handshake.session){
+    const userId = socket.handshake.session.userId;
+  }
+  
   console.log(`사용자 ID: ${userId}`);
   // 커플 매칭 확인 및 ROOM 입장
 
