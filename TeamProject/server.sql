@@ -52,6 +52,12 @@ CREATE TABLE calendar(
     schedule_date DATE
 );
 
+CREATE TABLE picture(
+    image_id INTEGER AUTO_INCREMENT PRIMARY KEY,
+    image_uri VARCHAR(255) NOT NULL,
+    image_region VARCHAR(100)
+);
+
 SET SQL_SAFE_UPDATES = 0;
 
 AlTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY 'dlavnf1290@!';
