@@ -7,12 +7,15 @@ const axios = require("axios");
 const mysql = require("mysql");
 const session = require("express-session");
 const sharedsession = require("express-socket.io-session");
-const MySQLStore = require("express-mysql-session")(session); // express-mysql-session 모듈을 로드하되, 인자로 session을 넘겨주기
+const MySQLStore = require("express-mysql-session")(session);
 
-app.use(bodyParser.json()); // json 데이터 처리를 위한 설정
+// Express 앱 초기화
 const app = express();
 
-//DB연동
+// bodyParser 미들웨어 적용
+app.use(bodyParser.json());
+
+// DB 연동 설정
 var db = mysql.createConnection({
   host: "127.0.0.1",
   user: "root",
@@ -30,20 +33,27 @@ db.connect((err) => {
   console.log("Connected to database.");
 });
 
+// 세션 저장소 설정
 const sessionStore = new MySQLStore({}, db);
-app.use(
-  session({
-    secret: "qwerasdfzx", //세션을 암호화하기위한 비밀키 키보드에서 랜덤으로 10자 타이핑함 글자수는 정해져있지는 않음
-    resave: false, // 세션 데이터가 변경되지 않았을 때 세션을 저장소에 다시 저장하지 않는다.
-    saveUninitialized: true, // 'true'로 설정하면 초기화되지 않은 세션(새로운 세션)도 저장소에 저장된다. 새로운 세션이란 아직 아무런 데이터가 설정되지 않았을 때를 의미
-    store: sessionStore, // 세션 데이터를 저장할 저장소를 정의
-  })
-);
 
-// Express 앱에 세션 미들웨어 적용
-app.use(cors());
+// 세션 미들웨어 설정 및 적용
+const Session = session({
+  secret: "qwerasdfzx",
+  resave: false,
+  saveUninitialized: true,
+  store: sessionStore,
+});
 
+app.use(Session);
 
+const corsOptions = {
+  origin: "http://3.34.6.50:8080",
+  credentials: true, // 쿠키를 전달 받기 위함
+};
+// CORS 미들웨어 적용
+app.use(cors(corsOptions));
+
+// 서버 및 Socket.IO 구성
 const server = http.createServer(app);
 const io = socketIo(server, {
   cors: {
@@ -54,7 +64,7 @@ const io = socketIo(server, {
 
 // Socket.IO에 세션 미들웨어 적용
 io.use(
-  sharedsession(session, {
+  sharedsession(Session, {
     autoSave: true,
   })
 );
@@ -331,53 +341,52 @@ app.post("/api/member_withdrawal", (req, res) => {
 // WebSocket 연결 처리
 // WebSocket 연결 처리
 
-io.on("connection", (socket, req) => {
-  console.log(`사용자가 Socket에 연결되었습니다. : ${socket.id}`);
-  // 세션에서 사용자 ID 가져오기
-  if(socket.handshake.session){
-    const userId = socket.handshake.session.userId;
-  }
-  console.log(`사용자 ID: ${userId}`);
-  // 커플 매칭 확인 및 ROOM 입장
+io.on("connection", (socket) => {
+  console.log(`사용자가 Socket에 연결되었습니다: ${socket.id}`);
 
-  socket.on("join room", () => {
-    console.log(`사용자가 "join room" 이벤트를 트리거했습니다.`);
+  socket.on("identify user", (userId) => {
+    console.log(`사용자 ID: ${userId}`);
 
-    var sql5 = "SELECT * FROM couple_connection_check WHERE user_id = ?";
-    var sql5params = [userId];
-    db.query(sql5, sql5params, (err, result) => {
-      if (err) {
-        console.error("Database error:", err);
-        return;
-      }
+    // 커플 매칭 확인 및 ROOM 입장
+    socket.on("join room", () => {
+      console.log(`사용자가 "join room" 이벤트를 트리거했습니다.`);
 
-      if (result.length > 0) {
-        let userConnectId = result[0].connect_id_me;
-        let partnerConnectId = result[0].connect_id_lover;
+      var sql5 = "SELECT * FROM couple_connection_check WHERE user_id = ?";
+      var sql5params = [userId];
+      db.query(sql5, sql5params, (err, result) => {
+        if (err) {
+          console.error("Database error:", err);
+          return;
+        }
 
-        console.log(
-          `userConnectId: ${userConnectId}, partnerConnectId: ${partnerConnectId}`
-        );
+        if (result.length > 0) {
+          let userConnectId = result[0].connect_id_me;
+          let partnerConnectId = result[0].connect_id_lover;
 
-        // 매칭되는 파트너 찾기
-        var sql6 =
-          "SELECT * FROM couple_connection_check WHERE connect_id_me = ? AND connect_id_lover = ?";
-        var sql6params = [partnerConnectId, userConnectId];
+          console.log(
+            `userConnectId: ${userConnectId}, partnerConnectId: ${partnerConnectId}`
+          );
 
-        db.query(sql6, sql6params, (err, matchResult) => {
-          if (err) {
-            console.error("Database error:", err);
-            return;
-          }
+          // 매칭되는 파트너 찾기
+          var sql6 =
+            "SELECT * FROM couple_connection_check WHERE connect_id_me = ? AND connect_id_lover = ?";
+          var sql6params = [partnerConnectId, userConnectId];
 
-          if (matchResult.length > 0) {
-            // 두 사용자가 서로를 connect_id로 가지고 있다면, 룸에 할당
-            let roomId = userConnectId + "-" + partnerConnectId;
-            socket.join(roomId);
-            console.log(`사용자 ${socket.id} joined room ${roomId}`);
-          }
-        });
-      }
+          db.query(sql6, sql6params, (err, matchResult) => {
+            if (err) {
+              console.error("Database error:", err);
+              return;
+            }
+
+            if (matchResult.length > 0) {
+              // 두 사용자가 서로를 connect_id로 가지고 있다면, 룸에 할당
+              let roomId = userConnectId + "-" + partnerConnectId;
+              socket.join(roomId);
+              console.log(`사용자 ${socket.id} joined room ${roomId}`);
+            }
+          });
+        }
+      });
     });
   });
 

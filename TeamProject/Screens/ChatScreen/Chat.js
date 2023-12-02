@@ -17,28 +17,38 @@ const Chat = () => {
   const [message, setMessage] = useState("");
   const [messages, setMessages] = useState([]);
   const [roomID, setRoomId] = useState(null);
+  const [userId, setUserId] = useState("");
   const flatListRef = useRef();
 
   useEffect(() => {
-    const newSocket = io("http://3.34.6.50:8080");
-    setSocket(newSocket);
+    if (userId) {
+      const newSocket = io("http://3.34.6.50:8080");
+      setSocket(newSocket);
 
-    // 방 ID 할당받는 이벤트 리스너
-    newSocket.on("assign room", (id) => {
-      setRoomId(id);
-      newSocket.emit("join room"); // 서버에 방 입장 이벤트 전송
-    });
+      newSocket.emit("identify user", userId);
 
-    // 채팅 메시지 수신 이벤트 리스너
-    newSocket.on("chat message", (msgData) => {
-      setMessages((prevMessages) => [...prevMessages, msgData]);
-      if (flatListRef.current) {
-        flatListRef.current.scrollToEnd({ animated: true });
-      }
-    });
+      newSocket.on("assign room", (id) => {
+        setRoomId(id);
+        newSocket.emit("join room");
+      });
 
-    return () => newSocket.disconnect();
-  }, []);
+      newSocket.on("chat message", (msgData) => {
+        setMessages((prevMessages) => [...prevMessages, msgData]);
+        if (flatListRef.current) {
+          flatListRef.current.scrollToEnd({ animated: true });
+        }
+      });
+
+      return () => newSocket.disconnect();
+    }
+  }, [userId]);
+
+  const handleUserIdChange = (text) => {
+    // 사용자 ID가 입력되어 있지 않은 경우만 변경을 허용
+    if (!roomID) {
+      setUserId(text);
+    }
+  };
 
   const sendMessage = () => {
     if (socket && message && roomID) {
@@ -50,12 +60,11 @@ const Chat = () => {
 
       socket.emit("chat message", msgData);
       setMessage("");
-      setMessages((prevMessages) => [...prevMessages, msgData]); // 화면에 메시지 표시
+      setMessages((prevMessages) => [...prevMessages, msgData]);
     }
   };
 
   const renderMessage = ({ item }) => {
-    // 메시지 렌더링 시 사용자 메시지 여부에 따라 스타일 결정
     return (
       <View
         style={[
@@ -75,6 +84,18 @@ const Chat = () => {
       keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
     >
       <View style={styles.container}>
+        <View style={styles.inputSection}>
+          <TextInput
+            style={styles.input}
+            value={userId}
+            onChangeText={handleUserIdChange}
+            placeholder="사용자 ID를 입력해주세요."
+            editable={!roomID} // 입력이 되면 편집 금지
+          />
+          <TouchableOpacity onPress={() => setUserId(userId)}>
+            <Feather name="user" size={22} color="black" />
+          </TouchableOpacity>
+        </View>
         <FlatList
           ref={flatListRef}
           data={messages}
