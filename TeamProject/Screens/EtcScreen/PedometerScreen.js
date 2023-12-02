@@ -35,18 +35,33 @@ const PedometerScreen = () => {
     }
   };
 
-
   // 두 위치가 주어진 거리 이내에 있는지 확인하는 함수
   const isWithinDistance = (loc1, loc2, maxDistance) => {
     let distance = getDistanceBetweenLocations(loc1.coords, loc2.coords);
     return distance <= maxDistance;
   };
 
-  // 두 위치 사이의 거리 계산 함수
+  // 각 위치의 위도와 경도 값으로 이 공식을 사용하여 어떤 지점에서든 두 위치 사이의 거리 계산 가능
+  // 위도 경도 달라져도 동일하게 공식 적용
+  // 두 위치 사이의 거리 계산 함수 Haversine 공식 사용
   const getDistanceBetweenLocations = (coords1, coords2) => {
-    // 여기에 Haversine 공식 또는 다른 방법을 사용하여 거리 계산
+    const toRadians = (degree) => degree * (Math.PI / 180);
+  
+    const earthRadiusKm = 6371; // 지구의 반경 6,371km
+  
+    const dLat = toRadians(coords2.latitude - coords1.latitude);
+    const dLon = toRadians(coords2.longitude - coords1.longitude);
+  
+    const lat1 = toRadians(coords1.latitude);
+    const lat2 = toRadians(coords2.latitude);
+  
+    const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+              Math.sin(dLon / 2) * Math.sin(dLon / 2) * Math.cos(lat1) * Math.cos(lat2); 
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)); 
+  
+    return earthRadiusKm * c;
   };
-
+  
   // 상대방 위치 데이터를 서버로부터 가져오는 함수 (가상 구현)
   const getPartnerLocationFromServer = async () => {
     // 서버로부터 상대방 위치 데이터를 받아오는 로직 구현
