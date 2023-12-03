@@ -425,6 +425,28 @@ io.on("connection", (socket) => {
     socket.to(room_id).emit("chat message", { msg, Message_time });
   });
 
+  // 이전채팅내역 불러오기
+  socket.on("load message", (data) => {
+    const { room_id } = data;
+
+    var sql99 =
+      "SELECT Message_text,MessageTime FROM chat WHERE room_id = ?";
+    var sql99params = [room_id];
+
+    db.query(sql99, sql99params, (err, result) => {
+      if (err) {
+        console.error("Error loading messages:", err);
+        return;
+      }
+      // 쿼리 결과를 JSON 형식으로 변환하여 전송
+      const messages = result.map(row => Object.assign({}, row));
+      console.log(messages)
+      socket.emit("tttest",messages)
+      socket.to(room_id).emit("previous messages", messages);
+    });
+    
+  });
+
   // 연결 해제
   socket.on("disconnect", () => {
     console.log(`사용자가 연결을 끊었습니다: ${socket.id}`);

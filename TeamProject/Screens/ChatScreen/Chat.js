@@ -32,10 +32,17 @@ const Chat = () => {
 
     newSocket.on("room assigned", (roomId) => {
       setRoomId(roomId); // 할당된 방 ID 설정
+      newSocket.emit("load message", { room_id: roomId });
+      console.log(roomId)
     });
 
+    newSocket.on("tttest", (messages) => {
+      setMessages(messages); // 서버로부터 받은 이전 메시지로 상태 업데이트
+    });
+    
+
     newSocket.on("chat message", (msgData) => {
-      setMessages((prevMessages) => [...prevMessages, msgData]);
+      // setMessages((prevMessages) => [...prevMessages, msgData]);
       if (flatListRef.current) {
         flatListRef.current.scrollToEnd({ animated: true });
       }
@@ -63,6 +70,7 @@ const Chat = () => {
   };
 
   const renderMessage = ({ item }) => {
+  
     return (
       <View
         style={[
@@ -70,10 +78,12 @@ const Chat = () => {
           item.isUserMessage ? styles.userMessage : styles.otherMessage,
         ]}
       >
-        <Text>{item.msg}</Text>
+        <Text>{item.Message_text}</Text>
+        <Text>{item.MessageTime}</Text>
       </View>
     );
   };
+  
 
   return (
     <KeyboardAvoidingView
