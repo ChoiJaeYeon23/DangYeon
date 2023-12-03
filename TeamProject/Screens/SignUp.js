@@ -56,34 +56,43 @@ const SignUp = () => {
       setErrorMessage(error);
       return; // 에러가 있으면 여기서 함수 종료
     }
-    // 에러가 없으면 에러 메시지 상태를 초기화
-    setErrorMessage("");
 
-    const userData = {
-      username: username,
-      id: id,
-      pw: pw,
-      birthday: birthday,
-      meetingDay: meetingDay,
-      bloodType: bloodType,
-    };
-    // 서버로 회원가입 요청을 보냄
-    fetch("http://3.34.6.50:8080/api/signup", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(userData),
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        alert("회원가입 성공!");
-        saveUserInfo(userData);
-        resetInputs();
-        navigation.navigate("Login");
+    // 먼저 ID 중복 체크
+    checkIdDuplicate()
+      .then(() => {
+        // 중복되지 않았다면 회원가입 진행
+        setErrorMessage("");
+        const userData = {
+          username: username,
+          id: id,
+          pw: pw,
+          birthday: birthday,
+          meetingDay: meetingDay,
+          bloodType: bloodType,
+        };
+
+        // 서버로 회원가입 요청을 보냄
+        fetch("http://3.34.6.50:8080/api/signup", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(userData),
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            alert("회원가입 성공!");
+            saveUserInfo(userData);
+            resetInputs();
+            navigation.navigate("Login");
+          })
+          .catch((error) => {
+            alert("회원가입 실패: " + error.message);
+          });
       })
       .catch((error) => {
-        alert("회원가입 실패: " + error.message);
+        // 중복된 아이디인 경우 회원가입 진행하지 않음
+        setErrorMessage(error.message);
       });
   };
 
@@ -99,25 +108,30 @@ const SignUp = () => {
 
   // ID 중복 체크 함수
   const checkIdDuplicate = () => {
-    fetch("http://3.34.6.50:8080/api/check-id", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ id: id }),
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        if (data.isDuplicate) {
-          alert("이미 사용 중인 아이디입니다.");
-        } else {
-          alert("사용 가능한 아이디입니다.");
-        }
+    return new Promise((resolve, reject) => {
+      fetch("http://3.34.6.50:8080/api/check-id", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ id: id }),
       })
-      .catch((error) => {
-        console.error("Error:", error);
-      });
-  };
+        .then((response) => response.json())
+        .then((data) => {
+          if (data.isDuplicate) {
+            alert("이미 사용 중인 아이디입니다.");
+            reject(new Error("이미 사용 중인 아이디입니다."));
+          } else {
+            alert("사용 가능한 아이디입니다.");
+            resolve();
+          }
+        })
+        .catch((error) => {
+          alert("ID 중복 확인 중 오류가 발생했습니다.");
+          reject(new Error("ID 중복 확인 중 오류가 발생했습니다."));
+        });
+    });
+  };  
 
   // 생년월일 변경
   const onBirthdayChange = (event, selectedDate) => {
@@ -179,10 +193,10 @@ const SignUp = () => {
       keyboardVerticalOffset={Platform.OS === "ios" ? 10 : 0}
     >
       <KeyboardAwareScrollView
-      style={{ flex: 1 }}
-      contentContainerStyle={{ flexGrow: 1 }}
+        style={{ flex: 1 }}
+        contentContainerStyle={{ flexGrow: 1 }}
         keyboardShouldPersistTaps='handled'
-        extraScrollHeight={20} 
+        extraScrollHeight={20}
       >
         <View style={styles.container}>
           <Text style={styles.titleText}>회원가입을 진행해주세요.</Text>
