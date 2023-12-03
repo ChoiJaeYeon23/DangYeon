@@ -278,7 +278,7 @@ const styles = StyleSheet.create({
   },
   mapContainer: {
     width: '100%',
-    height: 477,
+    height: '93%',
     position: 'relative',
   },
   mapStyle: {
@@ -302,7 +302,7 @@ const styles = StyleSheet.create({
     left: '44%',
     width: 35,
     height: 30,
-    marginTop: 4
+    marginTop: '1%'
   },
   imageContainer: {
     marginBottom: 10,
