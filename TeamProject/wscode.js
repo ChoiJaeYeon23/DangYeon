@@ -404,18 +404,17 @@ io.on("connection", (socket) => {
 
   // 채팅 메시지 이벤트 핸들러
   socket.on("chat message", (data) => {
-    const { msg, room_id, user_id } = data; // 여기에 user_id를 추가합니다.
+    const { msg, room_id, user_id } = data;
     console.log(
       `Received message: ${msg}, Room ID: ${room_id}, User ID: ${user_id}`
-    ); // 로그에 user_id를 추가하여 확인합니다.
+    );
 
-    // INSERT 쿼리에 user_id를 포함합니다.
     var sql4 =
       "INSERT INTO chat(Message_text, MessageTime, room_id, user_id) VALUES(?, ?, ?, ?)";
     let now = new Date();
     now.setHours(now.getHours() + 9); // 서버 시간대가 UTC를 사용한다고 가정할 때 KST로 조정합니다.
     let Message_time = now.toISOString().slice(0, 19).replace("T", " ");
-    var sql4params = [msg, Message_time, room_id, user_id]; // 쿼리 파라미터에 user_id를 추가합니다.
+    var sql4params = [msg, Message_time, room_id, user_id]; // 쿼리 파라미터에 user_id를 추가
 
     db.query(sql4, sql4params, (err, result) => {
       if (err) {
@@ -429,11 +428,12 @@ io.on("connection", (socket) => {
   });
 
   // 이전채팅내역 불러오기
-  // 이전 채팅 내역 불러오기
+  // 이전채팅내역 불러오기
+  // 이전채팅내역 불러오기
   socket.on("load message", (data) => {
     const { room_id } = data;
 
-    // user_id 컬럼도 가져오도록 쿼리를 수정합니다.
+    // user_id도 가져오기
     var sql99 =
       "SELECT Message_text, MessageTime, user_id FROM chat WHERE room_id = ?";
     var sql99params = [room_id];
