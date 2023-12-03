@@ -404,34 +404,38 @@ io.on("connection", (socket) => {
 
   // 채팅 메시지 이벤트 핸들러
   socket.on("chat message", (data) => {
-    const { msg, room_id } = data;
-    console.log(`Received message: ${msg}, Room ID: ${room_id}`);
+    const { msg, room_id, user_id } = data;
+    console.log(
+      `Received message: ${msg}, Room ID: ${room_id}, User ID: ${user_id}`
+    );
 
     var sql4 =
-      "INSERT INTO chat(Message_text, MessageTime, room_id) VALUES(?, ?, ?)";
+      "INSERT INTO chat(Message_text, MessageTime, room_id, user_id) VALUES(?, ?, ?, ?)";
     let now = new Date();
-    now.setHours(now.getHours() + 9);
+    now.setHours(now.getHours() + 9); // 서버 시간대가 UTC를 사용한다고 가정할 때 KST로 조정합니다.
     let Message_time = now.toISOString().slice(0, 19).replace("T", " ");
-    var sql4params = [msg, Message_time, room_id];
+    var sql4params = [msg, Message_time, room_id, user_id]; // 쿼리 파라미터에 user_id를 추가
 
     db.query(sql4, sql4params, (err, result) => {
       if (err) {
         console.error("Error recording message:", err);
         return;
       }
-      console.log("Message recorded in databases");
+      console.log("Message recorded in databases with user ID");
     });
-    
-    socket.to(room_id).emit("chat message", { msg, Message_time });
 
+    socket.to(room_id).emit("chat message", { msg, Message_time });
   });
 
+  // 이전채팅내역 불러오기
+  // 이전채팅내역 불러오기
   // 이전채팅내역 불러오기
   socket.on("load message", (data) => {
     const { room_id } = data;
 
+    // user_id도 가져오기
     var sql99 =
-      "SELECT Message_text,MessageTime FROM chat WHERE room_id = ?";
+      "SELECT Message_text, MessageTime, user_id FROM chat WHERE room_id = ?";
     var sql99params = [room_id];
 
     db.query(sql99, sql99params, (err, result) => {
@@ -440,11 +444,15 @@ io.on("connection", (socket) => {
         return;
       }
       // 쿼리 결과를 JSON 형식으로 변환하여 전송
-      const messages = result.map(row => Object.assign({}, row));
-      console.log(messages) 
-      socket.emit("tttest",messages)
+      const messages = result.map((row) => {
+        return {
+          ...row,
+          isUserMessage: row.user_id === socket.handshake.query.userId,
+        };
+      });
+      console.log(messages);
+      socket.emit("tttest", messages);
     });
-    
   });
 
   // 연결 해제
