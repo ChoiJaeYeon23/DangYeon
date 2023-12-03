@@ -421,8 +421,9 @@ io.on("connection", (socket) => {
       }
       console.log("Message recorded in databases");
     });
-
+    
     socket.to(room_id).emit("chat message", { msg, Message_time });
+
   });
 
   // 이전채팅내역 불러오기
@@ -440,9 +441,8 @@ io.on("connection", (socket) => {
       }
       // 쿼리 결과를 JSON 형식으로 변환하여 전송
       const messages = result.map(row => Object.assign({}, row));
-      console.log(messages)
+      console.log(messages) 
       socket.emit("tttest",messages)
-      socket.to(room_id).emit("previous messages", messages);
     });
     
   });

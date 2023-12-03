@@ -39,10 +39,10 @@ const Chat = () => {
     newSocket.on("tttest", (messages) => {
       setMessages(messages); // 서버로부터 받은 이전 메시지로 상태 업데이트
     });
-    
+
 
     newSocket.on("chat message", (msgData) => {
-      // setMessages((prevMessages) => [...prevMessages, msgData]);
+      setMessages((prevMessages) => [...prevMessages, msgData]);
       if (flatListRef.current) {
         flatListRef.current.scrollToEnd({ animated: true });
       }
@@ -60,7 +60,8 @@ const Chat = () => {
       const msgData = {
         msg: message.trim(),
         room_id: roomID,
-        isUserMessage: true,
+        MessageTime: new Date().toISOString(), // 현재 시간 추가
+        isUserMessage: true
       };
 
       socket.emit("chat message", msgData);
@@ -69,8 +70,15 @@ const Chat = () => {
     }
   };
 
+
   const renderMessage = ({ item }) => {
-  
+    // 이전 메시지와 실시간 메시지를 구분
+    const isPreviousMessage = item.Message_text !== undefined;
+
+    // 이전 메시지의 경우
+    const messageText = isPreviousMessage ? item.Message_text : item.msg;
+    const formattedTime = isPreviousMessage ? new Date(item.MessageTime).toLocaleString() : '';
+
     return (
       <View
         style={[
@@ -78,12 +86,12 @@ const Chat = () => {
           item.isUserMessage ? styles.userMessage : styles.otherMessage,
         ]}
       >
-        <Text>{item.Message_text}</Text>
-        <Text>{item.MessageTime}</Text>
+        {isPreviousMessage}
+        <Text>{messageText}</Text>
       </View>
     );
   };
-  
+
 
   return (
     <KeyboardAvoidingView
