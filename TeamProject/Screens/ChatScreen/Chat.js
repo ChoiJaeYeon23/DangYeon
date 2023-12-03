@@ -27,19 +27,24 @@ const Chat = () => {
 
     if (userIdSubmitted) {
       newSocket.emit("identify user", userId);
-      newSocket.emit("request room assignment"); // room 할당 요청
+      newSocket.emit("request room assignment");
     }
 
     newSocket.on("room assigned", (roomId) => {
-      setRoomId(roomId); // 할당된 방 ID 설정
-      newSocket.emit("load message", { room_id: roomId });
-      console.log(roomId)
+      setRoomId(roomId);
+      newSocket.emit("load message", {
+        room_id: roomId,
+        currentUserId: userId,
+      });
     });
 
-    newSocket.on("tttest", (messages) => {
-      setMessages(messages); // 서버로부터 받은 이전 메시지로 상태 업데이트
+    newSocket.on("tttest", (loadedMessages) => {
+      const updatedMessages = loadedMessages.map((msg) => ({
+        ...msg,
+        isUserMessage: msg.user_id === userId,
+      }));
+      setMessages(updatedMessages);
     });
-
 
     newSocket.on("chat message", (msgData) => {
       setMessages((prevMessages) => [...prevMessages, msgData]);
@@ -56,12 +61,13 @@ const Chat = () => {
   };
 
   const sendMessage = () => {
-    if (socket && message && roomID) {
+    if (socket && message && roomID && userId) {
       const msgData = {
         msg: message.trim(),
+        user_id: userId, // 사용자 ID 추가
         room_id: roomID,
-        MessageTime: new Date().toISOString(), // 현재 시간 추가
-        isUserMessage: true
+        MessageTime: new Date().toISOString(),
+        isUserMessage: true, // 사용자 메시지임을 나타내는 플래그 추가
       };
 
       socket.emit("chat message", msgData);
@@ -70,28 +76,27 @@ const Chat = () => {
     }
   };
 
-
   const renderMessage = ({ item }) => {
-    // 이전 메시지와 실시간 메시지를 구분
-    const isPreviousMessage = item.Message_text !== undefined;
-
-    // 이전 메시지의 경우
-    const messageText = isPreviousMessage ? item.Message_text : item.msg;
-    const formattedTime = isPreviousMessage ? new Date(item.MessageTime).toLocaleString() : '';
+    // 메시지가 현재 사용자에 의한 것인지 구분
+    const isUserMessage = item.user_id === userId;
 
     return (
       <View
         style={[
           styles.messageBubble,
-          item.isUserMessage ? styles.userMessage : styles.otherMessage,
+          isUserMessage ? styles.userMessage : styles.otherMessage,
         ]}
       >
-        {isPreviousMessage}
-        <Text>{messageText}</Text>
+        <Text
+          style={
+            isUserMessage ? styles.userMessageText : styles.otherMessageText
+          }
+        >
+          {item.Message_text || item.msg}
+        </Text>
       </View>
     );
   };
-
 
   return (
     <KeyboardAvoidingView
@@ -177,6 +182,10 @@ const styles = StyleSheet.create({
   otherMessage: {
     alignSelf: "flex-start",
     backgroundColor: "#ECECEC",
+  },
+  messageTime: {
+    fontSize: 10,
+    color: "grey",
   },
 });
 

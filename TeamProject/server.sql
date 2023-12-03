@@ -27,7 +27,9 @@ CREATE TABLE chat(
     message_id INTEGER AUTO_INCREMENT PRIMARY KEY,
     room_id VARCHAR(255),
     Message_text VARCHAR(100),
-    MessageTime DATETIME
+    user_id VARCHAR(50),
+    MessageTime DATETIME,
+    FOREIGN KEY (user_id) REFERENCES userInfo(id)
 );
 
 -- 커플 연결 확인 테이블
@@ -60,5 +62,5 @@ CREATE TABLE picture(
 
 SET SQL_SAFE_UPDATES = 0;
 
-AlTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY 'dlavnf1290@!';
+ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY 'dlavnf1290@!';
 FLUSH privileges;
