@@ -123,13 +123,11 @@ const Etc = ({ navigation, candyData }) => {
           </View>
         ))}
       </View>
-
       <View style={styles.secondDotsContainer}>
         {secondDots.map((_, index) => (
           <View key={`second-dot-${index}`} style={styles.secondDot} />
         ))}
       </View>
-
       <TouchableOpacity onPress={handleCandyClick} style={styles.Check}>
         <Text style={styles.CheckText}>
           {currentMonth}월 {currentWeek}주째 출석체크
@@ -214,6 +212,13 @@ const styles = StyleSheet.create({
     marginVertical: 20,
     paddingLeft: 15,
     paddingTop: 10,
+    borderRadius: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+    padding: 20,
   },
   ListBoxText: {
     fontSize: 15,
@@ -242,6 +247,13 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginVertical: 20,
+    borderRadius: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+    padding: 20,
   },
   candiesContainer: {
     flexDirection: 'row',
