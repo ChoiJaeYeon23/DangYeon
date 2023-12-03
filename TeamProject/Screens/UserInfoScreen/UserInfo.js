@@ -107,29 +107,6 @@ const UserInfo = ({ navigation }) => {
   const handleConnectIdChange = (text) => {
     setConnectId(text);
   };
-  // 연인 커플 코드 추가
-  const addLoverCode = () => {
-    fetch("http://3.34.6.50:8080/api/add_lover_code", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ connect_id }),
-    })
-      .then((response) => {
-        if (response.ok) {
-          return response.json();
-        }
-        throw new Error("서버 응답에 실패하였습니다.");
-      })
-      .then((data) => {
-        Alert.alert("성공", "연인의 코드를 추가하였습니다.");
-      })
-      .catch((error) => {
-        console.error("Error:", error);
-        Alert.alert("실패", "연인의 코드를 추가하는데 실패하였습니다.");
-      });
-  };
 
   // // 내정보 수정하기 클라이언트 요청 코드
   // // 스타일과 꾸미는건 해줘...
@@ -296,7 +273,6 @@ const UserInfo = ({ navigation }) => {
                 />
               )}
             </TouchableOpacity>
-            <Text style={styles.titleText}>수쨩 💖 원우</Text>
           </View>
           <Separator />
           <View style={styles.inputRow}>
@@ -411,17 +387,6 @@ const UserInfo = ({ navigation }) => {
             >
               <Text style={styles.memberDeleteText}>회원 탈퇴</Text>
             </TouchableOpacity>
-            <View style={styles.inputRow}>
-              <TextInput
-                value={connect_id}
-                onChangeText={handleConnectIdChange}
-                placeholder="연인 코드 입력"
-                style={styles.input2}
-              />
-              <TouchableOpacity style={styles.button} onPress={addLoverCode}>
-                <Text style={styles.buttonText}>추가</Text>
-              </TouchableOpacity>
-            </View>
           </View>
         </View>
       </KeyboardAwareScrollView>
@@ -463,7 +428,6 @@ const styles = StyleSheet.create({
   photoPromptText: {
     position: "absolute",
     bottom: "100%",
-    right: "25%",
     fontSize: 13,
     color: "#707070",
     textAlign: "center",
@@ -624,28 +588,6 @@ const styles = StyleSheet.create({
   memberDeleteText: {
     color: "red",
     textAlign: "center",
-    fontWeight: "bold",
-    fontSize: 16,
-  },
-  input2: {
-    height: 30,
-    width: '140%',
-    borderBottomWidth: 1,
-    borderBottomColor: '#A0A0A0',
-    fontSize: 16,
-    textAlign: 'center',
-  },
-  button: {
-    backgroundColor: "#FFCECE",
-    paddingHorizontal: 7,
-    paddingVertical: 7,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: "black",
-    marginLeft: 10,
-  },
-  buttonText: {
-    color: "#544848",
     fontWeight: "bold",
     fontSize: 16,
   },
