@@ -8,13 +8,31 @@ import {
   ScrollView,
   Platform,
   KeyboardAvoidingView,
+  Alert,
 } from 'react-native';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view'; // 키보드창
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Swipeable } from 'react-native-gesture-handler';
 
 const Comments = ({ route }) => {
-  const [comment, setComment] = useState(''); // 현재 입력 중인 댓글
-  const [commentList, setCommentList] = useState([]); // 댓글 목록
+  const [comment, setComment] = useState('');
+  const [commentList, setCommentList] = useState([]);
+  const postId = route.params.postId;
+
+  useEffect(() => {
+    const loadCommentList = async () => {
+      try {
+        const storedCommentList = await AsyncStorage.getItem('comments_' + postId);
+        if (storedCommentList !== null) {
+          setCommentList(JSON.parse(storedCommentList));
+        }
+      } catch (error) {
+        console.error('댓글 로드 실패:', error);
+      }
+    };
+
+    loadCommentList();
+  }, [postId]);
 
   const handleCommentChange = (text) => {
     setComment(text);
@@ -47,30 +65,31 @@ const Comments = ({ route }) => {
       setCommentList(updatedCommentList);
       setComment('');
 
-      // 댓글 목록을 AsyncStorage에 저장
       try {
-        await AsyncStorage.setItem('commentList', JSON.stringify(updatedCommentList));
+        await AsyncStorage.setItem('comments_' + postId, JSON.stringify(updatedCommentList));
       } catch (error) {
         console.error('댓글 저장 실패:', error);
       }
     }
   };
 
-  useEffect(() => {
-    // 앱이 시작될 때 AsyncStorage에서 댓글 목록을 로드
-    const loadCommentList = async () => {
-      try {
-        const storedCommentList = await AsyncStorage.getItem('commentList');
-        if (storedCommentList !== null) {
-          setCommentList(JSON.parse(storedCommentList));
-        }
-      } catch (error) {
-        console.error('댓글 로드 실패:', error);
-      }
-    };
+  const handleDeleteComment = async (index) => {
+    const updatedCommentList = [...commentList];
+    updatedCommentList.splice(index, 1);
+    setCommentList(updatedCommentList);
+    await AsyncStorage.setItem('comments_' + postId, JSON.stringify(updatedCommentList));
+  };
 
-    loadCommentList();
-  }, []);
+  const renderRightActions = (index) => {
+    return (
+      <TouchableOpacity
+        onPress={() => handleDeleteComment(index)}
+        style={styles.deleteButton}
+      >
+        <Text style={styles.deleteButtonText}>삭제</Text>
+      </TouchableOpacity>
+    );
+  };
 
   return (
     <KeyboardAvoidingView
@@ -82,16 +101,20 @@ const Comments = ({ route }) => {
         style={styles.scrollView}
         contentContainerStyle={styles.scrollViewContent}
         keyboardShouldPersistTaps="handled"
-        extraScrollHeight={20} // 추가된 부분
       >
         {commentList.map((item, index) => (
-          <View key={index} style={styles.commentItem}>
-            <Text>{item.text}</Text>
-            <View style={styles.commentInfo}>
+          <Swipeable
+            key={index}
+            renderRightActions={() => renderRightActions(index)}
+          >
+            <View style={styles.commentItem}>
+              <Text>{item.text}</Text>
+              <View style={styles.commentInfo}>
               <Text style={styles.commentDate}>{item.date}</Text>
               <Text style={styles.commentTime}>{item.time}</Text>
             </View>
           </View>
+          </Swipeable>
         ))}
       </KeyboardAwareScrollView>
       <View style={styles.inputContainer}>
@@ -100,7 +123,6 @@ const Comments = ({ route }) => {
           placeholder="댓글을 입력하세요"
           onChangeText={handleCommentChange}
           value={comment}
-          autoFocus={true} // 키보드 부분
         />
         <TouchableOpacity
           style={styles.saveButton}
@@ -123,7 +145,7 @@ const styles = StyleSheet.create({
   },
   scrollViewContent: {
     flexGrow: 1,
-    paddingBottom: 200, // 여분의 공간을 늘림
+    paddingBottom: 200,
   },
   inputContainer: {
     flexDirection: 'row',
@@ -163,6 +185,18 @@ const styles = StyleSheet.create({
   commentTime: {
     fontSize: 12,
     color: 'gray',
+  },
+  deleteButton: {
+    backgroundColor: '#FC8888',
+    justifyContent: 'center',
+    alignItems: 'center', // 이 줄을 추가
+    width: 75,
+    height: '100%',
+  },
+  deleteButtonText: {
+    color: 'white',
+    fontWeight: 'bold',
+    paddingHorizontal: 10,
   },
 });
 
