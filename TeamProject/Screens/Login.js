@@ -5,9 +5,11 @@ import {
   TextInput,
   TouchableOpacity,
   StyleSheet,
-  Image
+  Image,
+  KeyboardAvoidingView
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 
 const Login = () => {
   const [id, setId] = useState("");
@@ -66,33 +68,39 @@ const Login = () => {
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.titleText}>DangYeon을 이용하시려면</Text>
-      <Text style={styles.titleText}>로그인을 해주세요!</Text>
-      <Image style={styles.image} source={require("../assets/Heart.jpg")} />
-      <TextInput
-        style={styles.input}
-        placeholder="ID"
-        value={id}
-        onChangeText={setId}
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Password"
-        value={pw}
-        secureTextEntry={true}
-        onChangeText={setPw}
-      />
-      <TouchableOpacity style={styles.button} onPress={handleLogin}>
-        <Text style={styles.buttonText}>로그인</Text>
-      </TouchableOpacity>
-      <TouchableOpacity onPress={() => navigation.navigate("MainTab")}>
-        <Text style={styles.buttonText}>로그인1111</Text>
-      </TouchableOpacity>
-      <TouchableOpacity style={styles.button} onPress={navigateToSignUp}>
-        <Text style={styles.buttonText}>회원가입</Text>
-      </TouchableOpacity>
-    </View>
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === "ios" ? "padding" : "height"} // iOS는 'padding', Android는 'height'
+      keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0}
+    >
+      <View style={styles.container}>
+        <Text style={styles.titleText}>DangYeon을 이용하시려면</Text>
+        <Text style={styles.titleText}>로그인을 해주세요!</Text>
+        <Image style={styles.image} source={require("../assets/Heart.jpg")} />
+        <TextInput
+          style={styles.input}
+          placeholder="ID"
+          value={id}
+          onChangeText={setId}
+        />
+        <TextInput
+          style={styles.input}
+          placeholder="Password"
+          value={pw}
+          secureTextEntry={true}
+          onChangeText={setPw}
+        />
+        <TouchableOpacity style={styles.button} onPress={handleLogin}>
+          <Text style={styles.buttonText}>로그인</Text>
+        </TouchableOpacity>
+        <TouchableOpacity onPress={() => navigation.navigate("MainTab")}>
+          <Text style={styles.buttonText}>로그인1111</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.button} onPress={navigateToSignUp}>
+          <Text style={styles.buttonText}>회원가입</Text>
+        </TouchableOpacity>
+      </View>
+    </KeyboardAvoidingView>
   );
 };
 

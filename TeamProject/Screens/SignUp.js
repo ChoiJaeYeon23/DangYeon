@@ -207,7 +207,7 @@ const SignUp = () => {
               placeholder="이름"
               value={username}
               onChangeText={setName}
-              autoFocus="true"
+              autoFocus={true}
             />
           </View>
           <View style={styles.inputRow}>
@@ -235,7 +235,6 @@ const SignUp = () => {
               onChangeText={setPw}
             />
           </View>
-
           <View style={styles.inputRow}>
             <Text style={styles.inputLabel}>생년월일</Text>
             <View style={styles.dateInputContainer}>
@@ -330,7 +329,6 @@ const SignUp = () => {
         </View>
       </KeyboardAwareScrollView>
     </KeyboardAvoidingView>
-
   );
 };
 
