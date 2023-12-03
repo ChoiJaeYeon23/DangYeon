@@ -23,13 +23,15 @@ const Etc = ({ navigation, candyData }) => {
   const [attendance, setAttendance] = useState(Array(7).fill(false)); // 출석체크 상태
   const [currentWeek, setCurrentWeek] = useState(0); // 현재 주차
   const [currentMonth, setCurrentMonth] = useState(''); // 현재 월
-  
+  const [currentStepCount, setCurrentStepCount] = useState(0); // 현재 걸음 수
+  const [candies, setCandies] = useState(0); // 획득한 캔디 수
+
   const calculateWeeks = () => {
     const today = moment();
     const currentMonth = today.format('M');
     const monthStart = moment(today).startOf('month');
     const weeksPassed = today.diff(monthStart, 'weeks') + 1;
-    
+
     setCurrentWeek(weeksPassed);
     setCurrentMonth(currentMonth);
   }
@@ -47,7 +49,7 @@ const Etc = ({ navigation, candyData }) => {
         const currentMonth = today.format('M');
         const monthStart = moment(today).startOf('month');
         const weeksPassed = today.diff(monthStart, 'weeks') + 1;
-    
+
         setCurrentWeek(weeksPassed);
         setCurrentMonth(currentMonth);
       } catch (e) {
@@ -69,17 +71,37 @@ const Etc = ({ navigation, candyData }) => {
     ));
   };
 
+  useEffect(() => {
+    // AsyncStorage에서 현재 걸음 수와 획득한 캔디 수를 불러오는 함수
+    const loadData = async () => {
+      try {
+        const storedSteps = await AsyncStorage.getItem('@currentStepCount');
+        const storedCandies = await AsyncStorage.getItem('@candies');
+
+        if (storedSteps !== null) {
+          setCurrentStepCount(parseInt(storedSteps, 10));
+        }
+        if (storedCandies !== null) {
+          setCandies(parseInt(storedCandies, 10));
+        }
+      } catch (error) {
+        console.error('데이터 불러오기 중 오류 발생:', error);
+      }
+    };
+
+    loadData();
+  }, []);
+
   return (
     <View style={styles.container}>
-    <View style={styles.boxContainer}>
-      {/* 왼쪽 박스에 "만보기" 텍스트 추가 */}
-      <View style={[styles.box, styles.firstBox]}>
-        <Text style={styles.boxText} onPress={() => navigation.navigate('PedometerScreen')}>만보기</Text>
+      <View style={styles.boxContainer}>
+        <View style={[styles.box, styles.firstBox]}>
+          <Text style={styles.boxTitle} onPress={() => navigation.navigate('PedometerScreen')}>만보기</Text>
+          <Text style={styles.boxText}>현재 걸음 수: {currentStepCount}</Text>
+          <Text style={styles.boxText}>획득한 캔디 수: {candies}</Text>
+        </View>
+        <View style={styles.box} />
       </View>
-      <View style={styles.box} />
-    </View>
-    
-
       <View style={styles.dotsContainer}>
         {firstDots.map((_, index) => (
           <View key={index} style={styles.dot} />
@@ -136,6 +158,26 @@ const styles = StyleSheet.create({
     width: width * 0.4,
     height: width * 0.6,
     backgroundColor: '#FFD9D9',
+    borderRadius: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+    padding: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  boxTitle: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: '#544848',
+    marginBottom: 15,
+  },
+  boxText: {
+    fontSize: 18,
+    color: '#544848',
+    marginBottom: 10,
   },
   firstBox: {
     marginBottom: 10,

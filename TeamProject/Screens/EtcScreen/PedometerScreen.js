@@ -23,7 +23,7 @@ const PedometerScreen = () => {
       return;
     }
 
-    let currentLocation = await Location.getCurrentPositionAsync({accuracy: Location.Accuracy.High});
+    let currentLocation = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.High });
     setLocation(currentLocation); // 현재 위치 상태 업데이트
 
     // 여기에 서버로부터 상대방의 위치를 가져오는 로직을 구현하시면 됩니다.
@@ -36,7 +36,7 @@ const PedometerScreen = () => {
       if (isWithinDistance(currentLocation, partnerLocation, 100)) {
         Alert.alert("알람", "사랑의 걸음, 함께 시작해볼까요?");
       }
-    } 
+    }
   };
 
   // 두 위치가 주어진 거리 이내에 있는지 확인하는 함수
@@ -118,15 +118,6 @@ const PedometerScreen = () => {
     }
   };
 
-  const storeData = async () => { // 현재 걸음 수 저장
-    try {
-      await AsyncStorage.setItem('@currentStepCount', currentStepCount.toString());
-      await AsyncStorage.setItem('@candies', candies.toString());
-    } catch (error) {
-      console.error('데이터 저장 중 오류 발생:', error);
-    }
-  };
-
   const loadData = async () => { // 현재 걸음 수 불러오기
     try {
       const storedSteps = await AsyncStorage.getItem('@currentStepCount');
@@ -180,16 +171,26 @@ const PedometerScreen = () => {
   }, [currentStepCount, candies]);
 
   useEffect(() => {
+    const storeData = async () => {
+      try {
+        await AsyncStorage.setItem('@currentStepCount', currentStepCount.toString());
+        await AsyncStorage.setItem('@candies', candies.toString());
+      } catch (error) {
+        console.error('데이터 저장 중 오류 발생:', error);
+      }
+    };
     storeData(); // 현재 걸음 수와 캔디 수 저장
   }, [currentStepCount, candies]);
 
   return (
     <View style={styles.container}>
-      <Text>만보기 기능 사용 가능 여부 : {isPedometerAvailable}</Text>
-      <Text>지난 24시간 동안 걸음 수 : {pastStepCount}</Text>
-      <Text>현재 걸음 수 : {currentStepCount}</Text>
-      {errorMsg ? <Text>오류: {errorMsg}</Text> : null}
-      <Text>획득한 캔디 수: {candies}</Text>
+      <Text style={styles.titleText}>만보기 정보</Text>
+      <Text style={styles.text}>만보기 기능 사용 가능 여부 : {isPedometerAvailable}</Text>
+      <Text style={styles.text}>지난 24시간 동안 걸음 수 : {pastStepCount}</Text>
+      <Text style={styles.text}>현재 걸음 수 : {currentStepCount}</Text>
+      <Text style={styles.text}>획득한 캔디 수: {candies}</Text>
+      {errorMsg ? <Text style={styles.errorText}>오류: {errorMsg}</Text> : null}
+      <View style={styles.separator}></View>
     </View>
   );
 }
@@ -197,9 +198,47 @@ const PedometerScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    marginTop: 15,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 20,
+    backgroundColor: "#FFF9F9",
+  },
+  titleText: {
+    textAlign: "center",
+    color: "#544848",
+    fontSize: 24,
+    fontWeight: "bold",
+    marginBottom: 20,
+  },
+  text: {
+    fontSize: 18,
+    color: "#544848",
+    marginBottom: 10,
+  },
+  errorText: {
+    color: "red",
+    fontSize: 16,
+    marginBottom: 10,
+  },
+  button: {
+    backgroundColor: "#FFCECE",
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: "black",
+    marginTop: 20,
+  },
+  buttonText: {
+    color: "#544848",
+    fontWeight: "bold",
+    fontSize: 18,
+  },
+  separator: {
+    height: 1,
+    width: "80%",
+    backgroundColor: "#737373",
+    marginVertical: 20,
   },
 });
 
