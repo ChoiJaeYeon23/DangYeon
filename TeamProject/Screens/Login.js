@@ -9,7 +9,6 @@ import {
   KeyboardAvoidingView
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 
 const Login = () => {
   const [id, setId] = useState("");

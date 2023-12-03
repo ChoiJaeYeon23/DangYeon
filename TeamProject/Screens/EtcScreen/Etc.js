@@ -80,7 +80,7 @@ const Etc = ({ navigation, candyData }) => {
           const data = JSON.parse(jsonValue);
           setBucketListItems(data.slice(0, 2)); // 최대 두 개의 항목만 설정
         }
-      } catch(e) {
+      } catch (e) {
         console.error("Error loading data", e);
       }
     };
@@ -91,11 +91,11 @@ const Etc = ({ navigation, candyData }) => {
   return (
     <View style={styles.container}>
       <View style={styles.boxContainer}>
-        <View style={[styles.box, styles.firstBox]}>
-          <Text style={styles.boxTitle} onPress={() => navigation.navigate('PedometerScreen')}>만보기</Text>
+        <TouchableOpacity style={[styles.box, styles.firstBox]} onPress={() => navigation.navigate('PedometerScreen')}>
+          <Text style={styles.boxTitle}>만보기</Text>
           <Text style={styles.boxText}>현재 걸음 수: {currentStepCount}</Text>
           <Text style={styles.boxText}>획득한 캔디 수: {candies}</Text>
-        </View>
+        </TouchableOpacity>
         <View style={styles.box} />
       </View>
       <View style={styles.dotsContainer}>
