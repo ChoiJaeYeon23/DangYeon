@@ -44,6 +44,7 @@ function MainStackScreen() {
                 name="Main"
                 component={Main}
                 options={{
+                    headerLeft: () => null, // 뒤로 가기 버튼 제거
                     title: "메인 화면",
                     headerShown: true,
                     headerStyle: { backgroundColor: "#FFCCFF" },
@@ -58,6 +59,7 @@ function MainStackScreen() {
                 name="PictureMap"
                 component={PictureMap}
                 options={{
+                    headerLeft: () => null,
                     title: "사진지도",
                     headerShown: true,
                     headerStyle: { backgroundColor: "#FFCCFF" },
@@ -72,6 +74,7 @@ function MainStackScreen() {
                 name="CalendarScreen"
                 component={CalendarScreen}
                 options={{
+                    headerLeft: () => null,
                     title: "캘린더",
                     headerShown: true,
                     headerStyle: { backgroundColor: "#FFCCFF" },
@@ -86,6 +89,7 @@ function MainStackScreen() {
                 name="Weather"
                 component={Weather}
                 options={{
+                    headerLeft: () => null,
                     title: "날씨",
                     headerShown: true,
                     headerStyle: { backgroundColor: "#FFCCFF" },
@@ -107,6 +111,7 @@ function ChatStackScreen() {
                 name="Chat"
                 component={Chat}
                 options={{
+                    headerLeft: () => null,
                     headerShown: true,
                     title: "채팅창",
                     headerStyle: { backgroundColor: "#FFCCFF" },
@@ -127,6 +132,7 @@ function BoardStackScreen() {
                 name="Board"
                 component={Board}
                 options={{
+                    headerLeft: () => null,
                     title: "게시판화면",
                     headerShown: true,
                     headerStyle: { backgroundColor: "#FFCCFF" },
@@ -141,6 +147,7 @@ function BoardStackScreen() {
                 name="Gesigeul"
                 component={Gesigeul}
                 options={{
+                    headerLeft: () => null,
                     title: "게시글 작성",
                     headerShown: true,
                     headerStyle: { backgroundColor: "#FFCCFF" },
@@ -155,6 +162,7 @@ function BoardStackScreen() {
                 name="Comments"
                 component={Comments}
                 options={{
+                    headerLeft: () => null,
                     title: "댓글달기",
                     headerShown: true,
                     headerStyle: { backgroundColor: "#FFCCFF" },
@@ -239,6 +247,7 @@ function UserInfoStackScreen() {
                 name="UserInfo"
                 component={UserInfo}
                 options={{
+                    headerLeft: () => null,
                     title: "내 정보",
                     headerShown: true,
                     headerStyle: { backgroundColor: "#FFCCFF" },
@@ -253,6 +262,7 @@ function UserInfoStackScreen() {
                 name="CheckCoupleBreak"
                 component={CheckCoupleBreak}
                 options={{
+                    headerLeft: () => null,
                     title: "커플 연결 끊기 확인",
                     headerShown: true,
                     headerStyle: { backgroundColor: "#FFCCFF" },
@@ -275,6 +285,7 @@ function EtcStackScreen() {
                 name="Etc"
                 component={Etc}
                 options={{
+                    headerLeft: () => null,
                     title: "기타",
                     headerShown: true,
                     headerStyle: { backgroundColor: "#FFCCFF" },
@@ -289,6 +300,7 @@ function EtcStackScreen() {
                 name="BucketList"
                 component={BucketList}
                 options={{
+                    headerLeft: () => null,
                     title: "버킷리스트",
                     headerShown: true,
                     headerStyle: { backgroundColor: "#FFCCFF" },
@@ -303,6 +315,7 @@ function EtcStackScreen() {
                 name="PedometerScreen"
                 component={PedometerScreen}
                 options={{
+                    headerLeft: () => null,
                     title: "만보기",
                     headerShown: true,
                     headerStyle: { backgroundColor: "#FFCCFF" },
@@ -317,6 +330,7 @@ function EtcStackScreen() {
                 name="CalendarPage"
                 component={CalendarPage}
                 options={{
+                    headerLeft: () => null,
                     title: "출석확인달력",
                     headerShown: true,
                     headerStyle: { backgroundColor: "#FFCCFF" },

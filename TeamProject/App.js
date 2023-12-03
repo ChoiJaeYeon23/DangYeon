@@ -1,14 +1,14 @@
 import { createStackNavigator } from "@react-navigation/stack";
 import { NavigationContainer } from "@react-navigation/native";
 // import StackScreen from './navigations/StackScreen'
-import Mainnavigation from './navigations/Mainnavigation'
+import AppNavigator from './navigations/AppNavigator'
 const Stack = createStackNavigator();
 
 
 function App() {
   return (
     <NavigationContainer>
-      <Mainnavigation />
+      <AppNavigator />
     </NavigationContainer>
   )
 }
