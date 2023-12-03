@@ -57,21 +57,10 @@ const CoupleConnect = ({ navigation }) => {
   };
 
   const copyToClipboard = () => {
-    // 중복되지않는 난수 생성하기
-    // 현재 날짜와 시간을 타임스탬프로 가져옵니다.
-    const timestamp = new Date().getTime();
-
-    // 0에서 9999 사이의 난수를 생성합니다.
-    const randomNum = Math.floor(Math.random() * 10000);
-
-    // 타임스탬프와 난수를 결합하여 고유한 숫자를 생성합니다.
-    const uniqueNumber = `${timestamp}${randomNum}`;
-    setGeneratedRandom(uniqueNumber);
-
-    // 생성된 숫자를 클립보드에 복사합니다.
-    Clipboard.setString(uniqueNumber);
-
-    // 사용자에게 알림을 표시합니다.
+    const randomNum6Digits = Math.floor(Math.random() * (999999 - 100000 + 1)) + 100000;// 6자리 숫자 생성: 100000에서 999999 사이
+    const uniqueNumber = randomNum6Digits; // 6자리의 난수를 선택
+    setGeneratedRandom(uniqueNumber.toString());
+    Clipboard.setString(uniqueNumber.toString());
     Alert.alert("복사", `클립보드에 복사된 숫자: ${uniqueNumber}`);
   };
 
