@@ -377,6 +377,10 @@ io.on("connection", (socket) => {
         let userConnectId = result[0].connect_id_me;
         let partnerConnectId = result[0].connect_id_lover;
 
+        // 사용자 ID를 정렬하여 room_id 생성
+        const sortedUserIds = [userConnectId, partnerConnectId].sort();
+        const roomId = sortedUserIds.join("-");
+
         var sql6 =
           "SELECT * FROM couple_connection_check WHERE connect_id_me = ? AND connect_id_lover = ?";
         var sql6params = [partnerConnectId, userConnectId];
@@ -388,7 +392,6 @@ io.on("connection", (socket) => {
           }
 
           if (matchResult.length > 0) {
-            let roomId = userConnectId + "-" + partnerConnectId;
             socket.join(roomId);
             console.log(`사용자 ${socket.id} joined room ${roomId}`);
             socket.emit("room assigned", roomId); // 클라이언트에 방 할당 정보 전송
