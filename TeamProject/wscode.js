@@ -189,17 +189,17 @@ app.post("/api/save-code", (req, res) => {
   const userId = req.session.userId; // 세션에서 사용자 ID를 가져온다.
   console.log(req.session);
   console.log(req.body);
-  const { connect_id } = req.body;
+  const { connect_id_me, connect_id_lover } = req.body;
   //로그인 상태 확인
   if (!userId) {
     return res.status(401).send({ message: "Unauthorized: No session found" });
   }
 
   const query =
-    "INSERT INTO couple_connection_check (user_id, connect_id_me) VALUES (?, ?)";
+    "INSERT INTO couple_connection_check (user_id, connect_id_me, connect_id_lover) VALUES (?, ?, ?)";
 
-  console.log(connect_id);
-  db.query(query, [userId, connect_id], (err, results) => {
+  console.log(connect_id_me);
+  db.query(query, [userId, connect_id_me, connect_id_lover], (err, results) => {
     if (err) {
       res.status(500).send({ message: "Database error", error: err.message });
     } else {
@@ -334,6 +334,7 @@ app.post("/api/member_withdrawal", (req, res) => {
 // Picutre map부분
 
 const util = require("util");
+const { connect } = require("http2");
 const dbQuery = util.promisify(db.query).bind(db); // db.query를 프로미스로 변환
 
 app.post("/api/upload-image", async (req, res) => {

@@ -34,8 +34,12 @@ const CoupleConnect = ({ navigation }) => {
       Alert.alert("오류", "자신의 코드는 입력할 수 없습니다.");
       return;
     }
+    
+    console.log('11111111111111111111',generatedRandom)
+
     const data = {
-      connect_id: text,
+      connect_id_me: generatedRandom,
+      connect_id_lover: text,
     };
     fetch("http://3.34.6.50:8080/api/save-code", {
       method: "POST",
