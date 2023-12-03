@@ -5,6 +5,7 @@ import {
   TextInput,
   TouchableOpacity,
   StyleSheet,
+  Image
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 
@@ -44,11 +45,9 @@ const Login = () => {
         console.log("서버 응답:", data); // 서버 응답 로깅
         resetInputs();
         if (data.status === "redirect") {
-          // connect_id_me가 있는 경우 MainTab 화면으로 이동
           alert("로그인 성공!");
           navigation.navigate("MainTab");
         } else if (data.status === "stay") {
-          // connect_id_me가 없는 경우 Connect 화면으로 이동
           alert("로그인 성공!");
           navigation.navigate("Connect");
         } else {
@@ -68,6 +67,9 @@ const Login = () => {
 
   return (
     <View style={styles.container}>
+      <Text style={styles.titleText}>DangYeon을 이용하시려면</Text>
+      <Text style={styles.titleText}>로그인을 해주세요!</Text>
+      <Image style={styles.image} source={require("../assets/Heart.jpg")} />
       <TextInput
         style={styles.input}
         placeholder="ID"
@@ -84,18 +86,10 @@ const Login = () => {
       <TouchableOpacity style={styles.button} onPress={handleLogin}>
         <Text style={styles.buttonText}>로그인</Text>
       </TouchableOpacity>
-
-      <TouchableOpacity
-        style={styles.button}
-        onPress={() => navigation.navigate("MainTab")}
-      >
+      <TouchableOpacity onPress={() => navigation.navigate("MainTab")}>
         <Text style={styles.buttonText}>로그인1111</Text>
       </TouchableOpacity>
-
-      <TouchableOpacity
-        style={[styles.button, styles.signupButton]}
-        onPress={navigateToSignUp}
-      >
+      <TouchableOpacity style={styles.button} onPress={navigateToSignUp}>
         <Text style={styles.buttonText}>회원가입</Text>
       </TouchableOpacity>
     </View>
@@ -105,29 +99,50 @@ const Login = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 10,
+    backgroundColor: '#FFF9F9',
+  },
+  titleText: {
+    textAlign: 'center',
+    marginBottom: 5,
+    color: '#544848',
+    fontSize: 24,
+    fontWeight: 'bold',
+  },
+  image: {
+    width: 150,
+    height: 155,
+    marginTop: 20,
+    marginBottom: 30,
   },
   input: {
-    width: "80%",
-    padding: 10,
-    marginBottom: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: '75%',
+    height: 45,
     borderWidth: 1,
-    borderColor: "#cccccc",
-    borderRadius: 5,
+    borderColor: 'black',
+    borderRadius: 7,
+    marginBottom: 10,
+    paddingHorizontal: 10,
+    backgroundColor: 'white',
   },
   button: {
-    backgroundColor: "#1EC800",
-    padding: 15,
-    borderRadius: 5,
-    marginBottom: 10,
+    width: '75%',
+    height: 45,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 10,
+    backgroundColor: '#FFCECE',
+    borderWidth: 1,
+    marginTop: 10,
   },
   buttonText: {
-    color: "white",
-    fontSize: 16,
-  },
-  signupButton: {
-    backgroundColor: "#4A90E2", // 회원가입 버튼 색상
+    color: '#544848',
+    fontWeight: 'bold',
+    fontSize: 18,
   },
 });
 
