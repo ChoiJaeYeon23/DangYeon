@@ -75,17 +75,13 @@ const Etc = ({ navigation, candyData }) => {
     // AsyncStorage에서 현재 걸음 수와 획득한 캔디 수를 불러오는 함수
     const loadData = async () => {
       try {
-        const storedSteps = await AsyncStorage.getItem('@currentStepCount');
-        const storedCandies = await AsyncStorage.getItem('@candies');
-
-        if (storedSteps !== null) {
-          setCurrentStepCount(parseInt(storedSteps, 10));
+        const jsonValue = await AsyncStorage.getItem('@bucketList');
+        if (jsonValue != null) {
+          const data = JSON.parse(jsonValue);
+          setBucketListItems(data.slice(0, 2)); // 최대 두 개의 항목만 설정
         }
-        if (storedCandies !== null) {
-          setCandies(parseInt(storedCandies, 10));
-        }
-      } catch (error) {
-        console.error('데이터 불러오기 중 오류 발생:', error);
+      } catch(e) {
+        console.error("Error loading data", e);
       }
     };
 
@@ -122,9 +118,7 @@ const Etc = ({ navigation, candyData }) => {
             </Text>
           </View>
         ))}
-      </View>
       </TouchableOpacity>
-
       <View style={styles.secondDotsContainer}>
         {secondDots.map((_, index) => (
           <View key={`second-dot-${index}`} style={styles.secondDot} />
