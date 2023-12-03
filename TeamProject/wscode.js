@@ -6,15 +6,15 @@ const cors = require("cors");
 const axios = require("axios");
 const mysql = require("mysql");
 const session = require("express-session");
-const sharedsession = require("express-socket.io-session");
 const MySQLStore = require("express-mysql-session")(session);
 
 // Express 앱 초기화
 const app = express();
 
 // bodyParser 미들웨어 적용
-app.use(bodyParser.json());
-
+// 제한 값을 더 큰 값으로 설정, 예를 들어 '50mb'
+app.use(bodyParser.json({ limit: "50mb" }));
+app.use(bodyParser.urlencoded({ limit: "50mb", extended: true }));
 // DB 연동 설정
 var db = mysql.createConnection({
   host: "127.0.0.1",
@@ -39,8 +39,8 @@ const sessionStore = new MySQLStore({}, db);
 // 세션 미들웨어 설정 및 적용
 const Session = session({
   secret: "qwerasdfzx",
-  resave: false,
-  saveUninitialized: true,
+  resave: false, // 변경되지 않은 세션을 저장소에 다시 저장하지 않음
+  saveUninitialized: true, // 초기화되지 않은 세션을 저장소에 저장
   store: sessionStore,
 });
 
@@ -61,13 +61,6 @@ const io = socketIo(server, {
     methods: ["GET", "POST"],
   },
 });
-
-// Socket.IO에 세션 미들웨어 적용
-io.use(
-  sharedsession(session, {
-    autoSave: true,
-  })
-);
 
 // 로그인 처리
 // 로그인 처리
@@ -340,92 +333,73 @@ app.post("/api/member_withdrawal", (req, res) => {
 // Picutre map부분
 // Picutre map부분
 
-const util = require('util');
+const util = require("util");
 const dbQuery = util.promisify(db.query).bind(db); // db.query를 프로미스로 변환
 
-app.post('/api/upload-image', async (req, res) => {
+app.post("/api/upload-image", async (req, res) => {
   try {
     const { uri, region } = req.body;
     console.log(uri);
     console.log(region);
 
     // 데이터베이스에 저장하기 위한 쿼리
-    const query = 'INSERT INTO picture (image_uri, image_region) VALUES (?, ?)';
-    
+    const query = "INSERT INTO picture (image_uri, image_region) VALUES (?, ?)";
+
     // 비동기 쿼리 실행
     await dbQuery(query, [uri, region]);
-    console.log('DB업로드 완료')
+    console.log("DB업로드 완료");
   } catch (err) {
-    console.log('DB업로드 실패')
+    console.log("DB업로드 실패");
     console.error(err);
   }
 });
 
-
 // WebSocket 연결 처리
 // WebSocket 연결 처리
 // WebSocket 연결 처리
 
-
-io.on("connection", (socket, req) => {
+io.on("connection", (socket) => {
   console.log(`사용자가 Socket에 연결되었습니다. : ${socket.id}`);
-  // 세션에서 사용자 ID 가져오기
-  if(socket.handshake.session){
-    const userId = socket.handshake.session.userId;
-  }
-  console.log(`사용자 ID: ${userId}`);
-  // 커플 매칭 확인 및 ROOM 입장
 
   socket.on("identify user", (userId) => {
     console.log(`사용자 ID: ${userId}`);
 
-    // 커플 매칭 확인 및 ROOM 입장
-    socket.on("join room", () => {
-      console.log(`사용자가 "join room" 이벤트를 트리거했습니다.`);
+    // 사용자 ID를 바탕으로 방 할당 로직 수행
+    var sql5 = "SELECT * FROM couple_connection_check WHERE user_id = ?";
+    var sql5params = [userId];
+    db.query(sql5, sql5params, (err, result) => {
+      if (err) {
+        console.error("Database error:", err);
+        return;
+      }
 
-      var sql5 = "SELECT * FROM couple_connection_check WHERE user_id = ?";
-      var sql5params = [userId];
-      db.query(sql5, sql5params, (err, result) => {
-        if (err) {
-          console.error("Database error:", err);
-          return;
-        }
+      if (result.length > 0) {
+        let userConnectId = result[0].connect_id_me;
+        let partnerConnectId = result[0].connect_id_lover;
 
-        if (result.length > 0) {
-          let userConnectId = result[0].connect_id_me;
-          let partnerConnectId = result[0].connect_id_lover;
+        var sql6 =
+          "SELECT * FROM couple_connection_check WHERE connect_id_me = ? AND connect_id_lover = ?";
+        var sql6params = [partnerConnectId, userConnectId];
 
-          console.log(
-            `userConnectId: ${userConnectId}, partnerConnectId: ${partnerConnectId}`
-          );
+        db.query(sql6, sql6params, (err, matchResult) => {
+          if (err) {
+            console.error("Database error:", err);
+            return;
+          }
 
-          // 매칭되는 파트너 찾기
-          var sql6 =
-            "SELECT * FROM couple_connection_check WHERE connect_id_me = ? AND connect_id_lover = ?";
-          var sql6params = [partnerConnectId, userConnectId];
-
-          db.query(sql6, sql6params, (err, matchResult) => {
-            if (err) {
-              console.error("Database error:", err);
-              return;
-            }
-
-            if (matchResult.length > 0) {
-              // 두 사용자가 서로를 connect_id로 가지고 있다면, 룸에 할당
-              let roomId = userConnectId + "-" + partnerConnectId;
-              socket.join(roomId);
-              console.log(`사용자 ${socket.id} joined room ${roomId}`);
-            }
-          });
-        }
-      });
+          if (matchResult.length > 0) {
+            let roomId = userConnectId + "-" + partnerConnectId;
+            socket.join(roomId);
+            console.log(`사용자 ${socket.id} joined room ${roomId}`);
+            socket.emit("room assigned", roomId); // 클라이언트에 방 할당 정보 전송
+          }
+        });
+      }
     });
   });
 
-  // 커플 룸 내에서 메시지 교환
+  // 채팅 메시지 이벤트 핸들러
   socket.on("chat message", (data) => {
-    console.log(`사용자가 "chat message" 이벤트를 트리거했습니다.`);
-
     const { msg, room_id } = data;
     console.log(`Received message: ${msg}, Room ID: ${room_id}`);
 
@@ -444,7 +418,7 @@ io.on("connection", (socket, req) => {
       console.log("Message recorded in databases");
     });
 
-    socket.to(room_id).emit("chat message", msg, Message_time);
+    socket.to(room_id).emit("chat message", { msg, Message_time });
   });
 
   // 연결 해제
