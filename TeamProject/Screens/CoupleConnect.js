@@ -18,8 +18,13 @@ const CoupleConnect = ({ navigation }) => {
 
   // 초대코드를 DB에 저장하도록 서버에 요청하는 코드
   const goToProfileInput = () => {
+    // 입력된 코드가 생성된 코드와 동일한지 확인
+  if (text === generatedRandom) {
+    Alert.alert("오류", "자신의 코드는 입력할 수 없습니다.");
+    return;
+  }
     const data = {
-      connect_id: generatedRandom,
+      connect_id: text,
     };
     fetch("http://3.34.6.50:8080/api/save-code", {
       method: "POST",
@@ -57,8 +62,8 @@ const CoupleConnect = ({ navigation }) => {
   };
 
   const copyToClipboard = () => {
-    const randomNum6Digits = Math.floor(Math.random() * (999999 - 100000 + 1)) + 100000;// 6자리 숫자 생성: 100000에서 999999 사이
-    const uniqueNumber = randomNum6Digits; // 6자리의 난수를 선택
+    const randomNum7Digits = Math.floor(Math.random() * (9999999 - 1000000 + 1)) + 1000000;
+    const uniqueNumber = randomNum7Digits; // 7자리의 난수를 선택
     setGeneratedRandom(uniqueNumber.toString());
     Clipboard.setString(uniqueNumber.toString());
     Alert.alert("복사", `클립보드에 복사된 숫자: ${uniqueNumber}`);
@@ -163,7 +168,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
     fontSize: 18,
     marginVertical: 8,
-    marginLeft: 60,
+    marginLeft: 90,
   },
   button: {
     backgroundColor: "#EBDBDB",
