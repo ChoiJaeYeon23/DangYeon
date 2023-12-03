@@ -125,20 +125,6 @@ const PictureMap = () => {
     setRegionImages(newRegionImages);
     saveImages(newRegionImages);
 
-    const uploadImageToServer = async (imageUri, address) => {
-      try {
-        const response = await axios.post('http://3.34.6.50:8080/api/upload-image', {
-          uri: imageUri,
-          address: address
-        });
-        console.log(response.data);
-      } catch (error) {
-        console.error('Error uploading image:', error);
-      }
-    };
-    
-    // 이미지 업로드 시 이 함수 호출
-    uploadImageToServer(asset.uri, addr);
         
   };
 
@@ -292,7 +278,7 @@ const styles = StyleSheet.create({
   },
   mapContainer: {
     width: '100%',
-    height: 505,
+    height: 477,
     position: 'relative',
   },
   mapStyle: {
@@ -316,7 +302,7 @@ const styles = StyleSheet.create({
     left: '44%',
     width: 35,
     height: 30,
-    marginTop: 5
+    marginTop: 4
   },
   imageContainer: {
     marginBottom: 10,
