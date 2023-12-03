@@ -207,7 +207,7 @@ const SignUp = () => {
               placeholder="이름"
               value={username}
               onChangeText={setName}
-              autoFocus="true"
+              autoFocus={true}
             />
           </View>
           <View style={styles.inputRow}>
