@@ -19,7 +19,7 @@ const Candy = ({ isComplete }) => {
 const Etc = ({ navigation, candyData }) => {
   const firstDots = Array.from({ length: 15 }, (_, i) => i); // 점선
   const secondDots = Array.from({ length: width / 20 }, (_, i) => i); // 점선
-  const [bucketListItems, setBucketListItems] = useState([]); // 버킷리스트 상태
+  const [bucketListItems, setBucketListItems] = useState([]);
   const [attendance, setAttendance] = useState(Array(7).fill(false)); // 출석체크 상태
   const [currentWeek, setCurrentWeek] = useState(0); // 현재 주차
   const [currentMonth, setCurrentMonth] = useState(''); // 현재 월
@@ -107,8 +107,8 @@ const Etc = ({ navigation, candyData }) => {
           <View key={index} style={styles.dot} />
         ))}
       </View>
-      <View style={styles.ListBox}>
-        <Text style={styles.ListBoxText} onPress={() => navigation.navigate('BucketList')}>
+      <TouchableOpacity onPress={() => navigation.navigate('BucketList')} style={styles.ListBox}>
+        <Text style={styles.ListBoxText}>
           버킷리스트
         </Text>
         {bucketListItems.map((item, index) => (
@@ -123,6 +123,8 @@ const Etc = ({ navigation, candyData }) => {
           </View>
         ))}
       </View>
+      </TouchableOpacity>
+
       <View style={styles.secondDotsContainer}>
         {secondDots.map((_, index) => (
           <View key={`second-dot-${index}`} style={styles.secondDot} />

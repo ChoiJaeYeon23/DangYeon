@@ -1,14 +1,25 @@
 import React, { useState, useEffect } from 'react';
-import { View, TextInput, TouchableOpacity, Text, StyleSheet, Image, ScrollView, Alert } from 'react-native';
+import {
+  View,
+  TextInput,
+  TouchableOpacity,
+  Text,
+  StyleSheet,
+  Image,
+  ScrollView,
+  Alert,
+} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import Swiper from 'react-native-swiper';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { format } from 'date-fns'; // date-fns 임포트
+import { format } from 'date-fns';
 
 const Board = ({ route }) => {
   const navigation = useNavigation();
   const [posts, setPosts] = useState([]);
+  const [filteredPosts, setFilteredPosts] = useState([]);
+  const [searchText, setSearchText] = useState('');
 
   useEffect(() => {
     const loadPosts = async () => {
@@ -31,15 +42,15 @@ const Board = ({ route }) => {
         ...route.params.postData,
         id: Math.random().toString(36).substring(7),
         isLiked: false,
-        createdAt: new Date().toISOString(), // 현재 날짜와 시간 추가
+        createdAt: new Date().toISOString(),
       };
-      setPosts(currentPosts => [newPost, ...currentPosts]);
+      setPosts((currentPosts) => [newPost, ...currentPosts]);
       savePosts([newPost, ...posts]);
     }
 
     if (route.params?.editedData) {
-      setPosts(currentPosts =>
-        currentPosts.map(post =>
+      setPosts((currentPosts) =>
+        currentPosts.map((post) =>
           post.id === route.params.editedData.id
             ? { ...route.params.editedData }
             : post
@@ -50,7 +61,7 @@ const Board = ({ route }) => {
   }, [route.params?.postData, route.params?.editedData]);
 
   const toggleLike = (index) => {
-    setPosts(currentPosts => {
+    setPosts((currentPosts) => {
       const updatedPosts = [...currentPosts];
       updatedPosts[index].isLiked = !updatedPosts[index].isLiked;
       return updatedPosts;
@@ -63,7 +74,7 @@ const Board = ({ route }) => {
   };
 
   const editPost = (postId) => {
-    const postToEdit = posts.find(post => post.id === postId);
+    const postToEdit = posts.find((post) => post.id === postId);
     if (postToEdit) {
       navigation.navigate('Gesigeul', { editingPost: postToEdit });
     }
@@ -71,30 +82,41 @@ const Board = ({ route }) => {
 
   const deletePost = (postId) => {
     Alert.alert(
-      "게시물 삭제",
-      "이 게시물을 삭제하시겠습니까?",
+      '게시물 삭제',
+      '이 게시물을 삭제하시겠습니까?',
       [
-        { text: "취소", style: "cancel" },
-        { text: "삭제", onPress: () => {
-          const updatedPosts = posts.filter(post => post.id !== postId);
-          savePosts(updatedPosts);
-        } }
+        { text: '취소', style: 'cancel' },
+        {
+          text: '삭제',
+          onPress: () => {
+            const updatedPosts = posts.filter((post) => post.id !== postId);
+            savePosts(updatedPosts);
+          },
+        },
       ]
     );
   };
 
   const openOptions = (postId) => {
     Alert.alert(
-      "게시물",
+      '게시물',
       null,
       [
-        { text: "수정", onPress: () => editPost(postId) },
-        { text: "삭제", onPress: () => deletePost(postId), style: 'destructive' },
-        { text: "취소", style: "cancel" }
+        { text: '수정', onPress: () => editPost(postId) },
+        { text: '삭제', onPress: () => deletePost(postId), style: 'destructive' },
+        { text: '취소', style: 'cancel' },
       ],
       { cancelable: true }
     );
   };
+
+  useEffect(() => {
+    // 게시물을 필터링하여 filteredPosts 업데이트
+    const filtered = posts.filter((post) =>
+      post.text.toLowerCase().includes(searchText.toLowerCase())
+    );
+    setFilteredPosts(filtered);
+  }, [searchText, posts]);
 
   return (
     <View style={styles.container}>
@@ -104,10 +126,12 @@ const Board = ({ route }) => {
           style={styles.input}
           placeholder="검색"
           placeholderTextColor="#C7C7CD"
+          value={searchText}
+          onChangeText={setSearchText} // 검색어 업데이트
         />
       </View>
-      <TouchableOpacity 
-        style={styles.addButton} 
+      <TouchableOpacity
+        style={styles.addButton}
         onPress={() => {
           console.log('Add button pressed');
           navigation.navigate('Gesigeul');
@@ -115,7 +139,7 @@ const Board = ({ route }) => {
         <Ionicons name="ios-add" size={24} color="#FFFFFF" />
       </TouchableOpacity>
       <ScrollView>
-        {posts.map((post, index) => (
+        {filteredPosts.map((post, index) => (
           <View key={post.id} style={styles.postContainer}>
             <Text style={styles.postDate}>
               {post.createdAt && !isNaN(new Date(post.createdAt).getTime())
@@ -135,8 +159,8 @@ const Board = ({ route }) => {
               showsButtons={false}
               loop={false}
               paginationStyle={styles.pagination}
-              dotStyle={styles.dotContainer} // 스타일 변경
-              activeDotStyle={styles.activeDotContainer} // 스타일 변경
+              dotStyle={styles.dotContainer}
+              activeDotStyle={styles.activeDotContainer}
             >
               {post.images.map((uri, idx) => (
                 <View key={idx} style={styles.slide}>
