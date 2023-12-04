@@ -22,7 +22,6 @@ import CoupleBreak from '../Screens/UserInfoScreen/CoupleBreak';
 import UserInfo from '../Screens/UserInfoScreen/UserInfo'
 import Board from '../Screens/BoardScreen/Board'
 import Gesigeul from '../Screens/BoardScreen/Gesigeul';
-import Comments from '../Screens/BoardScreen/Comments';
 import Etc from '../Screens/EtcScreen/Etc'
 import BucketList from '../Screens/EtcScreen/BucketList';
 import PedometerScreen from '../Screens/EtcScreen/PedometerScreen'
@@ -149,21 +148,6 @@ function BoardStackScreen() {
                 options={{
                     headerLeft: () => null,
                     title: "게시글 작성",
-                    headerShown: true,
-                    headerStyle: { backgroundColor: "#FFCCFF" },
-                    headerTintColor: "white",
-                    headerTitleStyle: {
-                        fontWeight: "bold",
-                        color: "white",
-                    },
-                }}
-            />
-            <BoardStack.Screen
-                name="Comments"
-                component={Comments}
-                options={{
-                    headerLeft: () => null,
-                    title: "댓글달기",
                     headerShown: true,
                     headerStyle: { backgroundColor: "#FFCCFF" },
                     headerTintColor: "white",
