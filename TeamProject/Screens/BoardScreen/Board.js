@@ -80,6 +80,19 @@ const Board = ({ route }) => {
       navigation.navigate('Gesigeul', { editingPost: postToEdit });
     }
   };
+
+  // 게시물 업데이트 관련 useEffect
+  useEffect(() => {
+    if (route.params?.editedData) {
+      setPosts((currentPosts) =>
+        currentPosts.map((post) =>
+          post.id === route.params.editedData.id
+            ? { ...route.params.editedData }
+            : post
+        )
+      );
+    }
+  }, [route.params?.editedData]);
   // 게시물 삭제 함수
   const deletePost = (postId) => {
     Alert.alert(
@@ -141,16 +154,14 @@ const Board = ({ route }) => {
       <ScrollView>
         {filteredPosts.map((post, index) => (
           <View key={post.id} style={styles.postContainer}>
-            <Text style={styles.postDate}>
-              {post.createdAt && !isNaN(new Date(post.createdAt).getTime())
-                ? format(new Date(post.createdAt), 'yyyy/MM/dd')
-                : '날짜 정보 없음'}
-            </Text>
-            <Text style={styles.postTime}>
-              {post.createdAt && !isNaN(new Date(post.createdAt).getTime())
-                ? format(new Date(post.createdAt), 'HH:mm:ss')
-                : ''}
-            </Text>
+            <View style={styles.postHeader}>
+              <Text style={styles.postTitle}>{post.title}</Text>
+              <Text style={styles.postDate}>
+                {post.createdAt && !isNaN(new Date(post.createdAt).getTime())
+                  ? format(new Date(post.createdAt), 'yyyy/MM/dd HH:mm:ss')
+                  : '날짜 정보 없음'}
+              </Text>
+            </View>
             <TouchableOpacity style={styles.optionsButton} onPress={() => openOptions(post.id)}>
               <Ionicons name="ellipsis-horizontal" size={24} color="#000" />
             </TouchableOpacity>
@@ -246,6 +257,20 @@ const styles = StyleSheet.create({
     elevation: 3,
     padding: 10,
   },
+  postHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  postTitle: {
+    fontSize: 16,
+    color: 'black',
+    fontWeight: 'bold',
+  },
+  postDate: {
+    fontSize: 12,
+    color: '#333',
+  },
   wrapper: {
     height: 250,
   },
@@ -310,20 +335,6 @@ const styles = StyleSheet.create({
   },
   dotTextContainer: {
     marginTop: 20, // 동그라미 아래 텍스트와 간격 조정
-  },
-  postDate: {
-    fontSize: 12,
-    color: '#333',
-    marginBottom: 3, // 날짜와 시간 사이의 간격 조정
-    marginLeft: 10,
-    alignSelf: 'flex-start',
-  },
-  postTime: {
-    fontSize: 12,
-    color: '#555',
-    marginBottom: 5,
-    marginLeft: 10,
-    alignSelf: 'flex-start',
   },
 });
 
