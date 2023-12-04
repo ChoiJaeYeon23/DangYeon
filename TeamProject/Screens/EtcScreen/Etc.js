@@ -75,10 +75,13 @@ const Etc = ({ navigation, candyData }) => {
     // AsyncStorage에서 현재 걸음 수와 획득한 캔디 수를 불러오는 함수
     const loadData = async () => {
       try {
-        const jsonValue = await AsyncStorage.getItem('@bucketList');
-        if (jsonValue != null) {
-          const data = JSON.parse(jsonValue);
-          setBucketListItems(data.slice(0, 2)); // 최대 두 개의 항목만 설정
+        const stepCountValue = await AsyncStorage.getItem('@currentStepCount');
+        const candiesValue = await AsyncStorage.getItem('@candies');
+        if (stepCountValue != null) {
+          setCurrentStepCount(JSON.parse(stepCountValue));
+        }
+        if (candiesValue != null) {
+          setCandies(JSON.parse(candiesValue));
         }
       } catch (e) {
         console.error("Error loading data", e);
