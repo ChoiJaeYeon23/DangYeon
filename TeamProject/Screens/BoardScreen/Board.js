@@ -61,18 +61,15 @@ const Board = ({ route }) => {
     }
   }, [route.params?.postData, route.params?.editedData]);
   // '좋아요' 토글 함수
-  const toggleLike = (index) => {
-    setPosts((currentPosts) => {
-      const updatedPosts = [...currentPosts];
-      updatedPosts[index].isLiked = !updatedPosts[index].isLiked;
-      return updatedPosts;
-    });
-    savePosts([...posts]);
-  };
-  // 댓글 화면으로 이동하는 함수
-  const goToComments = (postId) => {
-    navigation.navigate('Comments', { postId: postId });
-  };
+  // const toggleLike = (index) => {
+  //   setPosts((currentPosts) => {
+  //     const updatedPosts = [...currentPosts];
+  //     updatedPosts[index].isLiked = !updatedPosts[index].isLiked;
+  //     return updatedPosts;
+  //   });
+  //   savePosts([...posts]);
+  // };
+
   // 게시물 수정 함수
   const editPost = (postId) => {
     const postToEdit = posts.find((post) => post.id === postId);
@@ -182,7 +179,7 @@ const Board = ({ route }) => {
             <View style={styles.dotTextContainer}>
               <Text style={styles.postText}>{post.text}</Text>
             </View>
-            <View style={styles.actionContainer}>
+            {/* <View style={styles.actionContainer}>
               <TouchableOpacity onPress={() => toggleLike(index)} style={styles.actionButton}>
                 <Image
                   source={post.isLiked ? require('../../assets/heart.png') : require('../../assets/Binheart.png')}
@@ -190,11 +187,7 @@ const Board = ({ route }) => {
                 />
                 <Text style={styles.actionText}>좋아요</Text>
               </TouchableOpacity>
-              <TouchableOpacity onPress={() => goToComments(post.id)} style={styles.actionButton}>
-                <Ionicons name="chatbubble-outline" size={20} color="#333" />
-                <Text style={styles.actionText}>댓글 달기</Text>
-              </TouchableOpacity>
-            </View>
+            </View> */}
           </View>
         ))}
       </ScrollView>
@@ -290,23 +283,23 @@ const styles = StyleSheet.create({
     color: 'black',
     marginVertical: 10,
   },
-  actionContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    padding: 10,
-  },
-  actionButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  actionText: {
-    marginLeft: 5,
-    color: '#333',
-  },
-  icon: {
-    width: 24,
-    height: 24,
-  },
+  // actionContainer: {
+  //   flexDirection: 'row',
+  //   justifyContent: 'space-between',
+  //   padding: 10,
+  // },
+  // actionButton: {
+  //   flexDirection: 'row',
+  //   alignItems: 'center',
+  // },
+  // actionText: {
+  //   marginLeft: 5,
+  //   color: '#333',
+  // },
+  // icon: {
+  //   width: 24,
+  //   height: 24,
+  // },
   optionsButton: {
     alignSelf: 'flex-end',
     padding: 10,
