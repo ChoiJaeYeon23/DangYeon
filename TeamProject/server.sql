@@ -16,10 +16,12 @@ CREATE TABLE userInfo(
 -- 게시판 테이블
 CREATE TABLE postInfo(
     post_id INTEGER PRIMARY KEY AUTO_INCREMENT,
+    user_id VARCHAR(50),
     postdate DATE,
     title VARCHAR(255),
     content TEXT,
-    img TEXT
+    img TEXT,
+    FOREIGN KEY (user_id) REFERENCES userInfo(id)
 );
 
 -- 채팅 테이블
