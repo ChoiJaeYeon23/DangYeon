@@ -111,7 +111,7 @@ const Chat = () => {
               style={styles.input}
               value={userId}
               onChangeText={setUserId}
-              placeholder="사용자 ID를 입력해주세요."
+              placeholder="본인의 ID를 입력해주세요."
               editable={!userIdSubmitted}
             />
             <TouchableOpacity onPress={submitUserId}>
