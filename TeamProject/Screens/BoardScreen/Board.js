@@ -17,10 +17,11 @@ import { format } from 'date-fns';
 
 const Board = ({ route }) => {
   const navigation = useNavigation();
-  const [posts, setPosts] = useState([]);
-  const [filteredPosts, setFilteredPosts] = useState([]);
-  const [searchText, setSearchText] = useState('');
+  const [posts, setPosts] = useState([]); // 게시물 목록을 저장
+  const [filteredPosts, setFilteredPosts] = useState([]); // 검색한 게시물 목록
+  const [searchText, setSearchText] = useState(''); // 검색 텍스트
 
+  // 게시물 불러오는 함수
   useEffect(() => {
     const loadPosts = async () => {
       const savedPosts = await loadData('posts');
@@ -30,12 +31,12 @@ const Board = ({ route }) => {
     };
     loadPosts();
   }, []);
-
+  // 게시물 저장하는 함수
   const savePosts = async (newPosts) => {
     setPosts(newPosts);
     await saveData('posts', newPosts);
   };
-
+  // 새 게시물이 추가되거나 수정될 때 게시물 목록 업데이트
   useEffect(() => {
     if (route.params?.postData) {
       const newPost = {
@@ -59,7 +60,7 @@ const Board = ({ route }) => {
       savePosts(posts);
     }
   }, [route.params?.postData, route.params?.editedData]);
-
+  // '좋아요' 토글 함수
   const toggleLike = (index) => {
     setPosts((currentPosts) => {
       const updatedPosts = [...currentPosts];
@@ -68,18 +69,18 @@ const Board = ({ route }) => {
     });
     savePosts([...posts]);
   };
-
+  // 댓글 화면으로 이동하는 함수
   const goToComments = (postId) => {
     navigation.navigate('Comments', { postId: postId });
   };
-
+  // 게시물 수정 함수
   const editPost = (postId) => {
     const postToEdit = posts.find((post) => post.id === postId);
     if (postToEdit) {
       navigation.navigate('Gesigeul', { editingPost: postToEdit });
     }
   };
-
+  // 게시물 삭제 함수
   const deletePost = (postId) => {
     Alert.alert(
       '게시물 삭제',
@@ -96,7 +97,7 @@ const Board = ({ route }) => {
       ]
     );
   };
-
+  // 게시물 옵션 함수
   const openOptions = (postId) => {
     Alert.alert(
       '게시물',
@@ -109,9 +110,8 @@ const Board = ({ route }) => {
       { cancelable: true }
     );
   };
-
+  // 검색 텍스트에 따라 게시물 필터링하는 useEffect
   useEffect(() => {
-    // 게시물을 필터링하여 filteredPosts 업데이트
     const filtered = posts.filter((post) =>
       post.text.toLowerCase().includes(searchText.toLowerCase())
     );

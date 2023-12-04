@@ -17,7 +17,7 @@ const BucketList = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [deleteConfirmationVisible, setDeleteConfirmationVisible] = useState(false);
   const [deleteIndex, setDeleteIndex] = useState(null); // 삭제할 항목 관리
-
+  //AsyncStorage에 데이터 저장
   const saveData = async (newList) => {
     try {
       const jsonValue = JSON.stringify(newList);
@@ -26,7 +26,7 @@ const BucketList = () => {
       console.error("Error saving data", e);
     }
   };
-
+  // AsyncStorage에서 데이터 로드
   const loadData = async () => {
     try {
       const jsonValue = await AsyncStorage.getItem('@bucketList');
@@ -35,11 +35,11 @@ const BucketList = () => {
       console.error("Error loading data", e);
     }
   };
-
+  // 버킷리스트 데이터 불러오는 역할
   useEffect(() => {
     loadData().then(setList);
   }, []);
-
+  // 새 항목을 리스트에 추가
   const addToList = () => {
     if (text.trim() !== '') {
       const newList = [...list, { text, isCompleted: false }];
@@ -49,12 +49,12 @@ const BucketList = () => {
       saveData(newList);
     }
   };
-
+  // 삭제 확인 모달 표시
   const showDeleteConfirmation = (index) => {
     setDeleteIndex(index);
     setDeleteConfirmationVisible(true);
   };
-
+  // 리스트에서 항목 제거
   const removeFromList = () => {
     const newList = list.filter((_, idx) => idx !== deleteIndex);
     setList(newList);
@@ -62,12 +62,12 @@ const BucketList = () => {
     setDeleteIndex(null);
     saveData(newList);
   };
-
+  // 삭제 취소
   const cancelDelete = () => {
     setDeleteConfirmationVisible(false);
     setDeleteIndex(null);
   };
-
+  // 항목 완료 상태
   const toggleCompletion = (index) => {
     const newList = list.map((item, idx) =>
       idx === index ? { ...item, isCompleted: !item.isCompleted } : item
@@ -75,7 +75,7 @@ const BucketList = () => {
     setList(newList);
     saveData(newList);
   };
-
+  // 버킷리스트 완료 상태에 따라 다른 하트 표시하는 부분
   const renderItem = ({ item, index }) => (
     <View style={styles.item}>
       <TouchableOpacity onPress={() => toggleCompletion(index)}>
@@ -126,7 +126,7 @@ const BucketList = () => {
           </View>
         </View>
       </Modal>
-
+      //
       <Modal
         animationType="slide"
         transparent={true}

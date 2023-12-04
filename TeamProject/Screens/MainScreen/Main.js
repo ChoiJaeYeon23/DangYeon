@@ -8,38 +8,37 @@ import Weather from './Weather';
 const whiteCandyImage = require('../../assets/Bincandy.png');
 const brownCandyImage = require('../../assets/candy.png');
 
-// 캔디 이미지 표시
+// 출서체크 상태에 따라 다른 캔디 이미지를 보여줌
 const Candy = ({ isComplete }) => {
   const candyImage = isComplete ? brownCandyImage : whiteCandyImage;
   return <Image source={candyImage} style={styles.candy} />;
 };
 
 const Main = ({ navigation }) => {
-  const [attendance, setAttendance] = useState(Array(7).fill(false)); // 일주일간의 출석체크 상태 배열로 관리
+  const [attendance, setAttendance] = useState(Array(7).fill(false)); // 출석체크 일주일 나타냄
   const [weekLabel, setWeekLabel] = useState(''); // 주차 레이블
-  const [message, setMessage] = useState(''); // 사용자에게 보여줄 메시지 관리
-  const [isAttendanceModalVisible, setIsAttendanceModalVisible] = useState(false); // 출석체크 상태 표시 여부
+  const [message, setMessage] = useState('');//메시지
+  const [isAttendanceModalVisible, setIsAttendanceModalVisible] = useState(false); // 출석체크 관리
 
   useEffect(() => {
-    // 출석체크 상태를 검사하고 주차 레이블 설정
-    // AsyncStorage에서 출석체크 데이처 저장
     const checkDateAndAttendance = async () => {
       try {
         const today = moment().format('YYYY-MM-DD');
-        const currentWeekday = moment().isoWeekday();
         const storedDate = await AsyncStorage.getItem('@lastCheckDate');
-        const storedWeekday = await AsyncStorage.getItem('@lastCheckWeekday');
         const storedAttendance = await AsyncStorage.getItem('@attendance');
 
-        if (storedDate !== today || storedWeekday != currentWeekday) {
+        if (storedDate !== today) {
+          // 자정에 날짜가 변경되었을 때 출석체크 창을 보여주고, 출석체크 배열을 초기화
           setAttendance(Array(7).fill(false));
           await AsyncStorage.setItem('@lastCheckDate', today);
-          await AsyncStorage.setItem('@lastCheckWeekday', currentWeekday.toString());
           setIsAttendanceModalVisible(true);
         } else if (storedAttendance) {
+          // 같은 날짜에 이미 출석체크를 했다면, 출석체크 창을 보이지 않게 함
           setAttendance(JSON.parse(storedAttendance));
+          // 출석체크를 하지 않았으면 모달이 계속 표시되도록 변경
+          setIsAttendanceModalVisible(!JSON.parse(storedAttendance)[moment().isoWeekday() - 1]);
         }
-
+        // 몇월 몇째주인지 계산하고 weekLabel에 저장
         const startOfWeek = moment().startOf('isoWeek');
         const weekInMonth = startOfWeek.isoWeek() - moment(startOfWeek).startOf('month').isoWeek() + 1;
         const month = startOfWeek.format('M월');
@@ -52,24 +51,20 @@ const Main = ({ navigation }) => {
     checkDateAndAttendance();
   }, []);
 
-  // 출석체크 처리하는 함수
+  // 출석체크 완료 창
   const handleAttendance = () => {
     const todayIndex = moment().isoWeekday() - 1;
-    if (attendance[todayIndex]) {
-      setMessage('이미 출석체크를 하셨습니다.');
-      setIsAttendanceModalVisible(true);
-      setTimeout(() => setIsAttendanceModalVisible(false), 1000);
-    } else {
-      const newAttendance = [...attendance];
-      newAttendance[todayIndex] = true;
-      setAttendance(newAttendance);
-      AsyncStorage.setItem('@attendance', JSON.stringify(newAttendance));
-      setMessage('출석이 완료되었습니다!');
-      setIsAttendanceModalVisible(true);
-      setTimeout(() => {
-        setIsAttendanceModalVisible(false);
-      }, 1000);
-    }
+    const newAttendance = [...attendance];
+    newAttendance[todayIndex] = true;
+    setAttendance(newAttendance);
+    AsyncStorage.setItem('@attendance', JSON.stringify(newAttendance));
+    setMessage('출석이 완료되었습니다!');
+
+    // 1초 후 메시지 숨기기 및 출석체크 버튼 상태 변경
+    setTimeout(() => {
+      setMessage('');
+      setIsAttendanceModalVisible(false); // 출석체크 모달을 닫음
+    }, 1000);
   };
 
   const goToCalendar = () => {
@@ -85,6 +80,8 @@ const Main = ({ navigation }) => {
   const closeModal = () => {
     setIsAttendanceModalVisible(false);
   };
+
+
 
   return (
     <View style={styles.container}>
@@ -114,16 +111,13 @@ const Main = ({ navigation }) => {
             <View style={styles.candiesContainer}>
               {renderCandies()}
             </View>
-            {attendance[moment().isoWeekday() - 1] ? (
-              <TouchableOpacity onPress={handleAttendance}>
-              </TouchableOpacity>
-            ) : (
+            {!message && (
               <TouchableOpacity
                 style={styles.button}
                 onPress={handleAttendance}
                 disabled={attendance[moment().isoWeekday() - 1]}
               >
-                <Text style={styles.buttonText}>출석체크</Text>
+                <Text style={styles.buttonText}>{attendance[moment().isoWeekday() - 1] ? '완료' : '출석체크'}</Text>
               </TouchableOpacity>
             )}
             {message && <Text style={styles.message}>{message}</Text>}
@@ -186,24 +180,36 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.5)',
   },
   modalContent: {
-    width: '80%',
-    backgroundColor: 'white',
+    width: '90%', 
+    height: '30%', 
+    backgroundColor: '#FFF9F9',
     padding: 20,
     borderRadius: 10,
-    alignItems: 'center',
+    alignItems: 'center', 
+    justifyContent: 'center', 
+    shadowColor: '#000', 
+    shadowOffset: { width: 0, height: 2 }, 
+    shadowOpacity: 0.25, 
+    shadowRadius: 3.84, 
+    elevation: 5, 
   },
   title: {
     fontSize: 24,
     marginBottom: 20,
+    fontWeight: 'bold', 
+    color: '#585757',
   },
   candiesContainer: {
     flexDirection: 'row',
+    alignItems: 'center', 
+    justifyContent: 'center', 
     marginBottom: 20,
+    padding: 20,
   },
   candy: {
     width: 30,
     height: 30,
-    marginHorizontal: 5,
+    marginHorizontal: 6,
   },
   button: {
     backgroundColor: '#FFCECE',
@@ -218,8 +224,8 @@ const styles = StyleSheet.create({
     fontSize: 15,
   },
   message: {
-    marginTop: 20,
-    fontSize: 16,
+    marginTop: 10,
+    fontSize: 20,
     color: '#000',
   },
   container: {
@@ -229,16 +235,16 @@ const styles = StyleSheet.create({
   },
   topContainer: {
     paddingTop: 10,
-    paddingHorizontal: 20, // 좌우 여백 설정
-    alignItems: 'center', // 수직 방향으로 중앙 정렬
+    paddingHorizontal: 20, 
+    alignItems: 'center', 
   },
   weatherWidget: {
-    position: 'absolute', // 날씨 위젯을 위해 절대 위치 사용
-    left: 50, // 왼쪽 정렬
-    width: 100, // 날씨 위젯의 너비
-    height: 100, // 날씨 위젯의 높이
-    alignItems: 'center', // 내부 텍스트 등을 중앙에 배치
-    justifyContent: 'center', // 내부 텍스트 등을 중앙에 배치
+    position: 'absolute', 
+    left: 50, 
+    width: 100, 
+    height: 100, 
+    alignItems: 'center', 
+    justifyContent: 'center', 
   },
   anniversary: {
     position: 'absolute',
@@ -259,8 +265,8 @@ const styles = StyleSheet.create({
   },
   map: {
     flex: 1,
-    justifyContent: 'center', // 지도를 중앙에 배치
-    borderWidth: 1, // 테두리 두께
+    justifyContent: 'center', 
+    borderWidth: 1, 
     borderColor: 'black',
     margin: 20,
     marginTop: 90,

@@ -16,7 +16,7 @@ const Candy = ({ isComplete }) => {
   );
 };
 
-const Etc = ({ navigation, candyData }) => {
+const Etc = ({ navigation }) => {
   const firstDots = Array.from({ length: 15 }, (_, i) => i); // 점선
   const secondDots = Array.from({ length: width / 20 }, (_, i) => i); // 점선
   const [bucketListItems, setBucketListItems] = useState([]);
@@ -26,32 +26,26 @@ const Etc = ({ navigation, candyData }) => {
   const [currentStepCount, setCurrentStepCount] = useState(0); // 현재 걸음 수
   const [candies, setCandies] = useState(0); // 획득한 캔디 수
 
-  const calculateWeeks = () => {
-    const today = moment();
-    const currentMonth = today.format('M');
-    const monthStart = moment(today).startOf('month');
-    const weeksPassed = today.diff(monthStart, 'weeks') + 1;
-
-    setCurrentWeek(weeksPassed);
-    setCurrentMonth(currentMonth);
-  }
-
   useEffect(() => {
     // AsyncStorage에서 출석체크 데이터와 현재 주차 정보를 로드하는 함수
     const loadAttendanceData = async () => {
       try {
         const attendanceValue = await AsyncStorage.getItem('@attendance');
+        const lastCheckDateValue = await AsyncStorage.getItem('@lastCheckDate');
+
         if (attendanceValue != null) {
           setAttendance(JSON.parse(attendanceValue));
         }
 
-        const today = moment();
-        const currentMonth = today.format('M');
-        const monthStart = moment(today).startOf('month');
-        const weeksPassed = today.diff(monthStart, 'weeks') + 1;
+        if (lastCheckDateValue != null) {
+          const lastCheckDate = moment(lastCheckDateValue, 'YYYY-MM-DD');
+          const startOfWeek = moment(lastCheckDate).startOf('isoWeek');
+          const weekInMonth = startOfWeek.isoWeek() - moment(startOfWeek).startOf('month').isoWeek() + 1;
+          const month = startOfWeek.format('M월');
 
-        setCurrentWeek(weeksPassed);
-        setCurrentMonth(currentMonth);
+          setCurrentWeek(weekInMonth);
+          setCurrentMonth(month);
+        }
       } catch (e) {
         console.error("Error loading attendance data", e);
       }
@@ -126,7 +120,7 @@ const Etc = ({ navigation, candyData }) => {
       </View>
       <TouchableOpacity onPress={handleCandyClick} style={styles.Check}>
         <Text style={styles.CheckText}>
-          {currentMonth}월 {currentWeek}주째 출석체크
+          {currentMonth} {currentWeek}주째 출석체크
         </Text>
         <View style={styles.candiesContainer}>
           {renderCandies()}
@@ -222,7 +216,7 @@ const styles = StyleSheet.create({
   },
   listItem: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
+    alignItems: 'center',
     marginTop: 15,
     width: '100%',
     paddingLeft: 20,
