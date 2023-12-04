@@ -16,7 +16,7 @@ const Candy = ({ isComplete }) => {
   );
 };
 
-const Etc = ({ navigation }) => {
+const Etc = ({ navigation, candyData }) => {
   const firstDots = Array.from({ length: 15 }, (_, i) => i); // 점선
   const secondDots = Array.from({ length: width / 20 }, (_, i) => i); // 점선
   const [bucketListItems, setBucketListItems] = useState([]);
@@ -26,26 +26,32 @@ const Etc = ({ navigation }) => {
   const [currentStepCount, setCurrentStepCount] = useState(0); // 현재 걸음 수
   const [candies, setCandies] = useState(0); // 획득한 캔디 수
 
+  const calculateWeeks = () => {
+    const today = moment();
+    const currentMonth = today.format('M');
+    const monthStart = moment(today).startOf('month');
+    const weeksPassed = today.diff(monthStart, 'weeks') + 1;
+
+    setCurrentWeek(weeksPassed);
+    setCurrentMonth(currentMonth);
+  }
+
   useEffect(() => {
     // AsyncStorage에서 출석체크 데이터와 현재 주차 정보를 로드하는 함수
     const loadAttendanceData = async () => {
       try {
         const attendanceValue = await AsyncStorage.getItem('@attendance');
-        const lastCheckDateValue = await AsyncStorage.getItem('@lastCheckDate');
-
         if (attendanceValue != null) {
           setAttendance(JSON.parse(attendanceValue));
         }
 
-        if (lastCheckDateValue != null) {
-          const lastCheckDate = moment(lastCheckDateValue, 'YYYY-MM-DD');
-          const startOfWeek = moment(lastCheckDate).startOf('isoWeek');
-          const weekInMonth = startOfWeek.isoWeek() - moment(startOfWeek).startOf('month').isoWeek() + 1;
-          const month = startOfWeek.format('M월');
+        const today = moment();
+        const currentMonth = today.format('M');
+        const monthStart = moment(today).startOf('month');
+        const weeksPassed = today.diff(monthStart, 'weeks') + 1;
 
-          setCurrentWeek(weekInMonth);
-          setCurrentMonth(month);
-        }
+        setCurrentWeek(weeksPassed);
+        setCurrentMonth(currentMonth);
       } catch (e) {
         console.error("Error loading attendance data", e);
       }
@@ -69,10 +75,13 @@ const Etc = ({ navigation }) => {
     // AsyncStorage에서 현재 걸음 수와 획득한 캔디 수를 불러오는 함수
     const loadData = async () => {
       try {
-        const jsonValue = await AsyncStorage.getItem('@bucketList');
-        if (jsonValue != null) {
-          const data = JSON.parse(jsonValue);
-          setBucketListItems(data.slice(0, 2)); // 최대 두 개의 항목만 설정
+        const stepCountValue = await AsyncStorage.getItem('@currentStepCount');
+        const candiesValue = await AsyncStorage.getItem('@candies');
+        if (stepCountValue != null) {
+          setCurrentStepCount(JSON.parse(stepCountValue));
+        }
+        if (candiesValue != null) {
+          setCandies(JSON.parse(candiesValue));
         }
       } catch (e) {
         console.error("Error loading data", e);
@@ -120,7 +129,7 @@ const Etc = ({ navigation }) => {
       </View>
       <TouchableOpacity onPress={handleCandyClick} style={styles.Check}>
         <Text style={styles.CheckText}>
-          {currentMonth} {currentWeek}주째 출석체크
+          {currentMonth}월 {currentWeek}주째 출석체크
         </Text>
         <View style={styles.candiesContainer}>
           {renderCandies()}
@@ -216,7 +225,7 @@ const styles = StyleSheet.create({
   },
   listItem: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     marginTop: 15,
     width: '100%',
     paddingLeft: 20,
