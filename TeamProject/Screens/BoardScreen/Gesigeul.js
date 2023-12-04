@@ -16,12 +16,15 @@ import * as ImagePicker from 'expo-image-picker';
 import { useNavigation } from '@react-navigation/native';
 
 const Gesigeul = ({ route }) => {
-  const [text, setText] = useState('');
-  const [imageSources, setImageSources] = useState([]);
-  const [modalVisible, setModalVisible] = useState(false);
+  const [title, setTitle] = useState(''); // 제목 입력 상태
+  const [text, setText] = useState(''); // 내용 입력 상태
+  const [imageSources, setImageSources] = useState([]); // 이미지 소스 배열 
+  const [modalVisible, setModalVisible] = useState(false); // 모달 표시 상태
   const [postIdToEdit, setPostIdToEdit] = useState(null); // 수정할 게시물의 ID 저장
   const navigation = useNavigation();
+  const [textEditMode, setTextEditMode] = useState(false);
 
+  // 이미지 선택
   const pickImage = async () => {
     const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!permissionResult.granted) {
@@ -39,14 +42,17 @@ const Gesigeul = ({ route }) => {
     }
   };
 
+  // 저장 버튼 클릭 시 호출되는 함수
   const handleSavePress = () => {
+    console.log('제목 저장: ', title);
     console.log('내용 저장: ', text);
-  
+
     const postData = {
+      title: title, // 제목 추가
       text: text,
       images: imageSources.map(source => source.uri)
     };
-  
+
     if (postIdToEdit !== null) {
       // 수정된 게시물 데이터를 Board 컴포넌트로 전달
       const editedPost = {
@@ -58,18 +64,20 @@ const Gesigeul = ({ route }) => {
       // 새로운 게시물 데이터를 Board 컴포넌트로 전달
       navigation.navigate('Board', { postData: postData });
     }
-  
   };
 
+  // 모달의 확인 버튼 클릭 시 호출되는 함수
   const handleConfirmPress = () => {
     setModalVisible(false); // 모달 닫기
     Keyboard.dismiss(); // 키보드 숨기기
   };
 
+  // 수정할 게시글 데이터가 있는 경우, 수정한 게시글로 업데이트
   useEffect(() => {
     // 수정할 게시글 데이터 확인
     if (route.params?.editingPost) {
-      const { text, images, id } = route.params.editingPost;
+      const { title, text, images, id } = route.params.editingPost;
+      setTitle(title);
       setText(text);
       setImageSources(images.map(uri => ({ uri })));
       setPostIdToEdit(id);
@@ -83,10 +91,34 @@ const Gesigeul = ({ route }) => {
           <Text style={styles.doneText}>저장</Text>
         </TouchableOpacity>
       </View>
-      <TouchableOpacity onPress={() => setModalVisible(true)} style={styles.inputContainer}>
-        <Text style={styles.input}>
-          {text ? text : "내용을 입력하세요."}
-        </Text>
+      <TextInput
+        style={styles.titleInput} // 제목 입력란 스타일
+        onChangeText={setTitle} // 제목 변경 시 호출
+        value={title} // 제목 상태값
+        placeholder="제목을 입력하세요." // 제목 입력 플레이스홀더 텍스트
+        placeholderTextColor="#989292" // 제목 입력 플레이스홀더 텍스트 색상
+      />
+      <TouchableOpacity
+        onPress={() => {
+          if (!textEditMode) setTextEditMode(true);
+        }}
+        style={styles.inputContainer}
+      >
+        {textEditMode ? (
+          <TextInput
+            style={styles.input}
+            onChangeText={setText}
+            value={text}
+            multiline
+            autoFocus
+          />
+        ) : (
+          text.length === 0 ? (
+            <Text style={styles.input}>
+              내용을 입력하세요.
+            </Text>
+          ) : null
+        )}
       </TouchableOpacity>
       <ScrollView horizontal style={styles.imageScroll}>
         {imageSources.map((source, index) => (
@@ -152,6 +184,14 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: 'black',
   },
+  titleInput: {
+    fontSize: 18, // 제목 폰트 크기
+    fontWeight: 'bold', // 제목 폰트 굵기
+    color: 'black', // 제목 폰트 색상
+    margin: 10, // 외부 여백
+    borderBottomWidth: 1, // 하단 테두리 추가
+    borderColor: 'gray', // 테두리 색상
+  },
   inputContainer: {
     borderColor: 'gray',
     padding: 10,
@@ -183,23 +223,6 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-start', // 화면 상단에 정렬
     alignItems: 'center',
     backgroundColor: 'rgba(0, 0, 0, 0.4)', // 배경을 어둡게 조정
-  },
-  modalView: {
-    top:50,
-    width: '100%', // 전체 너비
-    height: '33%', // 화면 높이의 1/3
-    backgroundColor: 'white', // 배경색 흰색
-    paddingTop: 5, // 상단 패딩 감소
-    borderTopLeftRadius: 20, // 상단 왼쪽 모서리 둥글게
-    borderTopRightRadius: 20, // 상단 오른쪽 모서리 둥글게
-    shadowColor: '#000',
-    shadowOffset: {
-    width: 0,
-    height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-    elevation: 5,
   },
   inputBox: {
     marginTop: 98, // "게시판" 텍스트 아래에 위치하도록 marginTop 조정

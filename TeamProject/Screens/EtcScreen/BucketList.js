@@ -49,7 +49,7 @@ const BucketList = () => {
       saveData(newList);
     }
   };
-  // 삭제 확인 모달 표시
+  // 삭제 확인 모달
   const showDeleteConfirmation = (index) => {
     setDeleteIndex(index);
     setDeleteConfirmationVisible(true);
@@ -75,7 +75,7 @@ const BucketList = () => {
     setList(newList);
     saveData(newList);
   };
-  // 버킷리스트 완료 상태에 따라 다른 하트 표시하는 부분
+  // 버킷리스트 완료 상태에 따라 다른 하트 표시
   const renderItem = ({ item, index }) => (
     <View style={styles.item}>
       <TouchableOpacity onPress={() => toggleCompletion(index)}>
@@ -126,7 +126,7 @@ const BucketList = () => {
           </View>
         </View>
       </Modal>
-      //
+
       <Modal
         animationType="slide"
         transparent={true}

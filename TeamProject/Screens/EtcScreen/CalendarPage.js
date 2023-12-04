@@ -4,6 +4,7 @@ import { Calendar, LocaleConfig } from 'react-native-calendars';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import moment from 'moment';
 import CandyImage from '../../assets/candy.png';
+
 // 달력 한국어 설정
 LocaleConfig.locales['ko'] = {
   monthNames: ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'],
@@ -13,7 +14,8 @@ LocaleConfig.locales['ko'] = {
   today: '오늘',
 };
 LocaleConfig.defaultLocale = 'ko';
- // 달력 날짜 컴포넌트 정의
+
+// 달력 날짜 컴포넌트 정의
 const CustomDay = ({ date, state, marking }) => {
   const isMarked = marking && marking.customStyles;
   const textColor = state === 'disabled' ? '#d9d9d9' : 'black';
@@ -21,62 +23,94 @@ const CustomDay = ({ date, state, marking }) => {
   return (
     <View style={styles.customDayContainer}>
       <Text style={[styles.customDayText, { color: textColor }]}>{date.day}</Text>
-      {isMarked && (
-        <Image source={marking.customStyles.image} style={styles.candyImage} />
-      )}
+      {isMarked && <Image source={marking.customStyles.image} style={styles.candyImage} />}
     </View>
   );
 };
+
 // 달력 페이지 컴포넌트
 const CalendarPage = () => {
   const [markedDates, setMarkedDates] = useState({});
-  const [candyCount, setCandyCount] = useState(0);
-  //출석체크 데이터를 불러오는 역할
+  const [candyCounts, setCandyCounts] = useState({}); // 월별 캔디 수 저장
+  const [totalCandyCount, setTotalCandyCount] = useState(0); // 전체 캔디 수
+
+  // 출석체크 데이터를 불러오는 역할
   useEffect(() => {
     loadAttendanceData();
+    loadTotalCandyCount();
   }, []);
-  // 출석체크 날짜에 캔디이미지 표시
+
+  // 출석체크 날짜에 캔디 이미지 표시 및 월별 캔디 수 계산
   const loadAttendanceData = async () => {
     try {
       const attendanceValue = await AsyncStorage.getItem('@attendance');
       if (attendanceValue != null) {
         const attendance = JSON.parse(attendanceValue);
         const newMarkedDates = {};
+        const newCandyCounts = { ...candyCounts };
+        let currentMonth = moment().month() + 1; // 현재 월
         let candyCount = 0;
 
         attendance.forEach((attended, index) => {
           const day = moment().startOf('isoWeek').add(index, 'days');
           if (attended) {
             candyCount += 1;
+
+            // 월이 바뀌면 해당 월의 캔디 수 초기화
+            if (day.month() + 1 !== currentMonth) {
+              currentMonth = day.month() + 1;
+              candyCount = 1;
+            }
+
             newMarkedDates[day.format('YYYY-MM-DD')] = {
               customStyles: {
                 image: CandyImage,
               },
             };
+
+            // 해당 월의 캔디 수 업데이트
+            newCandyCounts[currentMonth] = candyCount;
           }
         });
 
-        setCandyCount(candyCount);
+        setTotalCandyCount(candyCount);
         setMarkedDates(newMarkedDates);
+        setCandyCounts(newCandyCounts);
       }
     } catch (error) {
-      console.error("Error loading attendance data", error);
+      console.error('Error loading attendance data', error);
     }
   };
+
   // 달력에 년도 월 표시 부분
   const CustomHeader = (month) => {
-    const headerDate = moment(month.toString());
-    const year = headerDate.format('YYYY년');
-    const monthInKorean = `${headerDate.format('M')}월`;
+    let headerDate;
+    if (moment(month).isValid()) {
+      headerDate = moment(month); // month가 유효한 날짜일 경우
+    } else {
+      console.error("Invalid date format:", month);
+      headerDate = moment(); // 현재 날짜를 기본값으로 사용
+    }
+    const yearMonthInKorean = headerDate.format('YYYY년 M월');
 
     return (
       <View style={styles.customHeaderContainer}>
-        <Text style={styles.customHeaderText}>
-          {`${year} ${monthInKorean}`}
-        </Text>
+        <Text style={styles.customHeaderText}>{yearMonthInKorean}</Text>
       </View>
     );
   };
+
+    // 전체 캔디 수를 불러오는 함수
+    const loadTotalCandyCount = async () => {
+      try {
+        const totalCandyValue = await AsyncStorage.getItem('@totalCandyCount');
+        if (totalCandyValue !== null) {
+          setTotalCandyCount(parseInt(totalCandyValue));
+        }
+      } catch (error) {
+        console.error('Error loading total candy count', error);
+      }
+    };
 
   return (
     <View style={styles.container}>
@@ -101,15 +135,38 @@ const CalendarPage = () => {
                 marginTop: 6,
               },
             },
+            'stylesheet.calendar.header': {
+              dayHeader: {
+                fontWeight: '600',
+                color: '#6B6B6B',
+              },
+            },
             arrowColor: 'pink',
           }}
         />
       </View>
       <View style={styles.candyCountContainer}>
-        <Text style={styles.candyCountTitle}>이번달 캔디 수</Text>
-        <View style={styles.candyBox}>
-          <Image source={CandyImage} style={styles.candystyle} />
-          <Text style={styles.candyCountText}>{candyCount}</Text>
+        {/* 이번 달 캔디 수 */}
+        <View style={styles.candyCountInnerContainer}>
+          <Text style={styles.candyCountTitle}>이번달 캔디 수</Text>
+          <View style={styles.candyBox}>
+            <Image source={CandyImage} style={styles.candystyle} />
+            <Text style={[styles.candyCountText, { marginLeft: 15 }]}>
+              {candyCounts[moment().month() + 1] || 0}
+            </Text>
+          </View>
+
+        </View>
+
+        {/* 전체 캔디 수 */}
+        <View style={styles.candyCountInnerContainer}>
+          <Text style={styles.candyCountTitle}>전체 캔디 수</Text>
+          <View style={styles.candyBox}>
+            <Image source={CandyImage} style={styles.candystyle} />
+            <Text style={[styles.candyCountText,{ marginLeft: 15 }]}>
+              {totalCandyCount}
+              </Text>
+          </View>
         </View>
       </View>
     </View>
@@ -141,20 +198,22 @@ const styles = StyleSheet.create({
     marginTop: 32,
   },
   candyCountContainer: {
-    flexDirection: 'column',
+    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 70, // 여기에 여백 추가
+    justifyContent: 'space-around', // 각 항목을 가로로 나열
+    marginTop: 90,
+  },
+  candyCountInnerContainer: {
+    alignItems: 'center',
   },
   candyCountTitle: {
     fontSize: 18,
-    marginBottom: 20, // 텍스트와 상자 사이의 여백
+    marginBottom: 20,
     fontWeight: 'bold',
   },
   candyBox: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
     backgroundColor: '#FFFCB6',
     paddingHorizontal: 20,
     paddingVertical: 10,
