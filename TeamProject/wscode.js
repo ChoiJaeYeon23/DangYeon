@@ -355,6 +355,167 @@ app.post("/api/upload-image", async (req, res) => {
   }
 });
 
+//게시글 조회
+//게시글 조회
+//게시글 조회
+
+app.get("/api/post_check", (req, res) => {
+  const userId = req.session.userId; // 현재 로그인한 사용자의 ID를 세션에서 가져옴
+  console.log(req.session);
+  if (!userId) {
+    return res.status(401).send({ message: "Unauthorized: No session found" });
+  }
+
+  // 매칭된 커플의 ID를 찾는 쿼리
+  const couple_match_Query = `SELECT user_id, connect_id_lover FROM couple_connection_check WHERE user_id = ? OR connect_id_lover = ?`;
+
+  // 현재 사용자와 매칭된 커플의 게시글을 조회하는 쿼리
+  // p.* => postInfo 테이블의 모든 컬럼을 선택 (p는 postInfo 테이블의 별칭)
+  // WHERE 절 => postInfo테이블에서 userId 컬럼이 현재 로그인한 사용자의 id이거나, 서브쿼리에서 반환된 id 목록 안에 포함되는 경우에 게시글을 선택
+  // 서브쿼리 SELECT ... => couple_connection_check 테이블에서 사용자 커플을 찾는다.
+  // CASE 구문은 로그인한 사용자의 userId가 user_id 컬럼에 있을 경우 connect_id_lover를, connect_id_lover 컬럼에 있을 경우 user_id를 반환
+  // WHERE 절은 로그인한 사용자의 ID(userId)가 user_id 또는 connect_id_lover 컬럼에 있는 행을 찾는 데 사용
+  const postsQuery = `
+  SELECT p.* FROM postInfo p
+  WHERE p.userId = ? OR p.userId IN (
+    SELECT 
+      CASE
+        WHEN c.user_id = ? THEN c.connect_id_lover
+        WHEN c.connect_id_lover = ? THEN c.user_id
+      END
+    FROM couple_connection_check c
+    WHERE c.user_id = ? OR c.connect_id_lover = ?
+  );`;
+  db.query(couple_match_Query, [userId, userId], (err, coupleResult) => {
+    if (err) {
+      res.status(500).send({ message: "Database error", error: err });
+      return;
+    }
+
+    if (coupleResult.length === 0) {
+      return res.status(404).send({ message: "No matching couple found" });
+    }
+
+    // 커플이 매칭되었으면 해당 게시글 조회
+    db.query(
+      postsQuery,
+      [userId, userId, userId, userId, userId],
+      (err, posts) => {
+        if (err) {
+          res.status(500).send({ message: "Database error", error: err });
+        } else {
+          res.send(posts);
+        }
+      }
+    );
+  });
+});
+
+//게시글 작성
+//게시글 작성
+//게시글 작성
+
+app.post("/api/new_post_save", (req, res) => {
+  const userId = req.session.userId; // 게시글을 누가 작성했는지를 저장하기위해 session에서 userId가져오기
+  const { title, content } = req.body;
+  console.log("게시글 저장 요청:", { userId, title, content }); // 로그 출력
+
+  const postdate = new Date().toISOString().slice(0, 10); //현재 날짜를 YYYY-MM-DD 형식으로 해줌
+
+  const query =
+    "INSERT INTO postInfo (postdate, title, content, user_id) VALUES (?,?,?,?)";
+  db.query(query, [postdate, title, content, userId], (err, result) => {
+    if (err) {
+      console.error("게시글 저장 중 오류 발생:", err); // 에러 로그 출력
+      res.status(500).send({ message: "Database error", error: err });
+    } else {
+      console.log("게시글 저장 성공:", result); // 성공 로그 출력
+      res.send({ message: "Post added successfully" });
+    }
+  });
+});
+
+// 게시글 수정
+// 게시글 수정
+// 게시글 수정
+
+app.put("/api/update_post/", (req, res) => {
+  const userId = req.session.userId;
+  const { title, content } = req.body;
+  const postId = req.params.postId;
+
+  const query = `UPDATE postInfo SET title =? , content = ? WHERE post_id = ? AND userId = ?`;
+
+  db.query(query, [title, content, postId, userId], (err, result) => {
+    if (err) {
+      res.status(500).send({ message: "Database error", error: err });
+    } else {
+      //affectedRows : SQL 쿼리를 실행한 후 데이터베이스에 영향을 받은 행의 수를 나타내는 속성
+      if (result.affectedRows === 0) {
+        res.status(404).send({ message: "Post not found or unauthorized" });
+      } else {
+        res.send({ message: "Post updated successfully" });
+      }
+    }
+  });
+});
+// 게시글 삭제
+// 게시글 삭제
+// 게시글 삭제
+
+app.delete("/api/del_post/", (req, res) => {
+  const userId = req.session.userId;
+  const postId = req.params.postId;
+  const query = `DELETE FROM postInfo WHERE post_id ? AND userId=?`;
+
+  db.query(query, [(postId, userId)], (err, result) => {
+    if (err) {
+      res.status(500).send({ message: "Database error", error: err });
+    } else {
+      if (result.affectedRows === 0) {
+        // affectedRows : SQL 쿼리를 실행한 후 데이터베이스에 영향을 받은 행의 수를 나타내는 속성
+        res.status(404).send({ message: "Post not found or unauthorized" });
+      } else {
+        res.send({ message: "Post deleted successfully" });
+      }
+    }
+  });
+});
+
+// 사진 업로드
+app.post("/api/upload_picture", (req, res) => {
+  const { userId, uri, region, uploadDate, address } = req.body;
+
+  const query =
+    "INSERT INTO picture (user_id, uri, region, upload_date, address) VALUES (?, ?, ?, ?, ?)";
+  db.query(query, [userId, uri, region, uploadDate, address], (err, result) => {
+    if (err) {
+      console.error("Error uploading picture:", err);
+      res.status(500).send({ message: "Database error", error: err });
+    } else {
+      res.send({
+        message: "Picture uploaded successfully",
+        pictureId: result.insertId,
+      });
+    }
+  });
+});
+
+// 특정 지역의 사진 목록 조회
+app.get("/api/pictures/:region", (req, res) => {
+  const region = req.params.region;
+
+  const query = "SELECT * FROM picture WHERE region = ?";
+  db.query(query, [region], (err, results) => {
+    if (err) {
+      console.error("Error fetching pictures:", err);
+      res.status(500).send({ message: "Database error", error: err });
+    } else {
+      res.send(results);
+    }
+  });
+});
+
 // WebSocket 연결 처리
 // WebSocket 연결 처리
 // WebSocket 연결 처리
