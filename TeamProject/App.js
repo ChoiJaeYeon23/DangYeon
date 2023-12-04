@@ -1,10 +1,10 @@
 import { NavigationContainer } from "@react-navigation/native";
-import Mainnavigation from './navigations/Mainnavigation'
+import AppNavigator from './navigations/AppNavigator'
 
 function App() {
   return (
     <NavigationContainer>
-      <Mainnavigation />
+      <AppNavigator />
     </NavigationContainer>
   )
 }
