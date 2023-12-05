@@ -31,7 +31,7 @@ const BucketList = () => {
     try {
       const jsonValue = await AsyncStorage.getItem('@bucketList');
       return jsonValue != null ? JSON.parse(jsonValue) : [];
-    } catch(e) {
+    } catch (e) {
       console.error("Error loading data", e);
     }
   };
@@ -39,16 +39,21 @@ const BucketList = () => {
   useEffect(() => {
     loadData().then(setList);
   }, []);
-  // 새 항목을 리스트에 추가
-  const addToList = () => {
-    if (text.trim() !== '') {
-      const newList = [...list, { text, isCompleted: false }];
-      setList(newList);
-      setText('');
+  // 버킷리스트 추가 모달, 저장, 리스트 항목에 추가
+  const handleModalAndAdd = () => {
+    if (modalVisible) {
+      if (text.trim() !== '') {
+        const newList = [...list, { text, isCompleted: false }];
+        setList(newList);
+        setText('');
+        saveData(newList);
+      }
       setModalVisible(false);
-      saveData(newList);
+    } else {
+      setModalVisible(true);
     }
   };
+
   // 삭제 확인 모달
   const showDeleteConfirmation = (index) => {
     setDeleteIndex(index);
@@ -110,7 +115,7 @@ const BucketList = () => {
       >
         <View style={styles.centeredView}>
           <View style={styles.modalView}>
-            <TouchableOpacity style={styles.closeButton} onPress={() => setModalVisible(false)}>
+            <TouchableOpacity style={styles.closeButton} onPress={handleModalAndAdd}>
               <Text style={styles.closeButtonText}>✖</Text>
             </TouchableOpacity>
             <TextInput
@@ -120,7 +125,7 @@ const BucketList = () => {
               value={text}
               onChangeText={setText}
             />
-            <TouchableOpacity style={styles.saveButton} onPress={addToList}>
+            <TouchableOpacity style={styles.saveButton} onPress={handleModalAndAdd}>
               <Text style={styles.saveButtonText}>저장</Text>
             </TouchableOpacity>
           </View>
@@ -138,10 +143,10 @@ const BucketList = () => {
             <Text style={styles.deleteModalText}>{`"${list[deleteIndex]?.text}"을(를) 삭제하시겠습니까?`}</Text>
             <View style={styles.deleteModalButtons}>
               <TouchableOpacity style={styles.deleteModalButton} onPress={removeFromList}>
-                <Text style={styles.buttonText}>예</Text>
+                <Text>예</Text>
               </TouchableOpacity>
               <TouchableOpacity style={styles.deleteModalButton} onPress={cancelDelete}>
-                <Text style={styles.buttonText}>아니오</Text>
+                <Text>아니오</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -152,10 +157,9 @@ const BucketList = () => {
         data={list}
         keyExtractor={(item, index) => index.toString()}
         renderItem={renderItem}
-        contentContainerStyle={{ paddingTop: 30 }} 
+        contentContainerStyle={{ paddingTop: 30 }}
       />
-
-      <TouchableOpacity style={styles.addButton} onPress={() => setModalVisible(true)}>
+      <TouchableOpacity style={styles.addButton} onPress={handleModalAndAdd}>
         <Text style={styles.addButtonText}>+ 버킷리스트 추가</Text>
       </TouchableOpacity>
     </View>
@@ -165,7 +169,7 @@ const BucketList = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFF9F9', 
+    backgroundColor: '#FFF9F9',
   },
   item: {
     flexDirection: 'row',
@@ -175,51 +179,51 @@ const styles = StyleSheet.create({
     paddingLeft: 40,
   },
   text: {
-    fontSize: 18, 
+    fontSize: 18,
   },
   icon: {
-    width: 24, 
-    height: 24, 
-    marginRight: 10, 
+    width: 24,
+    height: 24,
+    marginRight: 10,
   },
   addButton: {
-    justifyContent: 'center', 
-    alignItems: 'center', 
-    padding: 10, 
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 10,
   },
   addButtonText: {
-    fontSize: 18, 
-    color: '#000000', 
+    fontSize: 18,
+    color: '#000000',
     padding: 20,
   },
   saveButton: {
-    borderWidth: 1, 
-    borderColor: '#000000', 
-    backgroundColor: '#EBDBDB', 
-    borderRadius: 50, 
-    padding: 5, 
-    marginTop: 5, 
+    borderWidth: 1,
+    borderColor: '#000000',
+    backgroundColor: '#EBDBDB',
+    borderRadius: 50,
+    padding: 5,
+    marginTop: 5,
     width: '30%',
-    alignItems: 'center', 
+    alignItems: 'center',
   },
   saveButtonText: {
-    color: '#000000', 
-    fontSize: 18, 
+    color: '#000000',
+    fontSize: 18,
   },
   centeredView: {
     flex: 1,
-    justifyContent: 'center', 
-    alignItems: 'center', 
-    backgroundColor: 'rgba(0,0,0,0.4)', 
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.4)',
   },
   modalView: {
-    width: '90%', 
-    borderWidth: 1, 
-    backgroundColor: 'white', 
-    borderColor: '#000000', 
-    borderRadius: 10, 
-    padding: 30, 
-    alignItems: 'center', 
+    width: '90%',
+    borderWidth: 1,
+    backgroundColor: 'white',
+    borderColor: '#000000',
+    borderRadius: 10,
+    padding: 30,
+    alignItems: 'center',
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
@@ -230,34 +234,34 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   modalInput: {
-    height: 50, 
-    width: '100%', 
-    marginBottom: 15, 
-    borderBottomWidth: 1, 
-    padding: 10, 
-    textAlign: 'center', 
+    height: 50,
+    width: '100%',
+    marginBottom: 15,
+    borderBottomWidth: 1,
+    padding: 10,
+    textAlign: 'center',
   },
   closeButton: {
-    alignSelf: 'flex-start', 
-    position: 'absolute', 
-    top: 10, 
-    left: 10, 
+    alignSelf: 'flex-start',
+    position: 'absolute',
+    top: 10,
+    left: 10,
   },
   closeButtonText: {
     fontSize: 18,
     color: '#000',
   },
   strikethrough: {
-    textDecorationLine: 'line-through', 
+    textDecorationLine: 'line-through',
     color: '#d3d3d3',
   },
   deleteModalView: {
-    width: '80%', 
-    borderWidth: 1, 
+    width: '80%',
+    borderWidth: 1,
     backgroundColor: 'white',
-    borderColor: '#000000', 
-    borderRadius: 10, 
-    padding: 30, 
+    borderColor: '#000000',
+    borderRadius: 10,
+    padding: 30,
     alignItems: 'center',
     shadowColor: '#000',
     shadowOffset: {
@@ -276,7 +280,7 @@ const styles = StyleSheet.create({
   },
   deleteModalButtons: {
     flexDirection: 'row',
-   justifyContent: 'center', 
+    justifyContent: 'center',
   },
   deleteModalButton: {
     borderWidth: 1,
@@ -288,14 +292,14 @@ const styles = StyleSheet.create({
     width: '40%',
     alignItems: 'center',
     elevation: 4,
-    marginHorizontal: 10, 
+    marginHorizontal: 10,
   },
   header: {
     alignItems: 'center',
     padding: 30,
     borderBottomWidth: 1,
-    borderBottomColor: '#D18D8D', 
-    width: '80%', 
+    borderBottomColor: '#D18D8D',
+    width: '80%',
     alignSelf: 'center',
   },
   headerText: {
@@ -305,4 +309,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default BucketList;
+export default BucketList; 

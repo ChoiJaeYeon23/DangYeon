@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useFocusEffect } from '@react-navigation/native';
 import { View, Text, TouchableOpacity, StyleSheet, Image, Dimensions } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import moment from 'moment';
@@ -16,7 +17,7 @@ const Candy = ({ isComplete }) => {
   );
 };
 
-const Etc = ({ navigation, candyData }) => {
+const Etc = ({ navigation }) => {
   const firstDots = Array.from({ length: 15 }, (_, i) => i); // 점선
   const secondDots = Array.from({ length: width / 20 }, (_, i) => i); // 점선
   const [bucketListItems, setBucketListItems] = useState([]);
@@ -26,39 +27,42 @@ const Etc = ({ navigation, candyData }) => {
   const [currentStepCount, setCurrentStepCount] = useState(0); // 현재 걸음 수
   const [candies, setCandies] = useState(0); // 획득한 캔디 수
 
-  const calculateWeeks = () => {
-    const today = moment();
-    const currentMonth = today.format('M');
-    const monthStart = moment(today).startOf('month');
-    const weeksPassed = today.diff(monthStart, 'weeks') + 1;
-
-    setCurrentWeek(weeksPassed);
-    setCurrentMonth(currentMonth);
-  }
-
-  useEffect(() => {
-    // AsyncStorage에서 출석체크 데이터와 현재 주차 정보를 로드하는 함수
-    const loadAttendanceData = async () => {
+  // AsyncStorage에서 출석체크 데이터와 현재 주차 정보, 버킷 리스트 데이터 로드
+    const loadData = async () => {
       try {
         const attendanceValue = await AsyncStorage.getItem('@attendance');
+        const jsonValue = await AsyncStorage.getItem('@bucketList');
+  
         if (attendanceValue != null) {
           setAttendance(JSON.parse(attendanceValue));
         }
-
+        if (jsonValue != null) {
+          setBucketListItems(JSON.parse(jsonValue).slice(0, 2));
+        }
+  
         const today = moment();
         const currentMonth = today.format('M');
         const monthStart = moment(today).startOf('month');
         const weeksPassed = today.diff(monthStart, 'weeks') + 1;
-
+  
         setCurrentWeek(weeksPassed);
         setCurrentMonth(currentMonth);
       } catch (e) {
-        console.error("Error loading attendance data", e);
+        console.error("Error loading data", e);
       }
     };
+  
+    useEffect(() => {
+      loadData();
+    }, []);
+  
+    useFocusEffect(
+      React.useCallback(() => {
+        loadData();
+      }, [])
+    );
 
-    loadAttendanceData();
-  }, []);
+  
 
   // 출석체크 버튼 클릭 
   const handleCandyClick = () => {
@@ -107,16 +111,14 @@ const Etc = ({ navigation, candyData }) => {
         ))}
       </View>
       <TouchableOpacity onPress={() => navigation.navigate('BucketList')} style={styles.ListBox}>
-        <Text style={styles.ListBoxText}>
-          버킷리스트
-        </Text>
+        <Text style={styles.ListBoxText}>버킷리스트</Text>
         {bucketListItems.map((item, index) => (
           <View key={index} style={styles.listItem}>
             <Image
               source={item.isCompleted ? require('../../assets/heart.png') : require('../../assets/Binheart.png')}
               style={styles.icon}
             />
-            <Text style={[item.isCompleted && styles.strikethrough]}>
+            <Text style={[styles.listItemText, item.isCompleted && styles.strikethrough]}>
               {item.text}
             </Text>
           </View>
@@ -225,7 +227,7 @@ const styles = StyleSheet.create({
   },
   listItem: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
+    alignItems: 'center',
     marginTop: 15,
     width: '100%',
     paddingLeft: 20,
