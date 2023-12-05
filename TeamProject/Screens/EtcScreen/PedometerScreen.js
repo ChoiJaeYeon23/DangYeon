@@ -1,18 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, Text, View, Alert, Button } from 'react-native';
+import { StyleSheet, Text, View, Alert, TouchableOpacity } from 'react-native';
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Pedometer } from 'expo-sensors';
-import * as Location from 'expo-location';
 
 const PedometerScreen = () => {
-  const [isPedometerAvailable, setIsPedometerAvailable] = useState('checking');// 만보기가 사용 가능한지 여부를 저장하는 상태
-  const [pastStepCount, setPastStepCount] = useState(0); // 지난 24시간 동안의 걸음 수를 저장하는 상태
-  const [currentStepCount, setCurrentStepCount] = useState(0); // 현재 걸음 수를 저장하는 상태
-  const [location, setLocation] = useState(null); // 현재 위치를 저장하는 상태
-  const [errorMsg, setErrorMsg] = useState(null); // 오류 메시지를 저장하는 상태
-  const [candies, setCandies] = useState(null);
+  const [isPedometerAvailable, setIsPedometerAvailable] = useState('checking');// 만보기가 사용 가능한지 여부 저장
+  const [pastStepCount, setPastStepCount] = useState(0); // 지난 24시간 동안의 걸음 수 저장
+  const [currentStepCount, setCurrentStepCount] = useState(0); // 현재 걸음 수 저장
+  const [candies, setCandies] = useState(0); // 획득한 캔디 수
   const [candyRewardsReceived, setCandyRewardsReceived] = useState({ 'ten': false, 'fifty': false, 'hundred': false }); // 각 걸음 수 단계에 대해 보상을 받았는지 여부
-  let subscription = null; // 걸음 수 감시 기능을 외부 변수로 선언
+  const [calories, setCalories] = useState(0); // 칼로리
+
+  let subscription = null; // 걸음 수 감시 기능 외부 변수로 선언
 
   useEffect(() => { // 현재 걸음 수 저장
     const storeData = async () => {
@@ -34,12 +33,9 @@ const PedometerScreen = () => {
         if (storedSteps !== null) {
           setCurrentStepCount(parseInt(storedSteps, 10));
         }
+
         if (storedCandies !== null) {
           setCandies(JSON.parse(storedCandies));
-        } else {
-          console.log("Stored candies not found");
-          // 캔디가 없는 경우 초기값으로 0을 설정
-          setCandies(0);
         }
       } catch (error) {
         console.error('데이터 불러오기 중 오류 발생:', error);
@@ -94,28 +90,25 @@ const PedometerScreen = () => {
   // 캔디 보상 함수
   const claimCandy = async (steps) => {
     const key = steps === 10 ? 'ten' : steps === 50 ? 'fifty' : 'hundred';
-  
     if (currentStepCount >= steps && !candyRewardsReceived[key]) {
       let candyReward = steps === 10 ? 1 : steps === 50 ? 5 : 10;
-  
-      let newCandies = candies + candyReward;
-      setCandies(newCandies);
-  
+      setCandies(candies + candyReward);
+
       let newCandyRewardsReceived = { ...candyRewardsReceived };
       newCandyRewardsReceived[key] = true;
       setCandyRewardsReceived(newCandyRewardsReceived);
-  
-      // 캔디 수 AsyncStorage에 저장
+
       try {
-        await AsyncStorage.setItem('@candies', JSON.stringify(newCandies));
+        await AsyncStorage.setItem('@candies', JSON.stringify(candies + candyReward));
       } catch (error) {
         console.error('캔디 저장 중 오류 발생:', error);
       }
     }
   };
 
-  useEffect(() => {
-    const resetCandyRewards = async () => { // 자정이 지나면 캔디 받기 초기화 & 캔디 수 누적
+  useEffect(() => { // 자정이 지나면 캔디 받기 초기화 & 캔디 수 누적
+    const resetCandyRewards = async () => {
+      // 자정이 지나면 캔디 보상 상태 초기화
       const now = new Date();
       const lastUpdate = await AsyncStorage.getItem('@lastCandyUpdate');
 
@@ -124,7 +117,7 @@ const PedometerScreen = () => {
         if (lastUpdateDate.getDate() !== now.getDate() ||
           lastUpdateDate.getMonth() !== now.getMonth() ||
           lastUpdateDate.getFullYear() !== now.getFullYear()) {
-          // 새로운 날짜가 되었으므로 캔디 보상 상태를 리셋하고 현재 날짜 저장
+          // 새로운 날짜가 되었으므로 캔디 보상 상태를 리셋
           setCandyRewardsReceived({ "ten": false, "fifty": false, "hundred": false });
           await AsyncStorage.setItem('@lastCandyUpdate', now.toISOString());
         }
@@ -169,8 +162,7 @@ const PedometerScreen = () => {
     return (
       <View style={styles.rewardBox}>
         <Text style={styles.text}>{steps} 걸음</Text>
-        <Button
-          title={`${candyReward} 캔디 받기!`}
+        <TouchableOpacity
           onPress={() => {
             if (isRewardAvailable && !isRewardClaimed) {
               claimCandy(steps);
@@ -178,27 +170,45 @@ const PedometerScreen = () => {
             }
           }}
           disabled={!isRewardAvailable || isRewardClaimed}
-        />
+          style={[
+            styles.rewardButton,
+            { backgroundColor: (!isRewardAvailable || isRewardClaimed) ? '#ccc' : '#FFCECE' }
+          ]}
+        >
+          <Text style={styles.buttonText}>{`${candyReward} 캔디 받기!`}</Text>
+        </TouchableOpacity>
+
       </View>
     );
   };
 
+  useEffect(() => {
+    // 걸음 수에 따른 칼로리 계산
+    const calculateCalories = () => { // 칼로리 소모량 = 걸음수 x 0.04
+      return currentStepCount * 0.04;
+    };
+
+    setCalories(calculateCalories());
+  }, [currentStepCount]);
+
   return (
     <View style={styles.container}>
-      <Text style={styles.titleText}>만보기</Text>
+      <Text style={styles.titleText}>나의 만보기</Text>
       <View style={styles.separator}></View>
       <Text style={styles.text}>만보기 기능 사용 가능 여부 : {isPedometerAvailable}</Text>
       <Text style={styles.text}>지난 24시간 동안 걸음 수 : {pastStepCount}</Text>
-      <Text style={styles.text}>현재 걸음 수 : {currentStepCount}</Text>
+      <Text style={styles.text}>오늘 걸음 수 : {currentStepCount}</Text>
       <Text style={styles.text}>현재 캔디 수 : {candies}</Text>
-      <Button title="현재 걸음 수 업데이트" onPress={updateCurrentStepCount} style={styles.button} />
-      {location ? <Text>현재 위치: {JSON.stringify(location)}</Text> : null}
-      {errorMsg ? <Text style={styles.errorText}>오류: {errorMsg}</Text> : null}
+      <Text style={styles.text}>총 {calories.toFixed(2)} kcal를 소모하셨습니다!</Text>
+      <TouchableOpacity onPress={updateCurrentStepCount} style={styles.button}>
+        <Text style={styles.buttonText}>걸음 수 업데이트</Text>
+      </TouchableOpacity>
       <View style={styles.rewardContainer}>
         <RewardBox steps={10} candyReward={1} onClaim={claimCandy} />
         <RewardBox steps={50} candyReward={5} onClaim={claimCandy} />
         <RewardBox steps={100} candyReward={10} onClaim={claimCandy} />
       </View>
+      <Text style={styles.descriptionText}>만보기를 더 정확하게 사용하고 싶으시다면 업데이트 버튼을 누른 후에 사용해주세요!</Text>
     </View>
   );
 }
@@ -215,48 +225,72 @@ const styles = StyleSheet.create({
     color: "#544848",
     fontSize: 24,
     fontWeight: "bold",
-    marginBottom: 20,
   },
   rewardContainer: {
     flexDirection: 'row',
   },
   rewardBox: {
     margin: 5,
-    padding: 14,
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 10,
+    padding: 10,
+    backgroundColor: "#FFF",
+    borderRadius: 15,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
     alignItems: 'center',
+    justifyContent: 'center',
   },
   text: {
     fontSize: 18,
-    color: "#544848",
+    color: "#333",
     marginBottom: 10,
+    textAlign: "center",
   },
-  errorText: {
-    color: "red",
-    fontSize: 16,
-    marginBottom: 10,
-  },
-  button: {
-    backgroundColor: "#FFCECE",
-    paddingHorizontal: 20,
+  rewardButton: {
+    paddingHorizontal: 10,
     paddingVertical: 10,
     borderRadius: 10,
     borderWidth: 1,
     borderColor: "black",
     marginTop: 20,
+    alignItems: 'center',
+    justifyContent: 'center'
   },
   buttonText: {
     color: "#544848",
     fontWeight: "bold",
     fontSize: 18,
+    textAlign: "center",
+  },
+  button: {
+    backgroundColor: "#FFCECE",
+    padding: 5,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: "black",
+    marginTop: 10,
+    marginBottom: 15,
   },
   separator: {
     height: 1,
     width: "80%",
     backgroundColor: "#737373",
     marginVertical: 20,
+  },
+  descriptionText: {
+    color: "#333",
+    textAlign: "center",
+    marginHorizontal: 20,
+    backgroundColor: "#FFF0F5",
+    padding: 10,
+    marginTop: 50,
+    borderRadius: 10,
+    elevation: 2,
   },
 });
 
