@@ -186,8 +186,7 @@ const styles = StyleSheet.create({
   refreshButton: {
     marginTop: 20,
     backgroundColor: "#FFC0CB",
-    paddingHorizontal: 7,
-    paddingVertical: 7,
+    padding: 8,
     borderRadius: 10,
     borderWidth: 1,
     borderColor: "black",

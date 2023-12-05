@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, Text, View, Alert, TouchableOpacity } from 'react-native';
+import { StyleSheet, Text, View, Alert, TouchableOpacity, Image } from 'react-native';
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Pedometer } from 'expo-sensors';
+import CandyImage from '../../assets/candy.png';
 
 const PedometerScreen = () => {
   const [isPedometerAvailable, setIsPedometerAvailable] = useState('checking');// 만보기가 사용 가능한지 여부 저장
@@ -24,18 +25,21 @@ const PedometerScreen = () => {
     storeData();
   }, [currentStepCount])
 
-  useEffect(() => { // 현재 걸음 수와 캔디 수 불러오기
-    const loadData = async () => {
+  useEffect(() => {
+    const loadData = async () => { //현재 걸음 수랑 캔디 불러오기
       try {
         const storedSteps = await AsyncStorage.getItem('@currentStepCount');
         const storedCandies = await AsyncStorage.getItem('@candies');
+        const storedCandyRewardsReceived = await AsyncStorage.getItem('@candyRewardsReceived');
 
         if (storedSteps !== null) {
           setCurrentStepCount(parseInt(storedSteps, 10));
         }
-
         if (storedCandies !== null) {
           setCandies(JSON.parse(storedCandies));
+        }
+        if (storedCandyRewardsReceived !== null) {
+          setCandyRewardsReceived(JSON.parse(storedCandyRewardsReceived));
         }
       } catch (error) {
         console.error('데이터 불러오기 중 오류 발생:', error);
@@ -92,14 +96,16 @@ const PedometerScreen = () => {
     const key = steps === 10 ? 'ten' : steps === 50 ? 'fifty' : 'hundred';
     if (currentStepCount >= steps && !candyRewardsReceived[key]) {
       let candyReward = steps === 10 ? 1 : steps === 50 ? 5 : 10;
-      setCandies(candies + candyReward);
+      const newCandyCount = candies + candyReward;
+      setCandies(newCandyCount);
 
       let newCandyRewardsReceived = { ...candyRewardsReceived };
       newCandyRewardsReceived[key] = true;
       setCandyRewardsReceived(newCandyRewardsReceived);
 
       try {
-        await AsyncStorage.setItem('@candies', JSON.stringify(candies + candyReward));
+        await AsyncStorage.setItem('@candies', JSON.stringify(newCandyCount));
+        await AsyncStorage.setItem('@candyRewardsReceived', JSON.stringify(newCandyRewardsReceived));
       } catch (error) {
         console.error('캔디 저장 중 오류 발생:', error);
       }
@@ -175,15 +181,17 @@ const PedometerScreen = () => {
             { backgroundColor: (!isRewardAvailable || isRewardClaimed) ? '#ccc' : '#FFCECE' }
           ]}
         >
-          <Text style={styles.buttonText}>{`${candyReward} 캔디 받기!`}</Text>
+          <View style={styles.buttonContent}>
+            <Text style={styles.buttonText}>{`${candyReward} `}</Text>
+            <Image source={CandyImage} style={styles.candyImage} />
+            <Text style={styles.buttonText}> 받기</Text>
+          </View>
         </TouchableOpacity>
-
       </View>
     );
   };
 
-  useEffect(() => {
-    // 걸음 수에 따른 칼로리 계산
+  useEffect(() => { // 걸음 수에 따른 칼로리 계산
     const calculateCalories = () => { // 칼로리 소모량 = 걸음수 x 0.04
       return currentStepCount * 0.04;
     };
@@ -198,7 +206,11 @@ const PedometerScreen = () => {
       <Text style={styles.text}>만보기 기능 사용 가능 여부 : {isPedometerAvailable}</Text>
       <Text style={styles.text}>지난 24시간 동안 걸음 수 : {pastStepCount}</Text>
       <Text style={styles.text}>오늘 걸음 수 : {currentStepCount}</Text>
-      <Text style={styles.text}>현재 캔디 수 : {candies}</Text>
+      <View style={styles.candyCountContainer}>
+        <Text style={styles.text}>현재 캔디 수 </Text>
+        <Image source={CandyImage} style={styles.candyImage2} />
+        <Text style={styles.text}>: {candies}</Text>
+      </View>
       <Text style={styles.text}>총 {calories.toFixed(2)} kcal를 소모하셨습니다!</Text>
       <TouchableOpacity onPress={updateCurrentStepCount} style={styles.button}>
         <Text style={styles.buttonText}>걸음 수 업데이트</Text>
@@ -229,9 +241,18 @@ const styles = StyleSheet.create({
   rewardContainer: {
     flexDirection: 'row',
   },
+  candyImage: {
+    width: 20,
+    height: 20,
+  },
+  candyImage2: {
+    width: 19,
+    height: 19,
+    marginBottom: 10
+  },
   rewardBox: {
     margin: 5,
-    padding: 10,
+    padding: 20,
     backgroundColor: "#FFF",
     borderRadius: 15,
     shadowColor: "#000",
@@ -252,8 +273,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   rewardButton: {
-    paddingHorizontal: 10,
-    paddingVertical: 10,
+    padding: 7,
     borderRadius: 10,
     borderWidth: 1,
     borderColor: "black",
@@ -261,20 +281,30 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center'
   },
-  buttonText: {
-    color: "#544848",
-    fontWeight: "bold",
-    fontSize: 18,
-    textAlign: "center",
-  },
   button: {
     backgroundColor: "#FFCECE",
-    padding: 5,
+    padding: 8,
     borderRadius: 10,
     borderWidth: 1,
     borderColor: "black",
     marginTop: 10,
     marginBottom: 15,
+  },
+  buttonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  buttonText: {
+    color: "#544848",
+    fontWeight: "bold",
+    fontSize: 17,
+    textAlign: "center",
+  },
+  candyCountContainer: {
+    flexDirection: 'row',
+    alignItems: 'center', 
+    justifyContent: 'center',
+    marginVertical: 2,
   },
   separator: {
     height: 1,
