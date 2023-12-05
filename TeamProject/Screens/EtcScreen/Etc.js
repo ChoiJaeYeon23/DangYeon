@@ -24,11 +24,45 @@ const Etc = ({ navigation }) => {
   const [attendance, setAttendance] = useState(Array(7).fill(false)); // 출석체크 상태
   const [currentWeek, setCurrentWeek] = useState(0); // 현재 주차
   const [currentMonth, setCurrentMonth] = useState(''); // 현재 월
-  const [currentStepCount, setCurrentStepCount] = useState(0); // 현재 걸음 수
-  const [candies, setCandies] = useState(0); // 획득한 캔디 수
+  const [currentStepCount, setCurrentStepCount] = useState(0); // 현재 걸음 수를 저장하는 상태
+  const [candies, setCandies] = useState(0);
 
-  // AsyncStorage에서 출석체크 데이터와 현재 주차 정보, 버킷 리스트 데이터 로드
-    const loadData = async () => {
+  const calculateWeeks = () => {
+    const today = moment();
+    const currentMonth = today.format('M');
+    const monthStart = moment(today).startOf('month');
+    const weeksPassed = today.diff(monthStart, 'weeks') + 1;
+
+    setCurrentWeek(weeksPassed);
+    setCurrentMonth(currentMonth);
+  }
+
+  // 새로고침 버튼 클릭 시 실행할 함수
+  const refreshData = async () => {
+    try {
+      // AsyncStorage에서 걸음 수와 캔디 수 로드
+      const storedSteps = await AsyncStorage.getItem('@currentStepCount');
+      const storedCandies = await AsyncStorage.getItem('@candies');
+  
+      if (storedSteps !== null) {
+        setCurrentStepCount(parseInt(storedSteps, 10));
+      } else {
+        console.log("Stored steps not found");
+      }
+  
+      if (storedCandies !== null) {
+        setCandies(JSON.parse(storedCandies));
+      } else {
+        console.log("Stored candies not found");
+      }
+    } catch (error) {
+      console.error("Error refreshing data:", error);
+    }
+  };
+
+  useEffect(() => {
+    // AsyncStorage에서 출석체크 데이터와 현재 주차 정보를 로드하는 함수
+    const loadAttendanceData = async () => {
       try {
         const attendanceValue = await AsyncStorage.getItem('@attendance');
         const jsonValue = await AsyncStorage.getItem('@bucketList');
@@ -61,8 +95,8 @@ const Etc = ({ navigation }) => {
         loadData();
       }, [])
     );
-
-  
+  })
+    
 
   // 출석체크 버튼 클릭 
   const handleCandyClick = () => {
@@ -75,34 +109,18 @@ const Etc = ({ navigation }) => {
     ));
   };
 
-  useEffect(() => {
-    // AsyncStorage에서 현재 걸음 수와 획득한 캔디 수를 불러오는 함수
-    const loadData = async () => {
-      try {
-        const stepCountValue = await AsyncStorage.getItem('@currentStepCount');
-        const candiesValue = await AsyncStorage.getItem('@candies');
-        if (stepCountValue != null) {
-          setCurrentStepCount(JSON.parse(stepCountValue));
-        }
-        if (candiesValue != null) {
-          setCandies(JSON.parse(candiesValue));
-        }
-      } catch (e) {
-        console.error("Error loading data", e);
-      }
-    };
-
-    loadData();
-  }, []);
-
   return (
     <View style={styles.container}>
       <View style={styles.boxContainer}>
         <TouchableOpacity style={[styles.box, styles.firstBox]} onPress={() => navigation.navigate('PedometerScreen')}>
           <Text style={styles.boxTitle}>만보기</Text>
-          <Text style={styles.boxText}>현재 걸음 수: {currentStepCount}</Text>
-          <Text style={styles.boxText}>획득한 캔디 수: {candies}</Text>
+          <Text style={styles.boxText}>현재 걸음 수 : {currentStepCount}</Text>
+          <Text style={styles.boxText}>획득한 캔디 수 : {candies}</Text>
+          <TouchableOpacity onPress={refreshData} style={styles.refreshButton}>
+            <Text style={styles.refreshButtonText}>새로고침</Text>
+          </TouchableOpacity>
         </TouchableOpacity>
+        
         <View style={styles.box} />
       </View>
       <View style={styles.dotsContainer}>
@@ -171,12 +189,26 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontWeight: 'bold',
     color: '#544848',
-    marginBottom: 15,
+    marginBottom: 20,
   },
   boxText: {
-    fontSize: 18,
+    fontSize: 17,
     color: '#544848',
-    marginBottom: 10,
+    marginBottom: 7,
+  },
+  refreshButton: {
+    marginTop: 20,
+    backgroundColor: "#FFC0CB",
+    paddingHorizontal: 7,
+    paddingVertical: 7,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: "black",
+    alignItems: 'center',
+  },
+  refreshButtonText: {
+    fontWeight: "bold",
+    fontSize: 16,
   },
   firstBox: {
     marginBottom: 10,
