@@ -45,26 +45,30 @@ const Gesigeul = ({ route }) => {
 
   // 저장 버튼 클릭 시 호출되는 함수
   const handleSavePress = () => {
-    console.log("제목 저장: ", title);
-    console.log("내용 저장: ", text);
-
     const postData = {
-      title: title, // 제목 추가
-      text: text,
-      images: imageSources.map((source) => source.uri),
+      title: title,
+      content: text,
+      img: imageSources.map((source) => source.uri),
     };
 
-    if (postIdToEdit !== null) {
-      // 수정된 게시물 데이터를 Board 컴포넌트로 전달
-      const editedPost = {
-        id: postIdToEdit,
-        ...postData,
-      };
-      navigation.navigate("Board", { editedData: editedPost });
-    } else {
-      // 새로운 게시물 데이터를 Board 컴포넌트로 전달
-      navigation.navigate("Board", { postData: postData });
-    }
+    fetch("http://3.34.6.50:8080/api/add_post", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(postData),
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("Server response not OK");
+        }
+        return response.json();
+      })
+      .then((data) => {
+        navigation.navigate("Board", { newPostData: data });
+      })
+      .catch((error) => console.error("Error adding post:", error));
+    console.log(postData);
   };
 
   // 모달의 확인 버튼 클릭 시 호출되는 함수
