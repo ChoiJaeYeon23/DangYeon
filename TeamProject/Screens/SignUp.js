@@ -133,33 +133,20 @@ const SignUp = () => {
         });
     });
   };
-// 생년월일 변경
-const onBirthdayChange = (event, selectedDate) => {
-  const currentDate = selectedDate || birthday;
-  setBirthday(currentDate.toISOString().split('T')[0]);
+  
+  // 생년월일 변경
+  const onBirthdayChange = (event, selectedDate) => {
+    const currentDate = selectedDate || new Date();
+    setIsBirthdayPickerVisible(Platform.OS === 'ios');
+    setBirthday(currentDate.toISOString().split('T')[0]);
+  };
 
-  // iOS에서 DateTimePicker를 닫기 위해 추가적인 상태 관리가 필요
-  if (Platform.OS === "ios") {
-    // 일 선택 시 피커 닫기 로직
-    // 예를 들어, 사용자가 피커를 '확인' 또는 '완료' 버튼을 눌러 닫았다고 가정
-    if (event.type === "set") {
-      setIsBirthdayPickerVisible(false);
-    }
-  }
-};
-
-// 처음 만난 날 변경
-const onMeetingDayChange = (event, selectedDate) => {
-  const currentDate = selectedDate || meetingDay;
-  setMeetingDay(currentDate.toISOString().split('T')[0]);
-
-  if (Platform.OS === "ios") {
-    // 일 선택 시 피커 닫기 로직
-    if (event.type === "set") {
-      setIsMeetingDayPickerVisible(false);
-    }
-  }
-};
+  // 처음 만난 날 변경
+  const onMeetingDayChange = (event, selectedDate) => {
+    const currentDate = selectedDate || new Date();
+    setIsMeetingDayPickerVisible(Platform.OS === 'ios');
+    setMeetingDay(currentDate.toISOString().split('T')[0]);
+  };
 
   // 생년월일 표시
   const showBirthdayPicker = () => {
@@ -318,7 +305,7 @@ const onMeetingDayChange = (event, selectedDate) => {
               <Text style={styles.bloodText}>{bloodType ? `${bloodType}형` : "혈액형 선택"}</Text>
             </TouchableOpacity>
             <Modal
-              animationType="slide"
+              animationType="fade"
               transparent={true}
               visible={isBloodTypeModalVisible}
               onRequestClose={() => {

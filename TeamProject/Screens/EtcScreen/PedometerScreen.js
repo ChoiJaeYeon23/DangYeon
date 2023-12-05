@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, Text, View, Alert, TouchableOpacity, Image } from 'react-native';
+import { StyleSheet, Text, View, Alert, TouchableOpacity, Image, } from 'react-native';
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Pedometer } from 'expo-sensors';
 import CandyImage from '../../assets/candy.png';
@@ -30,16 +30,13 @@ const PedometerScreen = () => {
       try {
         const storedSteps = await AsyncStorage.getItem('@currentStepCount');
         const storedCandies = await AsyncStorage.getItem('@candies');
-        const storedCandyRewardsReceived = await AsyncStorage.getItem('@candyRewardsReceived');
+        console.log("불러온 캔디 수:", storedCandies);
 
         if (storedSteps !== null) {
           setCurrentStepCount(parseInt(storedSteps, 10));
         }
         if (storedCandies !== null) {
           setCandies(JSON.parse(storedCandies));
-        }
-        if (storedCandyRewardsReceived !== null) {
-          setCandyRewardsReceived(JSON.parse(storedCandyRewardsReceived));
         }
       } catch (error) {
         console.error('데이터 불러오기 중 오류 발생:', error);
@@ -84,8 +81,15 @@ const PedometerScreen = () => {
       const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
       const endOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
 
+      // 현재 걸음 수 업데이트
       const result = await Pedometer.getStepCountAsync(startOfDay, endOfDay);
       setCurrentStepCount(result.steps);
+
+      // 캔디 수 업데이트
+      const storedCandies = await AsyncStorage.getItem('@candies');
+      if (storedCandies !== null) {
+        setCandies(JSON.parse(storedCandies));
+      }
     } catch (error) {
       console.error('현재 걸음 수 업데이트 중 오류 발생:', error);
     }
@@ -105,7 +109,7 @@ const PedometerScreen = () => {
 
       try {
         await AsyncStorage.setItem('@candies', JSON.stringify(newCandyCount));
-        await AsyncStorage.setItem('@candyRewardsReceived', JSON.stringify(newCandyRewardsReceived));
+        console.log("저장된 캔디 수:", newCandyCount);
       } catch (error) {
         console.error('캔디 저장 중 오류 발생:', error);
       }
@@ -152,6 +156,7 @@ const PedometerScreen = () => {
     const storeCandies = async () => {
       try {
         await AsyncStorage.setItem('@candies', JSON.stringify(candies));
+        // console.log(candies)
       } catch (error) {
         console.error('캔디 저장 중 오류 발생:', error);
       }
@@ -204,12 +209,12 @@ const PedometerScreen = () => {
       <Text style={styles.titleText}>나의 만보기</Text>
       <View style={styles.separator}></View>
       <Text style={styles.text}>만보기 기능 사용 가능 여부 : {isPedometerAvailable}</Text>
-      <Text style={styles.text}>지난 24시간 동안 걸음 수 : {pastStepCount}</Text>
+      <Text style={styles.text}>지난 24시간 동안의 걸음 수 : {pastStepCount}</Text>
       <Text style={styles.text}>오늘 걸음 수 : {currentStepCount}</Text>
       <View style={styles.candyCountContainer}>
-        <Text style={styles.text}>현재 캔디 수 </Text>
+        <Text style={styles.text}>획득한 캔디 수 </Text>
         <Image source={CandyImage} style={styles.candyImage2} />
-        <Text style={styles.text}>: {candies}</Text>
+        <Text style={styles.text}> : {candies}</Text>
       </View>
       <Text style={styles.text}>총 {calories.toFixed(2)} kcal를 소모하셨습니다!</Text>
       <TouchableOpacity onPress={updateCurrentStepCount} style={styles.button}>
@@ -302,7 +307,7 @@ const styles = StyleSheet.create({
   },
   candyCountContainer: {
     flexDirection: 'row',
-    alignItems: 'center', 
+    alignItems: 'center',
     justifyContent: 'center',
     marginVertical: 2,
   },
@@ -319,8 +324,6 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFF0F5",
     padding: 10,
     marginTop: 50,
-    borderRadius: 10,
-    elevation: 2,
   },
 });
 
