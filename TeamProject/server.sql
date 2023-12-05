@@ -34,11 +34,13 @@ CREATE TABLE couple_connection_check_for_s (
 CREATE TABLE postInfo(
     post_id INTEGER PRIMARY KEY AUTO_INCREMENT,
     user_id VARCHAR(50),
+    check_id INTEGER,
     postdate DATE,
     title VARCHAR(255),
     content TEXT,
     img TEXT,
-    FOREIGN KEY (user_id) REFERENCES userInfo(id)
+    FOREIGN KEY (user_id) REFERENCES userInfo(id),
+    FOREIGN KEY (check_id) REFERENCES couple_connection_check_for_s(check_id)
 );
 
 -- 채팅 테이블

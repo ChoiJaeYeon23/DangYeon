@@ -62,8 +62,6 @@ const io = socketIo(server, {
   },
 });
 
-
-
 /// 회원가입 처리
 /// 회원가입 처리
 /// 회원가입 처리
@@ -88,7 +86,6 @@ app.post("/api/signup", (req, res) => {
   );
 });
 
-
 // 로그인 처리
 // 로그인 처리
 // 로그인 처리
@@ -107,30 +104,41 @@ app.post("/api/login", (req, res) => {
       req.session.loggedIn = true;
 
       // 커플 연결 상태 및 check_id 확인
-      const checkCoupleQuery = "SELECT check_id FROM couple_connection_check_for_s WHERE user_id1 = ? OR user_id2 = ?";
-      db.query(checkCoupleQuery, [userInfoResult[0].id, userInfoResult[0].id], (err, coupleResult) => {
-        if (err) {
-          console.error("Query error: ", err);
-          res.status(500).send({ message: "Database error", error: err });
-          return;
-        }
+      const checkCoupleQuery =
+        "SELECT check_id FROM couple_connection_check_for_s WHERE user_id1 = ? OR user_id2 = ?";
+      db.query(
+        checkCoupleQuery,
+        [userInfoResult[0].id, userInfoResult[0].id],
+        (err, coupleResult) => {
+          if (err) {
+            console.error("Query error: ", err);
+            res.status(500).send({ message: "Database error", error: err });
+            return;
+          }
 
-        if (coupleResult.length > 0) {
-          // 이미 커플로 연결된 경우, check_id를 세션에 저장
-          req.session.checkId = coupleResult[0].check_id;
-          res.json({ status: "login_success", message: "Login successful", coupleConnected: true });
-        } else {
-          // 커플로 연결되지 않은 경우
-          res.json({ status: "login_success", message: "Login successful", coupleConnected: false });
+          if (coupleResult.length > 0) {
+            // 이미 커플로 연결된 경우, check_id를 세션에 저장
+            req.session.checkId = coupleResult[0].check_id;
+            res.json({
+              status: "login_success",
+              message: "Login successful",
+              coupleConnected: true,
+            });
+          } else {
+            // 커플로 연결되지 않은 경우
+            res.json({
+              status: "login_success",
+              message: "Login successful",
+              coupleConnected: false,
+            });
+          }
         }
-      });
+      );
     } else {
       res.status(401).send({ message: "Invalid ID or password" });
     }
   });
 });
-
-
 
 // 초대 코드 생성 및 저장
 // 초대 코드 생성 및 저장
@@ -153,16 +161,21 @@ app.post("/api/generate-invite-code", (req, res) => {
     if (results.length === 0) {
       // 새 코드 생성 및 저장
       const generateRandomCode = () => {
-        const randomNum7Digits = Math.floor(Math.random() * (9999999 - 1000000 + 1)) + 1000000;
+        const randomNum7Digits =
+          Math.floor(Math.random() * (9999999 - 1000000 + 1)) + 1000000;
         return randomNum7Digits.toString();
       };
       const newCode = generateRandomCode(); // 적절한 랜덤 코드 생성 함수 필요
-      const insertCodeQuery = "INSERT INTO invite_codes (user_id, code) VALUES (?, ?)";
+      const insertCodeQuery =
+        "INSERT INTO invite_codes (user_id, code) VALUES (?, ?)";
       db.query(insertCodeQuery, [userId, newCode], (err, result) => {
         if (err) {
           res.status(500).send({ message: "Database error", error: err });
         } else {
-          res.send({ message: "Invite code generated successfully", code: newCode });
+          res.send({
+            message: "Invite code generated successfully",
+            code: newCode,
+          });
         }
       });
     } else {
@@ -171,8 +184,6 @@ app.post("/api/generate-invite-code", (req, res) => {
     }
   });
 });
-
-
 
 // 커플연결
 // 커플연결
@@ -196,119 +207,44 @@ app.post("/api/connect-couple", (req, res) => {
     const otherUserId = results[0].user_id;
 
     // 커플 관계 저장 전에 중복 확인
-    const checkCoupleQuery = "SELECT * FROM couple_connection_check_for_s WHERE (user_id1 = ? AND user_id2 = ?) OR (user_id1 = ? AND user_id2 = ?)";
-    db.query(checkCoupleQuery, [userId, otherUserId, otherUserId, userId], (err, coupleResult) => {
-      if (err) {
-        res.status(500).send({ message: "Database error", error: err });
-        return;
-      }
+    const checkCoupleQuery =
+      "SELECT * FROM couple_connection_check_for_s WHERE (user_id1 = ? AND user_id2 = ?) OR (user_id1 = ? AND user_id2 = ?)";
+    db.query(
+      checkCoupleQuery,
+      [userId, otherUserId, otherUserId, userId],
+      (err, coupleResult) => {
+        if (err) {
+          res.status(500).send({ message: "Database error", error: err });
+          return;
+        }
 
-      if (coupleResult.length === 0) {
-        // 새로운 커플 관계 저장
-        const coupleInsertQuery = "INSERT INTO couple_connection_check_for_s (user_id1, user_id2) VALUES (?, ?)";
-        db.query(coupleInsertQuery, [userId, otherUserId], (err, result) => {
-          if (err) {
-            res.status(500).send({ message: "Database error", error: err });
-          } else {
-            // 초대 코드 사용 후 비활성화 또는 삭제
-            const disableCodeQuery = "DELETE FROM invite_codes WHERE code = ?";
-            db.query(disableCodeQuery, [inviteCode], (err, deleteResult) => {
-              if (err) {
-                // 초대 코드 비활성화 실패 처리
-                console.error("Failed to disable invite code", err);
-              }
-              res.send({ message: "Couple connected successfully" });
-            });
-          }
-        });
-      } else {
-        res.status(400).send({ message: "Already connected as a couple" });
+        if (coupleResult.length === 0) {
+          // 새로운 커플 관계 저장
+          const coupleInsertQuery =
+            "INSERT INTO couple_connection_check_for_s (user_id1, user_id2) VALUES (?, ?)";
+          db.query(coupleInsertQuery, [userId, otherUserId], (err, result) => {
+            if (err) {
+              res.status(500).send({ message: "Database error", error: err });
+            } else {
+              // 초대 코드 사용 후 비활성화 또는 삭제
+              const disableCodeQuery =
+                "DELETE FROM invite_codes WHERE code = ?";
+              db.query(disableCodeQuery, [inviteCode], (err, deleteResult) => {
+                if (err) {
+                  // 초대 코드 비활성화 실패 처리
+                  console.error("Failed to disable invite code", err);
+                }
+                res.send({ message: "Couple connected successfully" });
+              });
+            }
+          });
+        } else {
+          res.status(400).send({ message: "Already connected as a couple" });
+        }
       }
-    });
+    );
   });
 });
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 // 로그아웃 함수
 // 로그아웃 함수
@@ -329,7 +265,6 @@ app.post("/api/logout", (req, res) => {
     res.status(400).send("세션이 존재하지 않습니다.");
   }
 });
-
 
 //ID 중복체크 함수
 //ID 중복체크 함수
@@ -378,7 +313,6 @@ app.post("/api/save-code", (req, res) => {
     }
   });
 });
-
 
 // 내정보 업데이트
 // 내정보 업데이트
@@ -523,7 +457,6 @@ app.get("/api/bucket-list", (req, res) => {
   });
 });
 
-
 // 버킷리스트 항목 저장하기
 app.post("/api/bucket-list", (req, res) => {
   const userId = req.session.userId;
@@ -544,7 +477,8 @@ app.post("/api/bucket-list", (req, res) => {
     }
 
     const coupleId = result[0].check_id;
-    const insertQuery = "INSERT INTO bucketList (bucket_text, couple_id) VALUES (?, ?)";
+    const insertQuery =
+      "INSERT INTO bucketList (bucket_text, couple_id) VALUES (?, ?)";
     db.query(insertQuery, [text, coupleId], (err, insertResult) => {
       if (err) {
         res.status(500).send({ message: "Database error", error: err });
@@ -555,83 +489,132 @@ app.post("/api/bucket-list", (req, res) => {
   });
 });
 
+// 게시글 목록 가져오기
+// 게시글 목록 가져오기
+// 게시글 목록 가져오기
+app.get("/api/load_post", (req, res) => {
+  db.query("SELECT * FROM posts", (err, results, fields) => {
+    if (err) res.status(500).send(err);
+    res.json(results);
+  });
+});
 
+//  게시글 추가
+//  게시글 추가
+//  게시글 추가
+app.post("/api/add_post", (req, res) => {
+  const newPost = req.body;
+  db.query("INSERT INTO posts SET ?", newPost, (err, result) => {
+    if (err) res.status(500).send(err);
+    res.json({ id: result.insertId, ...newPost });
+  });
+});
+
+// 게시글 수정
+// 게시글 수정
+// 게시글 수정
+
+app.put("/api/post/:id", (req, res) => {
+  const postId = req.params.id;
+  const updatedPost = req.body;
+  db.query(
+    "UPDATE posts SET ? WHERE id = ?",
+    [updatedPost, postId],
+    (err, result) => {
+      if (err) res.status(500).send(err);
+      res.json({ message: "Post updated" });
+    }
+  );
+});
+
+// 게시글 삭제
+// 게시글 삭제
+// 게시글 삭제
+
+app.delete("/api/del_post/:id", (req, res) => {
+  const postId = req.params.id;
+  db.query("DELETE FROM posts WHERE id = ?", postId, (err, result) => {
+    if (err) res.status(500).send(err);
+    res.json({ message: "Post deleted" });
+  });
+});
 
 // WebSocket 연결 처리
 // WebSocket 연결 처리
 // WebSocket 연결 처리
-  io.on("connection", (socket) => {
-    console.log(`사용자가 Socket에 연결되었습니다: ${socket.id}`);
-  
-    socket.on("identify user", (userId) => {
-      console.log(`사용자 ID: ${userId}`);
+io.on("connection", (socket) => {
+  console.log(`사용자가 Socket에 연결되었습니다: ${socket.id}`);
 
-      // 사용자의 check_id를 찾아 채팅방에 입장시킴
-      const coupleCheckQuery = "SELECT check_id FROM couple_connection_check_for_s WHERE user_id1 = ? OR user_id2 = ?";
-      db.query(coupleCheckQuery, [userId, userId], (err, coupleResult) => {
-        if (err) {
-          console.error("Database error:", err);
-          return;
-        }
-    
-        if (coupleResult.length > 0) {
-          const roomId = `room_${coupleResult[0].check_id}`;
-          socket.join(roomId);
-          console.log(`User ${userId} joined room: ${roomId}`);
-          socket.emit("room assigned",roomId)
-        }
+  socket.on("identify user", (userId) => {
+    console.log(`사용자 ID: ${userId}`);
+
+    // 사용자의 check_id를 찾아 채팅방에 입장시킴
+    const coupleCheckQuery =
+      "SELECT check_id FROM couple_connection_check_for_s WHERE user_id1 = ? OR user_id2 = ?";
+    db.query(coupleCheckQuery, [userId, userId], (err, coupleResult) => {
+      if (err) {
+        console.error("Database error:", err);
+        return;
+      }
+
+      if (coupleResult.length > 0) {
+        const roomId = `room_${coupleResult[0].check_id}`;
+        socket.join(roomId);
+        console.log(`User ${userId} joined room: ${roomId}`);
+        socket.emit("room assigned", roomId);
+      }
+    });
+  });
+
+  // 채팅 메시지 이벤트 핸들러
+  // 채팅 메시지 이벤트 핸들러
+  // 채팅 메시지 이벤트 핸들러
+  socket.on("chat message", (data) => {
+    const { msg, room_id, user_id } = data;
+    console.log(
+      `Received message: ${msg}, Room ID: ${room_id}, User ID: ${user_id}`
+    );
+    var sql4 =
+      "INSERT INTO chat(Message_text, MessageTime, room_id, user_id) VALUES(?, ?, ?, ?)";
+    let now = new Date();
+    now.setHours(now.getHours() + 9); // 서버 시간대가 UTC를 사용한다고 가정할 때 KST로 조정합니다.
+    let Message_time = now.toISOString().slice(0, 19).replace("T", " ");
+    var sql4params = [msg, Message_time, room_id, user_id];
+
+    db.query(sql4, sql4params, (err, result) => {
+      if (err) {
+        console.error("Error recording message:", err);
+        return;
+      }
+      console.log("Message recorded in databases with user ID");
+    });
+    socket.to(room_id).emit("chat message", { msg, Message_time, user_id });
+  });
+
+  // 이전채팅내역 불러오기
+  // 이전채팅내역 불러오기
+  // 이전채팅내역 불러오기
+  socket.on("load message", (data) => {
+    const { room_id } = data;
+    var sql99 =
+      "SELECT Message_text, MessageTime, user_id FROM chat WHERE room_id = ?";
+    var sql99params = [room_id];
+
+    db.query(sql99, sql99params, (err, result) => {
+      if (err) {
+        console.error("Error loading messages:", err);
+        return;
+      }
+      const messages = result.map((row) => {
+        return {
+          ...row,
+          isUserMessage: row.user_id === socket.handshake.query.userId,
+        };
       });
+      console.log(messages);
+      socket.emit("tttest", messages);
     });
-
-
-
- // 채팅 메시지 이벤트 핸들러
- // 채팅 메시지 이벤트 핸들러
- // 채팅 메시지 이벤트 핸들러
-socket.on("chat message", (data) => {
-  const { msg, room_id, user_id } = data;
-  console.log(`Received message: ${msg}, Room ID: ${room_id}, User ID: ${user_id}`);
-  var sql4 = "INSERT INTO chat(Message_text, MessageTime, room_id, user_id) VALUES(?, ?, ?, ?)";
-  let now = new Date();
-  now.setHours(now.getHours() + 9); // 서버 시간대가 UTC를 사용한다고 가정할 때 KST로 조정합니다.
-  let Message_time = now.toISOString().slice(0, 19).replace("T", " ");
-  var sql4params = [msg, Message_time, room_id, user_id];
-
-  db.query(sql4, sql4params, (err, result) => {
-    if (err) {
-      console.error("Error recording message:", err);
-      return;
-    }
-    console.log("Message recorded in databases with user ID");
   });
-  socket.to(room_id).emit("chat message", { msg, Message_time, user_id });
-});
-
-
-
-// 이전채팅내역 불러오기
-// 이전채팅내역 불러오기
-// 이전채팅내역 불러오기
-socket.on("load message", (data) => {
-  const { room_id } = data;
-  var sql99 = "SELECT Message_text, MessageTime, user_id FROM chat WHERE room_id = ?";
-  var sql99params = [room_id];
-
-  db.query(sql99, sql99params, (err, result) => {
-    if (err) {
-      console.error("Error loading messages:", err);
-      return;
-    }
-    const messages = result.map((row) => {
-      return {
-        ...row,
-        isUserMessage: row.user_id === socket.handshake.query.userId,
-      };
-    });
-    console.log(messages);
-    socket.emit("tttest", messages);
-  });
-});
 
   // 연결 해제
   socket.on("disconnect", () => {
