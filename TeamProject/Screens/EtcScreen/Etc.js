@@ -25,17 +25,7 @@ const Etc = ({ navigation }) => {
   const [currentWeek, setCurrentWeek] = useState(0); // 현재 주차
   const [currentMonth, setCurrentMonth] = useState(''); // 현재 월
   const [currentStepCount, setCurrentStepCount] = useState(0); // 현재 걸음 수를 저장하는 상태
-  const [candies, setCandies] = useState(0);
-
-  const calculateWeeks = () => {
-    const today = moment();
-    const currentMonth = today.format('M');
-    const monthStart = moment(today).startOf('month');
-    const weeksPassed = today.diff(monthStart, 'weeks') + 1;
-
-    setCurrentWeek(weeksPassed);
-    setCurrentMonth(currentMonth);
-  }
+  const [candies, setCandies] = useState(0); // 획득한 캔디 수
 
   // 새로고침 버튼 클릭 시 실행할 함수
   const refreshData = async () => {
@@ -60,43 +50,40 @@ const Etc = ({ navigation }) => {
     }
   };
 
-  useEffect(() => {
-    // AsyncStorage에서 출석체크 데이터와 현재 주차 정보를 로드하는 함수
-    const loadAttendanceData = async () => {
-      try {
-        const attendanceValue = await AsyncStorage.getItem('@attendance');
-        const jsonValue = await AsyncStorage.getItem('@bucketList');
-  
-        if (attendanceValue != null) {
-          setAttendance(JSON.parse(attendanceValue));
-        }
-        if (jsonValue != null) {
-          setBucketListItems(JSON.parse(jsonValue).slice(0, 2));
-        }
-  
-        const today = moment();
-        const currentMonth = today.format('M');
-        const monthStart = moment(today).startOf('month');
-        const weeksPassed = today.diff(monthStart, 'weeks') + 1;
-  
-        setCurrentWeek(weeksPassed);
-        setCurrentMonth(currentMonth);
-      } catch (e) {
-        console.error("Error loading data", e);
+   // AsyncStorage에서 출석체크 데이터와 현재 주차 정보, 버킷 리스트 데이터 로드
+   const loadData = async () => {
+    try {
+      const attendanceValue = await AsyncStorage.getItem('@attendance');
+      const jsonValue = await AsyncStorage.getItem('@bucketList');
+
+      if (attendanceValue != null) {
+        setAttendance(JSON.parse(attendanceValue));
       }
-    };
-  
-    useEffect(() => {
+      if (jsonValue != null) {
+        setBucketListItems(JSON.parse(jsonValue).slice(0, 2));
+      }
+
+      const today = moment();
+      const currentMonth = today.format('M');
+      const monthStart = moment(today).startOf('month');
+      const weeksPassed = today.diff(monthStart, 'weeks') + 1;
+
+      setCurrentWeek(weeksPassed);
+      setCurrentMonth(currentMonth);
+    } catch (e) {
+      console.error("Error loading data", e);
+    }
+  };
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  useFocusEffect(
+    React.useCallback(() => {
       loadData();
-    }, []);
-  
-    useFocusEffect(
-      React.useCallback(() => {
-        loadData();
-      }, [])
-    );
-  })
-    
+    }, [])
+  );
 
   // 출석체크 버튼 클릭 
   const handleCandyClick = () => {
