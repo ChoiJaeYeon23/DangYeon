@@ -62,14 +62,38 @@ const io = socketIo(server, {
   },
 });
 
-// 로그인 처리
-// 로그인 처리
-// 로그인 처리
 
-app.post("/api/login", (req, res) => {
+
+/// 회원가입 처리
+/// 회원가입 처리
+/// 회원가입 처리
+app.post("/api/signup", (req, res) => {
   console.log(req.body);
-  const { id, pw } = req.body;
+  const { username, id, pw, birthday, meetingDay, bloodType } = req.body;
 
+  const query =
+    "INSERT INTO userInfo (username, id, pw, birthday, meetingDay, blood_Type) VALUES (?, ?, ?, ?, ?, ?)";
+
+  db.query(
+    query,
+    [username, id, pw, birthday, meetingDay, bloodType],
+    (err, result) => {
+      if (err) {
+        console.error("Query error: ", err); // 오류 상세 출력
+        res.status(500).send({ message: "Database error", error: err });
+      } else {
+        res.status(200).send({ message: "User registered successfully" });
+      }
+    }
+  );
+});
+
+
+// 로그인 처리
+// 로그인 처리
+// 로그인 처리
+app.post("/api/login", (req, res) => {
+  const { id, pw } = req.body;
   const userInfoQuery = "SELECT * FROM userInfo WHERE id = ? AND pw = ?";
   db.query(userInfoQuery, [id, pw], (err, userInfoResult) => {
     if (err) {
@@ -77,40 +101,214 @@ app.post("/api/login", (req, res) => {
       res.status(500).send({ message: "Database error", error: err });
       return;
     }
+
     if (userInfoResult.length > 0) {
       req.session.userId = userInfoResult[0].id;
       req.session.loggedIn = true;
-      console.log(req.session);
-      // 로그인을 성공한후 couple_connection_check 테이블에서 user_id를 조회한 후 connect_id_me가 존재하거나 없으면 그에 따른 다른 응답을 클라이언트쪽으로 보냄
-      const connectCheckQuery =
-        "SELECT * FROM couple_connection_check WHERE user_id = ?";
-      db.query(
-        connectCheckQuery,
-        [userInfoResult[0].id],
-        (err, connectCheckResult) => {
-          if (err) {
-            console.error("Query error: ", err);
-            res.status(500).send({ message: "Database error", error: err });
-            return;
-          }
 
-          if (
-            connectCheckResult.length > 0 &&
-            connectCheckResult[0].connect_id_me
-          ) {
-            // connect_id_me 컬럼에 값이 존재하는 경우
-            res.json({ status: "redirect", message: "Connect_id가 있습니다." });
-          } else {
-            // connect_id_me 컬럼이 비어 있는 경우
-            res.json({ status: "stay", message: "connect_id가 없습니다." });
-          }
+      // 커플 연결 상태 및 check_id 확인
+      const checkCoupleQuery = "SELECT check_id FROM couple_connection_check_for_s WHERE user_id1 = ? OR user_id2 = ?";
+      db.query(checkCoupleQuery, [userInfoResult[0].id, userInfoResult[0].id], (err, coupleResult) => {
+        if (err) {
+          console.error("Query error: ", err);
+          res.status(500).send({ message: "Database error", error: err });
+          return;
         }
-      );
+
+        if (coupleResult.length > 0) {
+          // 이미 커플로 연결된 경우, check_id를 세션에 저장
+          req.session.checkId = coupleResult[0].check_id;
+          res.json({ status: "login_success", message: "Login successful", coupleConnected: true });
+        } else {
+          // 커플로 연결되지 않은 경우
+          res.json({ status: "login_success", message: "Login successful", coupleConnected: false });
+        }
+      });
     } else {
       res.status(401).send({ message: "Invalid ID or password" });
     }
   });
 });
+
+
+
+// 초대 코드 생성 및 저장
+// 초대 코드 생성 및 저장
+// 초대 코드 생성 및 저장
+app.post("/api/generate-invite-code", (req, res) => {
+  const userId = req.session.userId;
+
+  if (!userId) {
+    return res.status(401).send({ message: "Unauthorized: No session found" });
+  }
+
+  // 기존 코드가 있는지 확인
+  const checkCodeQuery = "SELECT code FROM invite_codes WHERE user_id = ?";
+  db.query(checkCodeQuery, [userId], (err, results) => {
+    if (err) {
+      res.status(500).send({ message: "Database error", error: err });
+      return;
+    }
+
+    if (results.length === 0) {
+      // 새 코드 생성 및 저장
+      const generateRandomCode = () => {
+        const randomNum7Digits = Math.floor(Math.random() * (9999999 - 1000000 + 1)) + 1000000;
+        return randomNum7Digits.toString();
+      };
+      const newCode = generateRandomCode(); // 적절한 랜덤 코드 생성 함수 필요
+      const insertCodeQuery = "INSERT INTO invite_codes (user_id, code) VALUES (?, ?)";
+      db.query(insertCodeQuery, [userId, newCode], (err, result) => {
+        if (err) {
+          res.status(500).send({ message: "Database error", error: err });
+        } else {
+          res.send({ message: "Invite code generated successfully", code: newCode });
+        }
+      });
+    } else {
+      // 기존 코드 재사용
+      res.send({ message: "Existing invite code", code: results[0].code });
+    }
+  });
+});
+
+
+
+// 커플연결
+// 커플연결
+// 커플연결
+app.post("/api/connect-couple", (req, res) => {
+  const userId = req.session.userId;
+  const { inviteCode } = req.body;
+
+  if (!userId) {
+    return res.status(401).send({ message: "Unauthorized: No session found" });
+  }
+
+  // 초대 코드를 확인하여 다른 사용자의 ID를 찾음
+  const query = "SELECT user_id FROM invite_codes WHERE code = ?";
+  db.query(query, [inviteCode], (err, results) => {
+    if (err || results.length === 0) {
+      res.status(400).send({ message: "Invalid invite code" });
+      return;
+    }
+
+    const otherUserId = results[0].user_id;
+
+    // 커플 관계 저장 전에 중복 확인
+    const checkCoupleQuery = "SELECT * FROM couple_connection_check_for_s WHERE (user_id1 = ? AND user_id2 = ?) OR (user_id1 = ? AND user_id2 = ?)";
+    db.query(checkCoupleQuery, [userId, otherUserId, otherUserId, userId], (err, coupleResult) => {
+      if (err) {
+        res.status(500).send({ message: "Database error", error: err });
+        return;
+      }
+
+      if (coupleResult.length === 0) {
+        // 새로운 커플 관계 저장
+        const coupleInsertQuery = "INSERT INTO couple_connection_check_for_s (user_id1, user_id2) VALUES (?, ?)";
+        db.query(coupleInsertQuery, [userId, otherUserId], (err, result) => {
+          if (err) {
+            res.status(500).send({ message: "Database error", error: err });
+          } else {
+            // 초대 코드 사용 후 비활성화 또는 삭제
+            const disableCodeQuery = "DELETE FROM invite_codes WHERE code = ?";
+            db.query(disableCodeQuery, [inviteCode], (err, deleteResult) => {
+              if (err) {
+                // 초대 코드 비활성화 실패 처리
+                console.error("Failed to disable invite code", err);
+              }
+              res.send({ message: "Couple connected successfully" });
+            });
+          }
+        });
+      } else {
+        res.status(400).send({ message: "Already connected as a couple" });
+      }
+    });
+  });
+});
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 // 로그아웃 함수
 // 로그아웃 함수
@@ -132,30 +330,6 @@ app.post("/api/logout", (req, res) => {
   }
 });
 
-/// 회원가입 처리
-/// 회원가입 처리
-/// 회원가입 처리
-
-app.post("/api/signup", (req, res) => {
-  console.log(req.body);
-  const { username, id, pw, birthday, meetingDay, bloodType } = req.body;
-
-  const query =
-    "INSERT INTO userInfo (username, id, pw, birthday, meetingDay, blood_Type) VALUES (?, ?, ?, ?, ?, ?)";
-
-  db.query(
-    query,
-    [username, id, pw, birthday, meetingDay, bloodType],
-    (err, result) => {
-      if (err) {
-        console.error("Query error: ", err); // 오류 상세 출력
-        res.status(500).send({ message: "Database error", error: err });
-      } else {
-        res.status(200).send({ message: "User registered successfully" });
-      }
-    }
-  );
-});
 
 //ID 중복체크 함수
 //ID 중복체크 함수
@@ -181,32 +355,30 @@ app.post("/api/check-id", (req, res) => {
   });
 });
 
-//커플 초대코드 저장하기
-//커플 초대코드 저장하기
-//커플 초대코드 저장하기
-
 app.post("/api/save-code", (req, res) => {
   const userId = req.session.userId; // 세션에서 사용자 ID를 가져온다.
   console.log(req.session);
   console.log(req.body);
   const { connect_id_me, connect_id_lover } = req.body;
-  //로그인 상태 확인
+
+  // 로그인 상태 확인
   if (!userId) {
     return res.status(401).send({ message: "Unauthorized: No session found" });
   }
 
+  // couple_connection_check_for_s 테이블에 커플 관계 저장
   const query =
-    "INSERT INTO couple_connection_check (user_id, connect_id_me, connect_id_lover) VALUES (?, ?, ?)";
+    "INSERT INTO couple_connection_check_for_s (user_id1, user_id2) VALUES (?, ?)";
 
-  console.log(connect_id_me);
-  db.query(query, [userId, connect_id_me, connect_id_lover], (err, results) => {
+  db.query(query, [userId, connect_id_lover], (err, results) => {
     if (err) {
       res.status(500).send({ message: "Database error", error: err.message });
     } else {
-      res.status(200).send({ message: "Failed to save the code" });
+      res.status(200).send({ message: "Couple code saved successfully" });
     }
   });
 });
+
 
 // 내정보 업데이트
 // 내정보 업데이트
@@ -330,185 +502,20 @@ app.post("/api/member_withdrawal", (req, res) => {
   });
 });
 
-// Picutre map부분
-// Picutre map부분
-
-const util = require("util");
-const { connect } = require("http2");
-const dbQuery = util.promisify(db.query).bind(db); // db.query를 프로미스로 변환
-
-app.post("/api/upload-image", async (req, res) => {
-  try {
-    const { uri, region } = req.body;
-    console.log(uri);
-    console.log(region);
-
-    // 데이터베이스에 저장하기 위한 쿼리
-    const query = "INSERT INTO picture (image_uri, image_region) VALUES (?, ?)";
-
-    // 비동기 쿼리 실행
-    await dbQuery(query, [uri, region]);
-    console.log("DB업로드 완료");
-  } catch (err) {
-    console.log("DB업로드 실패");
-    console.error(err);
-  }
-});
-
-//게시글 조회
-//게시글 조회
-//게시글 조회
-
-app.get("/api/post_check", (req, res) => {
-  const userId = req.session.userId; // 현재 로그인한 사용자의 ID를 세션에서 가져옴
-  console.log(req.session);
+// 버킷리스트 항목 불러오기
+app.get("/api/bucket-list", (req, res) => {
+  const userId = req.session.userId;
   if (!userId) {
     return res.status(401).send({ message: "Unauthorized: No session found" });
   }
 
-  // 매칭된 커플의 ID를 찾는 쿼리
-  const couple_match_Query = `SELECT user_id, connect_id_lover FROM couple_connection_check WHERE user_id = ? OR connect_id_lover = ?`;
-
-  // 현재 사용자와 매칭된 커플의 게시글을 조회하는 쿼리
-  // p.* => postInfo 테이블의 모든 컬럼을 선택 (p는 postInfo 테이블의 별칭)
-  // WHERE 절 => postInfo테이블에서 userId 컬럼이 현재 로그인한 사용자의 id이거나, 서브쿼리에서 반환된 id 목록 안에 포함되는 경우에 게시글을 선택
-  // 서브쿼리 SELECT ... => couple_connection_check 테이블에서 사용자 커플을 찾는다.
-  // CASE 구문은 로그인한 사용자의 userId가 user_id 컬럼에 있을 경우 connect_id_lover를, connect_id_lover 컬럼에 있을 경우 user_id를 반환
-  // WHERE 절은 로그인한 사용자의 ID(userId)가 user_id 또는 connect_id_lover 컬럼에 있는 행을 찾는 데 사용
-  const postsQuery = `
-  SELECT p.* FROM postInfo p
-  WHERE p.userId = ? OR p.userId IN (
-    SELECT 
-      CASE
-        WHEN c.user_id = ? THEN c.connect_id_lover
-        WHEN c.connect_id_lover = ? THEN c.user_id
-      END
-    FROM couple_connection_check c
-    WHERE c.user_id = ? OR c.connect_id_lover = ?
-  );`;
-  db.query(couple_match_Query, [userId, userId], (err, coupleResult) => {
+  const query = `
+    SELECT b.* FROM bucketList b
+    INNER JOIN couple_connection_check_for_s c ON b.couple_id = c.check_id
+    WHERE c.user_id1 = ? OR c.user_id2 = ?;
+  `;
+  db.query(query, [userId, userId], (err, results) => {
     if (err) {
-      res.status(500).send({ message: "Database error", error: err });
-      return;
-    }
-
-    if (coupleResult.length === 0) {
-      return res.status(404).send({ message: "No matching couple found" });
-    }
-
-    // 커플이 매칭되었으면 해당 게시글 조회
-    db.query(
-      postsQuery,
-      [userId, userId, userId, userId, userId],
-      (err, posts) => {
-        if (err) {
-          res.status(500).send({ message: "Database error", error: err });
-        } else {
-          res.send(posts);
-        }
-      }
-    );
-  });
-});
-
-//게시글 작성
-//게시글 작성
-//게시글 작성
-
-app.post("/api/new_post_save", (req, res) => {
-  const userId = req.session.userId; // 게시글을 누가 작성했는지를 저장하기위해 session에서 userId가져오기
-  const { title, content } = req.body;
-  console.log("게시글 저장 요청:", { userId, title, content }); // 로그 출력
-
-  const postdate = new Date().toISOString().slice(0, 10); //현재 날짜를 YYYY-MM-DD 형식으로 해줌
-
-  const query =
-    "INSERT INTO postInfo (postdate, title, content, user_id) VALUES (?,?,?,?)";
-  db.query(query, [postdate, title, content, userId], (err, result) => {
-    if (err) {
-      console.error("게시글 저장 중 오류 발생:", err); // 에러 로그 출력
-      res.status(500).send({ message: "Database error", error: err });
-    } else {
-      console.log("게시글 저장 성공:", result); // 성공 로그 출력
-      res.send({ message: "Post added successfully" });
-    }
-  });
-});
-
-// 게시글 수정
-// 게시글 수정
-// 게시글 수정
-
-app.put("/api/update_post/", (req, res) => {
-  const userId = req.session.userId;
-  const { title, content } = req.body;
-  const postId = req.params.postId;
-
-  const query = `UPDATE postInfo SET title =? , content = ? WHERE post_id = ? AND userId = ?`;
-
-  db.query(query, [title, content, postId, userId], (err, result) => {
-    if (err) {
-      res.status(500).send({ message: "Database error", error: err });
-    } else {
-      //affectedRows : SQL 쿼리를 실행한 후 데이터베이스에 영향을 받은 행의 수를 나타내는 속성
-      if (result.affectedRows === 0) {
-        res.status(404).send({ message: "Post not found or unauthorized" });
-      } else {
-        res.send({ message: "Post updated successfully" });
-      }
-    }
-  });
-});
-// 게시글 삭제
-// 게시글 삭제
-// 게시글 삭제
-
-app.delete("/api/del_post/", (req, res) => {
-  const userId = req.session.userId;
-  const postId = req.params.postId;
-  const query = `DELETE FROM postInfo WHERE post_id ? AND userId=?`;
-
-  db.query(query, [(postId, userId)], (err, result) => {
-    if (err) {
-      res.status(500).send({ message: "Database error", error: err });
-    } else {
-      if (result.affectedRows === 0) {
-        // affectedRows : SQL 쿼리를 실행한 후 데이터베이스에 영향을 받은 행의 수를 나타내는 속성
-        res.status(404).send({ message: "Post not found or unauthorized" });
-      } else {
-        res.send({ message: "Post deleted successfully" });
-      }
-    }
-  });
-});
-
-// 사진 업로드
-app.post("/api/upload_picture", (req, res) => {
-  const { userId, uri, region, uploadDate, address } = req.body;
-
-  const query =
-    "INSERT INTO picture (user_id, uri, region, upload_date, address) VALUES (?, ?, ?, ?, ?)";
-  db.query(query, [userId, uri, region, uploadDate, address], (err, result) => {
-    if (err) {
-      console.error("Error uploading picture:", err);
-      res.status(500).send({ message: "Database error", error: err });
-    } else {
-      res.send({
-        message: "Picture uploaded successfully",
-        pictureId: result.insertId,
-      });
-    }
-  });
-});
-
-// 특정 지역의 사진 목록 조회
-app.get("/api/pictures/:region", (req, res) => {
-  const region = req.params.region;
-
-  const query = "SELECT * FROM picture WHERE region = ?";
-  db.query(query, [region], (err, results) => {
-    if (err) {
-      console.error("Error fetching pictures:", err);
       res.status(500).send({ message: "Database error", error: err });
     } else {
       res.send(results);
@@ -516,105 +523,115 @@ app.get("/api/pictures/:region", (req, res) => {
   });
 });
 
-// WebSocket 연결 처리
-// WebSocket 연결 처리
-// WebSocket 연결 처리
 
-io.on("connection", (socket) => {
-  console.log(`사용자가 Socket에 연결되었습니다. : ${socket.id}`);
+// 버킷리스트 항목 저장하기
+app.post("/api/bucket-list", (req, res) => {
+  const userId = req.session.userId;
+  const { text } = req.body;
 
-  socket.on("identify user", (userId) => {
-    console.log(`사용자 ID: ${userId}`);
+  if (!userId) {
+    return res.status(401).send({ message: "Unauthorized: No session found" });
+  }
 
-    // 사용자 ID를 바탕으로 방 할당 로직 수행
-    var sql5 = "SELECT * FROM couple_connection_check WHERE user_id = ?";
-    var sql5params = [userId];
-    db.query(sql5, sql5params, (err, result) => {
+  const findCoupleIdQuery = `
+    SELECT check_id FROM couple_connection_check_for_s
+    WHERE user_id1 = ? OR user_id2 = ?;
+  `;
+  db.query(findCoupleIdQuery, [userId, userId], (err, result) => {
+    if (err || result.length === 0) {
+      res.status(500).send({ message: "Database error", error: err });
+      return;
+    }
+
+    const coupleId = result[0].check_id;
+    const insertQuery = "INSERT INTO bucketList (bucket_text, couple_id) VALUES (?, ?)";
+    db.query(insertQuery, [text, coupleId], (err, insertResult) => {
       if (err) {
-        console.error("Database error:", err);
-        return;
-      }
-
-      if (result.length > 0) {
-        let userConnectId = result[0].connect_id_me;
-        let partnerConnectId = result[0].connect_id_lover;
-
-        // 사용자 ID를 정렬하여 room_id 생성
-        const sortedUserIds = [userConnectId, partnerConnectId].sort();
-        const roomId = sortedUserIds.join("-");
-
-        var sql6 =
-          "SELECT * FROM couple_connection_check WHERE connect_id_me = ? AND connect_id_lover = ?";
-        var sql6params = [partnerConnectId, userConnectId];
-
-        db.query(sql6, sql6params, (err, matchResult) => {
-          if (err) {
-            console.error("Database error:", err);
-            return;
-          }
-
-          if (matchResult.length > 0) {
-            socket.join(roomId);
-            console.log(`사용자 ${socket.id} joined room ${roomId}`);
-            socket.emit("room assigned", roomId); // 클라이언트에 방 할당 정보 전송
-          }
-        });
+        res.status(500).send({ message: "Database error", error: err });
+      } else {
+        res.send({ message: "Bucket list item added successfully" });
       }
     });
   });
+});
 
-  // 채팅 메시지 이벤트 핸들러
-  socket.on("chat message", (data) => {
-    const { msg, room_id, user_id } = data;
-    console.log(
-      `Received message: ${msg}, Room ID: ${room_id}, User ID: ${user_id}`
-    );
 
-    var sql4 =
-      "INSERT INTO chat(Message_text, MessageTime, room_id, user_id) VALUES(?, ?, ?, ?)";
-    let now = new Date();
-    now.setHours(now.getHours() + 9); // 서버 시간대가 UTC를 사용한다고 가정할 때 KST로 조정합니다.
-    let Message_time = now.toISOString().slice(0, 19).replace("T", " ");
-    var sql4params = [msg, Message_time, room_id, user_id]; // 쿼리 파라미터에 user_id를 추가
 
-    db.query(sql4, sql4params, (err, result) => {
-      if (err) {
-        console.error("Error recording message:", err);
-        return;
-      }
-      console.log("Message recorded in databases with user ID");
-    });
+// WebSocket 연결 처리
+// WebSocket 연결 처리
+// WebSocket 연결 처리
+  io.on("connection", (socket) => {
+    console.log(`사용자가 Socket에 연결되었습니다: ${socket.id}`);
+  
+    socket.on("identify user", (userId) => {
+      socket.userId = userId; // 사용자 ID를 소켓에 저장
 
-    socket.to(room_id).emit("chat message", { msg, Message_time });
-  });
-
-  // 이전채팅내역 불러오기
-  // 이전채팅내역 불러오기
-  // 이전채팅내역 불러오기
-  socket.on("load message", (data) => {
-    const { room_id } = data;
-
-    // user_id도 가져오기
-    var sql99 =
-      "SELECT Message_text, MessageTime, user_id FROM chat WHERE room_id = ?";
-    var sql99params = [room_id];
-
-    db.query(sql99, sql99params, (err, result) => {
-      if (err) {
-        console.error("Error loading messages:", err);
-        return;
-      }
-      // 쿼리 결과를 JSON 형식으로 변환하여 전송
-      const messages = result.map((row) => {
-        return {
-          ...row,
-          isUserMessage: row.user_id === socket.handshake.query.userId,
-        };
+      // 사용자의 check_id를 찾아 채팅방에 입장시킴
+      const coupleCheckQuery = "SELECT check_id FROM couple_connection_check_for_s WHERE user_id1 = ? OR user_id2 = ?";
+      db.query(coupleCheckQuery, [userId, userId], (err, coupleResult) => {
+        if (err) {
+          console.error("Database error:", err);
+          return;
+        }
+    
+        if (coupleResult.length > 0) {
+          const roomId = `room_${coupleResult[0].check_id}`;
+          socket.join(roomId);
+          console.log(`User ${userId} joined room: ${roomId}`);
+        }
       });
-      console.log(messages);
-      socket.emit("tttest", messages);
     });
+
+
+
+ // 채팅 메시지 이벤트 핸들러
+ // 채팅 메시지 이벤트 핸들러
+ // 채팅 메시지 이벤트 핸들러
+socket.on("chat message", (data) => {
+  const { msg, room_id } = data;
+  console.log(`Received message: ${msg}, Room ID: ${room_id}, User ID: ${socket.userId}`);
+
+  var sql4 = "INSERT INTO chat(Message_text, MessageTime, room_id, user_id) VALUES(?, ?, ?, ?)";
+  let now = new Date();
+  now.setHours(now.getHours() + 9); // 서버 시간대가 UTC를 사용한다고 가정할 때 KST로 조정합니다.
+  let Message_time = now.toISOString().slice(0, 19).replace("T", " ");
+  var sql4params = [msg, Message_time, room_id, socket.userId]; // socket.userId 사용
+
+  db.query(sql4, sql4params, (err, result) => {
+    if (err) {
+      console.error("Error recording message:", err);
+      return;
+    }
+    console.log("Message recorded in databases with user ID");
   });
+  socket.to(room_id).emit("chat message", { msg, Message_time, user_id: socket.userId });
+});
+
+
+
+// 이전채팅내역 불러오기
+// 이전채팅내역 불러오기
+// 이전채팅내역 불러오기
+socket.on("load message", (data) => {
+  const { room_id } = data;
+  var sql99 = "SELECT Message_text, MessageTime, user_id FROM chat WHERE room_id = ?";
+  var sql99params = [room_id];
+
+  db.query(sql99, sql99params, (err, result) => {
+    if (err) {
+      console.error("Error loading messages:", err);
+      return;
+    }
+    const messages = result.map((row) => {
+      return {
+        ...row,
+        isUserMessage: row.user_id === socket.handshake.query.userId,
+      };
+    });
+    console.log(messages);
+    socket.emit("tttest", messages);
+  });
+});
 
   // 연결 해제
   socket.on("disconnect", () => {
