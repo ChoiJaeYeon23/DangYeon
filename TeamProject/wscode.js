@@ -489,36 +489,97 @@ app.post("/api/bucket-list", (req, res) => {
   });
 });
 
-// 게시글 목록 가져오기
-// 게시글 목록 가져오기
-// 게시글 목록 가져오기
-app.get("/api/load_post", (req, res) => {
-  db.query("SELECT * FROM posts", (err, results, fields) => {
-    if (err) res.status(500).send(err);
-    res.json(results);
-  });
-});
+//  게시글 추가
+//  게시글 추가
+//  게시글 추가
 
-//  게시글 추가
-//  게시글 추가
-//  게시글 추가
 app.post("/api/add_post", (req, res) => {
-  const newPost = req.body;
-  db.query("INSERT INTO posts SET ?", newPost, (err, result) => {
-    if (err) res.status(500).send(err);
-    res.json({ id: result.insertId, ...newPost });
-  });
+  const { title, content, img } = req.body;
+  const imagesAsString = JSON.stringify(img);
+  console.log("Received data:", req.body);
+
+  const userId = req.session.userId; // 예시: 세션에서 user_id 가져오기
+  const checkId = req.session.checkId; // 예시: 세션에서 check_id 가져오기
+
+  db.query(
+    "INSERT INTO postInfo (user_id, check_id, title, content, img) VALUES (?, ?, ?, ?, ?)",
+    [userId, checkId, title, content, imagesAsString],
+    (err, result) => {
+      if (err) {
+        res.status(500).send(err);
+        return;
+      }
+
+      // 생성된 게시글의 post_id 반환 -> 클라이언트쪽에서 post_id를 못받아오고 있기때문에 글을 저장하고 생성된 post_id 값을 바로 넘겨준다.
+      res.json({
+        postId: result.insertId, // 자동 생성된 게시글 ID
+        userId: userId,
+        checkId: checkId,
+        title: title,
+        content: content,
+        img: img,
+      });
+      console.log("Insert result:", result);
+    }
+  );
+});
+
+// 게시글 목록 가져오기
+// 게시글 목록 가져오기
+// 게시글 목록 가져오기
+
+app.get("/api/load_post", (req, res) => {
+  console.log("Session data:", req.session); // 세션 정보
+  const userId = req.session.userId; // 세션에서 user_id 가져오기
+
+  // user_id를 사용하여 check_id 찾기
+  db.query(
+    "SELECT check_id FROM couple_connection_check_for_s WHERE user_id1 = ? OR user_id2 = ?",
+    [userId, userId],
+    (err, results) => {
+      if (err) {
+        console.error("Error fetching check_id:", err);
+        res.status(500).send(err);
+        return;
+      }
+
+      console.log("check_id query results:", results);
+
+      if (results.length > 0) {
+        const checkId = results[0].check_id;
+
+        // check_id를 기반으로 게시글 필터링
+        db.query(
+          "SELECT post_id, title, content, img FROM postInfo WHERE check_id = ?",
+          [checkId],
+          (err, posts) => {
+            if (err) {
+              console.error("Error fetching posts:", err);
+              res.status(500).send(err);
+              return;
+            }
+
+            console.log("Fetched posts:", posts);
+            res.json(posts);
+          }
+        );
+      } else {
+        console.log("Matching couple not found for user:", userId);
+        res.status(404).send("Matching couple not found");
+      }
+    }
+  );
 });
 
 // 게시글 수정
 // 게시글 수정
 // 게시글 수정
 
-app.put("/api/post/:id", (req, res) => {
+app.put("/api/update_post/:id", (req, res) => {
   const postId = req.params.id;
   const updatedPost = req.body;
   db.query(
-    "UPDATE posts SET ? WHERE id = ?",
+    "UPDATE postInfo SET ? WHERE post_id = ?",
     [updatedPost, postId],
     (err, result) => {
       if (err) res.status(500).send(err);
@@ -531,12 +592,22 @@ app.put("/api/post/:id", (req, res) => {
 // 게시글 삭제
 // 게시글 삭제
 
-app.delete("/api/del_post/:id", (req, res) => {
-  const postId = req.params.id;
-  db.query("DELETE FROM posts WHERE id = ?", postId, (err, result) => {
-    if (err) res.status(500).send(err);
-    res.json({ message: "Post deleted" });
-  });
+app.delete("/api/del_post_by_content", (req, res) => {
+  const postContent = req.body.content;
+  console.log("Received delete request for post with content:", postContent);
+
+  db.query(
+    "DELETE FROM postInfo WHERE content = ?",
+    postContent,
+    (err, result) => {
+      if (err) {
+        console.error("Error executing query:", err);
+        return res.status(500).send(err);
+      }
+      console.log("Query result:", result);
+      res.json({ message: "Post deleted based on content" });
+    }
+  );
 });
 
 // WebSocket 연결 처리

@@ -18,24 +18,32 @@ import { format } from "date-fns";
 const Board = ({ route }) => {
   const navigation = useNavigation();
   const [posts, setPosts] = useState([]); // 게시물 목록을 저장
-  const [filteredPosts, setFilteredPosts] = useState([]); // 검색한 게시물 목록
-  const [searchText, setSearchText] = useState(""); // 검색 텍스트
+  const [filteredPosts, setFilteredPosts] = useState([]); // 게시글 목록
 
-  // 게시물 불러오는 함수
   useEffect(() => {
     const loadPosts = async () => {
-      const savedPosts = await loadData("posts");
-      if (savedPosts) {
-        setPosts(savedPosts);
+      try {
+        const response = await fetch("http://3.34.6.50:8080/api/load_post");
+        const data = await response.json();
+        setPosts(data);
+      } catch (error) {
+        console.error("Error fetching posts:", error);
       }
     };
+
     loadPosts();
   }, []);
+  // posts 상태가 변경될 때 filteredPosts 업데이트
+  useEffect(() => {
+    setFilteredPosts(posts);
+  }, [posts]);
+
   // 게시물 저장하는 함수
   const savePosts = async (newPosts) => {
     setPosts(newPosts);
     await saveData("posts", newPosts);
   };
+
   // 새 게시물이 추가되거나 수정될 때 게시물 목록 업데이트
   useEffect(() => {
     if (route.params?.postData) {
@@ -62,10 +70,18 @@ const Board = ({ route }) => {
   }, [route.params?.postData, route.params?.editedData]);
 
   // 게시물 수정 함수
-  const editPost = (postId) => {
-    const postToEdit = posts.find((post) => post.id === postId);
-    if (postToEdit) {
-      navigation.navigate("Gesigeul", { editingPost: postToEdit });
+  const editPost = async (postId, updatedPost) => {
+    try {
+      await fetch(`http://3.34.6.50:8080/api/update_post/${postId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(updatedPost),
+      });
+      loadPosts(); // 게시물 목록 다시 불러오기
+    } catch (error) {
+      console.error("Error updating post:", error);
     }
   };
 
@@ -81,19 +97,19 @@ const Board = ({ route }) => {
       );
     }
   }, [route.params?.editedData]);
+
   // 게시물 삭제 함수
-  const deletePost = (postId) => {
-    Alert.alert("게시물 삭제", "이 게시물을 삭제하시겠습니까?", [
-      { text: "취소", style: "cancel" },
-      {
-        text: "삭제",
-        onPress: () => {
-          const updatedPosts = posts.filter((post) => post.id !== postId);
-          savePosts(updatedPosts);
-        },
-      },
-    ]);
+  const deletePost = async (postId) => {
+    try {
+      await fetch(`http://3.34.6.50:8080/api/del_post/${postId}`, {
+        method: "DELETE",
+      });
+      loadPosts(); // 게시물 목록 다시 불러오기
+    } catch (error) {
+      console.error("Error deleting post:", error);
+    }
   };
+
   // 게시물 옵션 함수
   const openOptions = (postId) => {
     Alert.alert(
@@ -103,7 +119,11 @@ const Board = ({ route }) => {
         { text: "수정", onPress: () => editPost(postId) },
         {
           text: "삭제",
-          onPress: () => deletePost(postId),
+
+          onPress: () => (
+            console.log("Deleting post with ID:", postId), deletePost(postId)
+          ),
+
           style: "destructive",
         },
         { text: "취소", style: "cancel" },
@@ -111,13 +131,6 @@ const Board = ({ route }) => {
       { cancelable: true }
     );
   };
-  // 검색 텍스트에 따라 게시물 필터링하는 useEffect
-  useEffect(() => {
-    const filtered = posts.filter((post) =>
-      post.text.toLowerCase().includes(searchText.toLowerCase())
-    );
-    setFilteredPosts(filtered);
-  }, [searchText, posts]);
 
   return (
     <View style={styles.container}>
@@ -127,13 +140,6 @@ const Board = ({ route }) => {
           size={20}
           color="#000"
           style={styles.searchIcon}
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="검색"
-          placeholderTextColor="#C7C7CD"
-          value={searchText}
-          onChangeText={setSearchText} // 검색어 업데이트
         />
       </View>
       <TouchableOpacity
@@ -170,7 +176,7 @@ const Board = ({ route }) => {
               dotStyle={styles.dotContainer}
               activeDotStyle={styles.activeDotContainer}
             >
-              {post.images.map((uri, idx) => (
+              {(post.images || []).map((uri, idx) => (
                 <View key={idx} style={styles.slide}>
                   <Image
                     source={{ uri: uri }}
