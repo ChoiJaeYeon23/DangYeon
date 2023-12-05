@@ -564,7 +564,7 @@ app.post("/api/bucket-list", (req, res) => {
     console.log(`사용자가 Socket에 연결되었습니다: ${socket.id}`);
   
     socket.on("identify user", (userId) => {
-      socket.userId = userId; // 사용자 ID를 소켓에 저장
+      console.log(`사용자 ID: ${userId}`);
 
       // 사용자의 check_id를 찾아 채팅방에 입장시킴
       const coupleCheckQuery = "SELECT check_id FROM couple_connection_check_for_s WHERE user_id1 = ? OR user_id2 = ?";
@@ -578,6 +578,7 @@ app.post("/api/bucket-list", (req, res) => {
           const roomId = `room_${coupleResult[0].check_id}`;
           socket.join(roomId);
           console.log(`User ${userId} joined room: ${roomId}`);
+          socket.emit("room assigned",roomId)
         }
       });
     });
@@ -588,14 +589,13 @@ app.post("/api/bucket-list", (req, res) => {
  // 채팅 메시지 이벤트 핸들러
  // 채팅 메시지 이벤트 핸들러
 socket.on("chat message", (data) => {
-  const { msg, room_id } = data;
-  console.log(`Received message: ${msg}, Room ID: ${room_id}, User ID: ${socket.userId}`);
-
+  const { msg, room_id, user_id } = data;
+  console.log(`Received message: ${msg}, Room ID: ${room_id}, User ID: ${user_id}`);
   var sql4 = "INSERT INTO chat(Message_text, MessageTime, room_id, user_id) VALUES(?, ?, ?, ?)";
   let now = new Date();
   now.setHours(now.getHours() + 9); // 서버 시간대가 UTC를 사용한다고 가정할 때 KST로 조정합니다.
   let Message_time = now.toISOString().slice(0, 19).replace("T", " ");
-  var sql4params = [msg, Message_time, room_id, socket.userId]; // socket.userId 사용
+  var sql4params = [msg, Message_time, room_id, user_id];
 
   db.query(sql4, sql4params, (err, result) => {
     if (err) {
@@ -604,7 +604,7 @@ socket.on("chat message", (data) => {
     }
     console.log("Message recorded in databases with user ID");
   });
-  socket.to(room_id).emit("chat message", { msg, Message_time, user_id: socket.userId });
+  socket.to(room_id).emit("chat message", { msg, Message_time, user_id });
 });
 
 
