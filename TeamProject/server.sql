@@ -47,11 +47,10 @@ CREATE TABLE postInfo(
 
 CREATE TABLE chat(
     message_id INTEGER AUTO_INCREMENT PRIMARY KEY,
-    check_id INTEGER,
+    room_id VARCHAR(10),
     Message_text VARCHAR(100),
     user_id VARCHAR(50),
-    MessageTime DATETIME,
-    FOREIGN KEY (check_id) REFERENCES couple_connection_check_for_s(check_id)
+    MessageTime DATETIME
 );
 
 -- 커플 연결 확인 테이블
