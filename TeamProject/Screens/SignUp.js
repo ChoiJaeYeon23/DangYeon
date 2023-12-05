@@ -161,7 +161,6 @@ const onMeetingDayChange = (event, selectedDate) => {
   }
 };
 
-
   // 생년월일 표시
   const showBirthdayPicker = () => {
     setIsBirthdayPickerVisible(true);
