@@ -60,15 +60,6 @@ const Board = ({ route }) => {
       savePosts(posts);
     }
   }, [route.params?.postData, route.params?.editedData]);
-  // '좋아요' 토글 함수
-  // const toggleLike = (index) => {
-  //   setPosts((currentPosts) => {
-  //     const updatedPosts = [...currentPosts];
-  //     updatedPosts[index].isLiked = !updatedPosts[index].isLiked;
-  //     return updatedPosts;
-  //   });
-  //   savePosts([...posts]);
-  // };
 
   // 게시물 수정 함수
   const editPost = (postId) => {
@@ -179,15 +170,6 @@ const Board = ({ route }) => {
             <View style={styles.dotTextContainer}>
               <Text style={styles.postText}>{post.text}</Text>
             </View>
-            {/* <View style={styles.actionContainer}>
-              <TouchableOpacity onPress={() => toggleLike(index)} style={styles.actionButton}>
-                <Image
-                  source={post.isLiked ? require('../../assets/heart.png') : require('../../assets/Binheart.png')}
-                  style={styles.icon}
-                />
-                <Text style={styles.actionText}>좋아요</Text>
-              </TouchableOpacity>
-            </View> */}
           </View>
         ))}
       </ScrollView>
@@ -283,23 +265,6 @@ const styles = StyleSheet.create({
     color: 'black',
     marginVertical: 10,
   },
-  // actionContainer: {
-  //   flexDirection: 'row',
-  //   justifyContent: 'space-between',
-  //   padding: 10,
-  // },
-  // actionButton: {
-  //   flexDirection: 'row',
-  //   alignItems: 'center',
-  // },
-  // actionText: {
-  //   marginLeft: 5,
-  //   color: '#333',
-  // },
-  // icon: {
-  //   width: 24,
-  //   height: 24,
-  // },
   optionsButton: {
     alignSelf: 'flex-end',
     padding: 10,
