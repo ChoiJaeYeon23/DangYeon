@@ -12,23 +12,30 @@ import {
 import { Feather } from "@expo/vector-icons";
 import io from "socket.io-client";
 
-const Chat = ({ userId }) => {
+const Chat = () => {
   const [socket, setSocket] = useState(null);
   const [message, setMessage] = useState("");
   const [messages, setMessages] = useState([]);
+  const [roomID, setRoomId] = useState(null);
+  const [userId, setUserId] = useState("");
+  const [userIdSubmitted, setUserIdSubmitted] = useState(false);
   const flatListRef = useRef();
 
   useEffect(() => {
     const newSocket = io("http://3.34.6.50:8080");
     setSocket(newSocket);
 
-    // 사용자 ID를 소켓 서버에 전달
-    if (userId) {
+    if (userIdSubmitted) {
       newSocket.emit("identify user", userId);
+      newSocket.emit("request room assignment");
     }
 
     newSocket.on("room assigned", (roomId) => {
-      newSocket.emit("load message", { room_id: roomId });
+      setRoomId(roomId);
+      newSocket.emit("load message", {
+        room_id: roomId,
+        currentUserId: userId,
+      });
     });
 
     newSocket.on("tttest", (loadedMessages) => {
@@ -47,22 +54,32 @@ const Chat = ({ userId }) => {
     });
 
     return () => newSocket.disconnect();
-  }, [userId]);
+  }, [userIdSubmitted]);
+
+  const submitUserId = () => {
+    setUserIdSubmitted(true);
+  };
 
   const sendMessage = () => {
-    if (socket && message) {
+    if (socket && message && roomID && userId) {
       const msgData = {
         msg: message.trim(),
-        user_id: userId,
+        user_id: userId, // 사용자 ID 추가
+        room_id: roomID,
+        MessageTime: new Date().toISOString(),
+        isUserMessage: true, // 사용자 메시지임을 나타내는 플래그 추가
       };
 
       socket.emit("chat message", msgData);
       setMessage("");
+      setMessages((prevMessages) => [...prevMessages, msgData]);
     }
   };
 
   const renderMessage = ({ item }) => {
+    // 메시지가 현재 사용자에 의한 것인지 구분
     const isUserMessage = item.user_id === userId;
+
     return (
       <View
         style={[
@@ -88,6 +105,21 @@ const Chat = ({ userId }) => {
       keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
     >
       <View style={styles.container}>
+        {!userIdSubmitted && (
+          <View style={styles.inputSection}>
+            <TextInput
+              style={styles.input}
+              value={userId}
+              onChangeText={setUserId}
+              placeholder="사용자 ID를 입력해주세요."
+              editable={!userIdSubmitted}
+            />
+            <TouchableOpacity onPress={submitUserId}>
+              <Feather name="check" size={22} color="black" />
+            </TouchableOpacity>
+          </View>
+        )}
+
         <FlatList
           ref={flatListRef}
           data={messages}
@@ -112,49 +144,49 @@ const Chat = ({ userId }) => {
   );
 };
 
-  const styles = StyleSheet.create({
-    container: {
-      flex: 1,
-      backgroundColor: "#FFF9F9",
-    },
-    messageList: {
-      flex: 1,
-      padding: 10,
-    },
-    inputSection: {
-      flexDirection: "row",
-      padding: 10,
-      borderTopWidth: 1,
-      borderTopColor: "#ddd",
-      backgroundColor: "#FFF",
-      alignItems: "center",
-    },
-    input: {
-      flex: 1,
-      borderWidth: 1,
-      borderColor: "gray",
-      padding: 10,
-      marginRight: 10,
-      borderRadius: 15,
-    },
-    messageBubble: {
-      padding: 10,
-      borderRadius: 20,
-      marginBottom: 10,
-      maxWidth: "80%",
-    },
-    userMessage: {
-      alignSelf: "flex-end",
-      backgroundColor: "#DCF8C6",
-    },
-    otherMessage: {
-      alignSelf: "flex-start",
-      backgroundColor: "#ECECEC",
-    },
-    messageTime: {
-      fontSize: 10,
-      color: "grey",
-    },
-  });
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#FFF9F9",
+  },
+  messageList: {
+    flex: 1,
+    padding: 10,
+  },
+  inputSection: {
+    flexDirection: "row",
+    padding: 10,
+    borderTopWidth: 1,
+    borderTopColor: "#ddd",
+    backgroundColor: "#FFF",
+    alignItems: "center",
+  },
+  input: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: "gray",
+    padding: 10,
+    marginRight: 10,
+    borderRadius: 15,
+  },
+  messageBubble: {
+    padding: 10,
+    borderRadius: 20,
+    marginBottom: 10,
+    maxWidth: "80%",
+  },
+  userMessage: {
+    alignSelf: "flex-end",
+    backgroundColor: "#DCF8C6",
+  },
+  otherMessage: {
+    alignSelf: "flex-start",
+    backgroundColor: "#ECECEC",
+  },
+  messageTime: {
+    fontSize: 10,
+    color: "grey",
+  },
+});
 
-  export default Chat;
+export default Chat;
