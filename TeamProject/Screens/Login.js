@@ -20,12 +20,13 @@ const Login = () => {
     setPw("");
   };
 
+  
   const handleLogin = () => {
     const inputData = {
       id: id,
       pw: pw,
     };
-
+  
     fetch("http://3.34.6.50:8080/api/login", {
       method: "POST",
       headers: {
@@ -45,15 +46,12 @@ const Login = () => {
       .then((data) => {
         console.log("서버 응답:", data); // 서버 응답 로깅
         resetInputs();
-        if (data.status === "redirect") {
-          alert("로그인 성공!");
+        if (data.coupleConnected) {
+          alert("로그인 성공!(커플 연결이 이미 완료된 상태입니다)");
           navigation.navigate("MainTab");
-        } else if (data.status === "stay") {
-          alert("로그인 성공!");
-          navigation.navigate("Connect");
         } else {
-          // 예상치 못한 응답의 경우
-          alert("로그인 상태를 확인할 수 없습니다.");
+          alert("로그인 성공!(아직 커플연결이 완료되지 않았습니다)");
+          navigation.navigate("Connect");
         }
       })
       .catch((error) => {
@@ -61,6 +59,7 @@ const Login = () => {
         alert("로그인 실패: " + error.message);
       });
   };
+  
 
   const navigateToSignUp = () => {
     navigation.navigate("SignUp");

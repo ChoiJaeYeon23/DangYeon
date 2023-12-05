@@ -13,6 +13,23 @@ CREATE TABLE userInfo(
     user_image  TEXT
 );
 
+-- 초대코드 테이블
+CREATE TABLE invite_codes (
+    code_id INTEGER AUTO_INCREMENT PRIMARY KEY,
+    user_id VARCHAR(50),
+    code VARCHAR(255),
+    FOREIGN KEY (user_id) REFERENCES userInfo(id)
+);
+
+-- 커플 연결을 위한 테이블
+CREATE TABLE couple_connection_check_for_s (
+    check_id INTEGER AUTO_INCREMENT PRIMARY KEY,
+    user_id1 VARCHAR(50),
+    user_id2 VARCHAR(50),
+    FOREIGN KEY (user_id1) REFERENCES userInfo(id),
+    FOREIGN KEY (user_id2) REFERENCES userInfo(id)
+);
+
 -- 게시판 테이블
 CREATE TABLE postInfo(
     post_id INTEGER PRIMARY KEY AUTO_INCREMENT,
@@ -25,13 +42,14 @@ CREATE TABLE postInfo(
 );
 
 -- 채팅 테이블
+
 CREATE TABLE chat(
     message_id INTEGER AUTO_INCREMENT PRIMARY KEY,
-    room_id VARCHAR(255),
+    check_id INTEGER,
     Message_text VARCHAR(100),
     user_id VARCHAR(50),
     MessageTime DATETIME,
-    FOREIGN KEY (user_id) REFERENCES userInfo(id)
+    FOREIGN KEY (check_id) REFERENCES couple_connection_check_for_s(check_id)
 );
 
 -- 커플 연결 확인 테이블
@@ -56,6 +74,7 @@ CREATE TABLE calendar(
     schedule_date DATE
 );
 
+-- 채팅 테이블
 CREATE TABLE picture(
     image_id INTEGER AUTO_INCREMENT PRIMARY KEY,
     image_uri VARCHAR(255) NOT NULL,

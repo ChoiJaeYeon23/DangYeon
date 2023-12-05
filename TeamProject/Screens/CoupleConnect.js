@@ -13,62 +13,48 @@ import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view
 import * as Clipboard from "expo-clipboard";
 
 const CoupleConnect = ({ navigation }) => {
-  const [generatedRandom, setGeneratedRandom] = useState("");
+  const [inviteCode, setInviteCode] = useState("");
   const [text, setText] = useState("");
 
-  // 초대코드 생성 함수
-  const generateRandomCode = () => {
-    const randomNum7Digits = Math.floor(Math.random() * (9999999 - 1000000 + 1)) + 1000000;
-    return randomNum7Digits.toString();
-  };
-
-  // 초대코드를 DB에 저장하도록 서버에 요청하는 코드
-  const goToProfileInput = () => {
-    // 입력된 코드가 없는지 확인
-    if (text.trim() === "") {
-      Alert.alert("오류", "코드를 입력해주세요.");
-      return;
-    }
-    // 입력된 코드가 생성된 코드와 동일한지 확인
-    if (text === generatedRandom) {
-      Alert.alert("오류", "자신의 코드는 입력할 수 없습니다.");
-      return;
-    }
-    
-    console.log('11111111111111111111',generatedRandom)
-
-    const data = {
-      connect_id_me: generatedRandom,
-      connect_id_lover: text,
-    };
-    fetch("http://3.34.6.50:8080/api/save-code", {
+  // 서버에서 초대코드를 가져오는 함수
+  const fetchInviteCode = () => {
+    fetch("http://3.34.6.50:8080/api/generate-invite-code", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(data),
     })
-      .then((response) => {
-        if (response.ok) {
-          return response.json();
-        } else {
-          console.error(
-            "Server Response: ",
-            response.status,
-            response.statusText
-          );
-          throw new Error(
-            `Server Error: ${response.status} ${response.statusText}`
-          );
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.code) {
+          setInviteCode(data.code);
         }
       })
+      .catch((error) => console.error("Error fetching invite code:", error));
+  };
+
+  // 커플 연결 요청 함수
+  const goToProfileInput = () => {
+    if (text.trim() === "") {
+      Alert.alert("오류", "코드를 입력해주세요.");
+      return;
+    }
+
+    fetch("http://3.34.6.50:8080/api/connect-couple", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ inviteCode: text }),
+    })
+      .then((response) => response.json())
       .then((data) => {
-        Alert.alert("성공", "초대 코드가 맞습니다!");
+        Alert.alert("성공", "커플로 연결되었습니다!");
         navigation.navigate("MainTab");
       })
       .catch((error) => {
-        console.error("Error saving data :", error);
-        Alert.alert("실패", "초대 코드가 다릅니다!");
+        console.error("Error connecting couple:", error);
+        Alert.alert("실패", "코드가 일치하지 않습니다.");
       });
   };
 
@@ -77,25 +63,12 @@ const CoupleConnect = ({ navigation }) => {
   };
 
   const copyToClipboard = () => {
-    Clipboard.setString(generatedRandom);
-    Alert.alert("복사", `클립보드에 복사된 숫자: ${generatedRandom}`);
+    Clipboard.setString(inviteCode);
+    Alert.alert("복사", `클립보드에 복사된 초대코드: ${inviteCode}`);
   };
 
   useEffect(() => {
-    // 컴포넌트 마운트 시 초대코드 생성 및 설정
-    setGeneratedRandom(generateRandomCode());
-
-    const getToken = async () => {
-      try {
-        const token = await AsyncStorage.getItem("userToken");
-        if (token !== null) {
-          // 토큰 사용
-        }
-      } catch (error) {
-        console.error("토큰 가져오기 실패", error);
-      }
-    };
-    getToken();
+    fetchInviteCode();
   }, []);
 
   const Separator = () => <View style={styles.separator} />;
@@ -119,7 +92,7 @@ const CoupleConnect = ({ navigation }) => {
           <Text style={styles.codeTitle}>내 초대코드</Text>
           <View style={{ flexDirection: "row", alignItems: "center" }}>
             <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-              <Text style={styles.code}>{generatedRandom}</Text>
+              <Text style={styles.code}>{inviteCode}</Text>
             </View>
             <TouchableOpacity style={styles.button} onPress={copyToClipboard}>
               <Text style={styles.buttonText}>복사</Text>
@@ -149,6 +122,7 @@ const CoupleConnect = ({ navigation }) => {
     </KeyboardAvoidingView>
   );
 };
+
 
 const styles = StyleSheet.create({
   container: {
