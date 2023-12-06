@@ -19,8 +19,7 @@ const Waitcouple = () => {
         if (data.connected) {
           // 연결된 경우 isConnected 상태를 true로 설정
           setIsConnected(true);
-          // 연결된 경우 Main 화면으로 이동
-          navigation.navigate('Main');
+          navigation.navigate('MainTab');
         } else {
           // 연결되지 않은 경우 isConnected 상태를 false로 유지
           setIsConnected(false);
