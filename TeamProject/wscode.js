@@ -246,6 +246,124 @@ app.post("/api/connect-couple", (req, res) => {
   });
 });
 
+// 버킷리스트 추가
+// 버킷리스트 추가
+// 버킷리스트 추가
+// 버킷리스트 추가
+app.post("/api/bucketlist", (req, res) => {
+  const checkId = req.session.checkId;
+  const { text } = req.body;
+
+  if (!checkId) {
+    return res.status(401).send({ message: "Unauthorized: No session found" });
+  }
+
+  const insertQuery = "INSERT INTO bucketList (check_id, bucket_text, isCompleted) VALUES (?, ?, false)";
+  db.query(insertQuery, [checkId, text], (err, result) => {
+    if (err) {
+      console.error("Database error:", err);
+      res.status(500).send({ message: "Database error", error: err });
+      return;
+    }
+
+    res.status(200).send({ message: "Bucketlist item added successfully" });
+  });
+});
+
+
+// 버킷리스트 불러오기(checkId 별)
+// 버킷리스트 불러오기(checkId 별)
+// 버킷리스트 불러오기(checkId 별)
+app.get("/api/bucketlist", (req, res) => {
+  const checkId = req.session.checkId;
+
+  if (!checkId) {
+    return res.status(401).send({ message: "Unauthorized: No session found" });
+  }
+
+  const query = "SELECT bucket_text, isCompleted,bucket_id FROM bucketList WHERE check_id = ?";
+  db.query(query, [checkId], (err, results) => {
+    if (err) {
+      console.error("Database error:", err);
+      res.status(500).send({ message: "Database error", error: err });
+      return;
+    }
+
+    res.status(200).send(results);
+
+  });
+});
+
+// 버킷리스트 항목 완료 상태 업데이트
+// 버킷리스트 항목 완료 상태 업데이트
+// 버킷리스트 항목 완료 상태 업데이트
+app.put("/api/bucketlist/:id", (req, res) => {
+  const { id } = req.params;
+  const { isCompleted } = req.body;
+
+  const updateQuery = "UPDATE bucketList SET isCompleted = ? WHERE bucket_id = ?";
+  db.query(updateQuery, [isCompleted, id], (err, result) => {
+    if (err) {
+      console.error("Database error:", err);
+      res.status(500).send({ message: "Database error", error: err });
+      return;
+    }
+
+    res.status(200).send({ message: "Bucketlist item updated successfully" });
+  });
+});
+
+
+// 버킷리스트 항목 삭제 업데이트 (bucket_id로 판단)
+// 버킷리스트 항목 삭제 업데이트 (bucket_id로 판단)
+// 버킷리스트 항목 삭제 업데이트 (bucket_id로 판단)
+app.delete("/api/bucketlist/:id", (req, res) => {
+  const { id } = req.params;
+
+  const deleteQuery = "DELETE FROM bucketList WHERE bucket_id = ?";
+  db.query(deleteQuery, [id], (err, result) => {
+    if (err) {
+      console.error("Database error:", err);
+      res.status(500).send({ message: "Database error", error: err });
+      return;
+    }
+
+    if (result.affectedRows === 0) {
+      res.status(404).send({ message: "Item not found" });
+    } else {
+      res.status(200).send({ message: "Bucketlist item deleted successfully" });
+    }
+  });
+});
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 // 로그아웃 함수
 // 로그아웃 함수
 // 로그아웃 함수
@@ -436,58 +554,6 @@ app.post("/api/member_withdrawal", (req, res) => {
   });
 });
 
-// 버킷리스트 항목 불러오기
-app.get("/api/bucket-list", (req, res) => {
-  const userId = req.session.userId;
-  if (!userId) {
-    return res.status(401).send({ message: "Unauthorized: No session found" });
-  }
-
-  const query = `
-    SELECT b.* FROM bucketList b
-    INNER JOIN couple_connection_check_for_s c ON b.couple_id = c.check_id
-    WHERE c.user_id1 = ? OR c.user_id2 = ?;
-  `;
-  db.query(query, [userId, userId], (err, results) => {
-    if (err) {
-      res.status(500).send({ message: "Database error", error: err });
-    } else {
-      res.send(results);
-    }
-  });
-});
-
-// 버킷리스트 항목 저장하기
-app.post("/api/bucket-list", (req, res) => {
-  const userId = req.session.userId;
-  const { text } = req.body;
-
-  if (!userId) {
-    return res.status(401).send({ message: "Unauthorized: No session found" });
-  }
-
-  const findCoupleIdQuery = `
-    SELECT check_id FROM couple_connection_check_for_s
-    WHERE user_id1 = ? OR user_id2 = ?;
-  `;
-  db.query(findCoupleIdQuery, [userId, userId], (err, result) => {
-    if (err || result.length === 0) {
-      res.status(500).send({ message: "Database error", error: err });
-      return;
-    }
-
-    const coupleId = result[0].check_id;
-    const insertQuery =
-      "INSERT INTO bucketList (bucket_text, couple_id) VALUES (?, ?)";
-    db.query(insertQuery, [text, coupleId], (err, insertResult) => {
-      if (err) {
-        res.status(500).send({ message: "Database error", error: err });
-      } else {
-        res.send({ message: "Bucket list item added successfully" });
-      }
-    });
-  });
-});
 
 //  게시글 추가
 //  게시글 추가

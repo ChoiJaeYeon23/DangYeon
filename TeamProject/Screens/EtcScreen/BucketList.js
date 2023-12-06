@@ -10,6 +10,7 @@ import {
   Image
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { List } from 'react-native-paper';
 
 const BucketList = () => {
   const [text, setText] = useState(''); // 입력된 텍스트 관리
@@ -17,36 +18,77 @@ const BucketList = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [deleteConfirmationVisible, setDeleteConfirmationVisible] = useState(false);
   const [deleteIndex, setDeleteIndex] = useState(null); // 삭제할 항목 관리
-  //AsyncStorage에 데이터 저장
-  const saveData = async (newList) => {
-    try {
-      const jsonValue = JSON.stringify(newList);
-      await AsyncStorage.setItem('@bucketList', jsonValue);
-    } catch (e) {
-      console.error("Error saving data", e);
+
+  // 서버에서 버킷리스트 데이터 로드// 서버에서 버킷리스트 데이터 로드
+const loadBucketList = async () => {
+  try {
+    const response = await fetch('http://3.34.6.50:8080/api/bucketlist', {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      if (data.length === 0) {
+        // 데이터가 비어 있는 경우
+        console.log("Bucket list is empty.");
+        setList([]);
+      } else {
+        // 데이터가 있는 경우
+        const formattedData = data.map(item => ({
+          bucket_id: item.bucket_id,
+          text: item.bucket_text,
+          isCompleted: item.isCompleted === 1
+        }));
+        setList(formattedData);
+      }
+    } else {
+      console.error('Failed to fetch bucket list');
     }
-  };
-  // AsyncStorage에서 데이터 로드
-  const loadData = async () => {
-    try {
-      const jsonValue = await AsyncStorage.getItem('@bucketList');
-      return jsonValue != null ? JSON.parse(jsonValue) : [];
-    } catch (e) {
-      console.error("Error loading data", e);
-    }
-  };
-  // 버킷리스트 데이터 불러오는 역할
+  } catch (error) {
+    console.error('Error fetching bucket list:', error);
+  }
+};
+
+
+
+
+
   useEffect(() => {
-    loadData().then(setList);
+    loadBucketList();
   }, []);
+
+  
+  // 서버에 버킷리스트 항목 추가 요청 보내기
+  const addToBucketList = async (newItem) => {
+    try {
+      const response = await fetch('http://3.34.6.50:8080/api/bucketlist', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(newItem),
+      });
+
+      if (response.ok) {
+        loadBucketList(); // 리스트 상태 업데이트를 위해 다시 로드
+      } else {
+        console.error('Failed to add item to bucket list');
+      }
+    } catch (error) {
+      console.error('Error adding item to bucket list:', error);
+    }
+  };
+
   // 버킷리스트 추가 모달, 저장, 리스트 항목에 추가
   const handleModalAndAdd = () => {
     if (modalVisible) {
       if (text.trim() !== '') {
-        const newList = [...list, { text, isCompleted: false }];
-        setList(newList);
+        const newItem = { text, isCompleted: false };
+        addToBucketList(newItem);
         setText('');
-        saveData(newList);
       }
       setModalVisible(false);
     } else {
@@ -59,27 +101,82 @@ const BucketList = () => {
     setDeleteIndex(index);
     setDeleteConfirmationVisible(true);
   };
-  // 리스트에서 항목 제거
-  const removeFromList = () => {
-    const newList = list.filter((_, idx) => idx !== deleteIndex);
-    setList(newList);
+
+
+  // 리스트에서 항목 제거 및 서버에 삭제 요청
+  const removeFromList = async () => {
+    const itemToDelete = list[deleteIndex];
+    if (!itemToDelete || !itemToDelete.bucket_id) {
+      console.error('Error: Invalid item or bucket_id is missing');
+      return;
+    }
+
+    try {
+      // 서버에 삭제 요청을 보냅니다.
+      const response = await fetch(`http://3.34.6.50:8080/api/bucketlist/${itemToDelete.bucket_id}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (response.ok) {
+        // 삭제 성공 시 클라이언트 상태 업데이트
+        const newList = list.filter((_, idx) => idx !== deleteIndex);
+        setList(newList);
+      } else {
+        console.error('Failed to delete item from bucket list');
+      }
+    } catch (error) {
+      console.error('Error deleting item:', error);
+    }
+
     setDeleteConfirmationVisible(false);
     setDeleteIndex(null);
-    saveData(newList);
   };
+
+
+
   // 삭제 취소
   const cancelDelete = () => {
     setDeleteConfirmationVisible(false);
     setDeleteIndex(null);
   };
-  // 항목 완료 상태
-  const toggleCompletion = (index) => {
-    const newList = list.map((item, idx) =>
-      idx === index ? { ...item, isCompleted: !item.isCompleted } : item
-    );
-    setList(newList);
-    saveData(newList);
+
+  // 항목 완료 상태// 항목 완료 상태 토글// 항목 완료 상태 토글
+  const toggleCompletion = async (index) => {
+    const item = list[index];
+    if (!item.bucket_id) {
+      console.error('Bucket ID is undefined');
+      return;
+    }
+    const updatedItem = { ...item, isCompleted: !item.isCompleted };
+
+    try {
+      const response = await fetch(`http://3.34.6.50:8080/api/bucketlist/${item.bucket_id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ isCompleted: updatedItem.isCompleted }),
+      });
+
+      if (response.ok) {
+        const newList = list.map((it, idx) => idx === index ? updatedItem : it);
+        setList(newList);
+      } else {
+        console.error('Failed to update item');
+      }
+    } catch (error) {
+      console.error('Error updating item:', error);
+    }
   };
+
+
+
+
+
+
   // 버킷리스트 완료 상태에 따라 다른 하트 표시
   const renderItem = ({ item, index }) => (
     <View style={styles.item}>
