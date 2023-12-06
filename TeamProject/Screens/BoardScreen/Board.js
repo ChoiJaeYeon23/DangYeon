@@ -79,7 +79,10 @@ const Board = ({ route }) => {
       "게시물",
       null,
       [
-        { text: "수정", onPress: () => editPost(post.post_id, post) },
+        {
+          text: "수정",
+          onPress: () => navigation.navigate("EditScreen", { post: post }),
+        },
         {
           text: "삭제",
           onPress: () => deletePost(post.post_id),
