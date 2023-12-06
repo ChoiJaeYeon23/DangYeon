@@ -211,7 +211,7 @@ const styles = StyleSheet.create({
   },
   anniversary: {
     position: 'absolute',
-    right: 50,
+    right: 70,
     marginTop: 10,
   },
   anniversaryText: {
@@ -309,7 +309,7 @@ const styles = StyleSheet.create({
   },
   anniversary: {
     position: 'absolute',
-    right: 50,
+    right: 40,
     marginTop: 10,
   },
   anniversaryText: {
