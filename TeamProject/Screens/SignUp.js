@@ -57,45 +57,36 @@ const SignUp = () => {
       setErrorMessage(error);
       return; // 에러가 있으면 여기서 함수 종료
     }
-
-    // 먼저 ID 중복 체크
-    checkIdDuplicate()
-      .then(() => {
-        // 중복되지 않았다면 회원가입 진행
-        setErrorMessage("");
-        const userData = {
-          username: username,
-          id: id,
-          pw: pw,
-          birthday: birthday,
-          meetingDay: meetingDay,
-          bloodType: bloodType,
-        };
-
-        // 서버로 회원가입 요청을 보냄
-        fetch("http://3.34.6.50:8080/api/signup", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(userData),
-        })
-          .then((response) => response.json())
-          .then((data) => {
-            alert("회원가입 성공!");
-            saveUserInfo(userData);
-            resetInputs();
-            navigation.navigate("Login");
-          })
-          .catch((error) => {
-            alert("회원가입 실패: " + error.message);
-          });
+  
+    const userData = {
+      username: username,
+      id: id,
+      pw: pw,
+      birthday: birthday,
+      meetingDay: meetingDay,
+      bloodType: bloodType,
+    };
+  
+    // 서버로 회원가입 요청을 보냄
+    fetch("http://3.34.6.50:8080/api/signup", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(userData),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        alert("회원가입 완료!"); // 회원가입 성공 알림
+        saveUserInfo(userData);
+        resetInputs();
+        navigation.navigate("Login"); // 로그인 화면으로 이동
       })
       .catch((error) => {
-        // 중복된 아이디인 경우 회원가입 진행하지 않음
-        setErrorMessage(error.message);
+        alert("회원가입 실패: " + error.message);
       });
   };
+  
 
   // 회원 정보 저장 함수
   const saveUserInfo = async (userData) => {
@@ -109,6 +100,11 @@ const SignUp = () => {
 
   // ID 중복 체크 함수
   const checkIdDuplicate = () => {
+    if (!id) {
+      alert("아이디를 먼저 입력해주세요.");
+      return; // 아이디가 입력되지 않았다면 함수 종료
+    }
+    
     return new Promise((resolve, reject) => {
       fetch("http://3.34.6.50:8080/api/check-id", {
         method: "POST",
@@ -133,7 +129,7 @@ const SignUp = () => {
         });
     });
   };
-  
+
   // 생년월일 변경
   const onBirthdayChange = (event, selectedDate) => {
     const currentDate = selectedDate || new Date();

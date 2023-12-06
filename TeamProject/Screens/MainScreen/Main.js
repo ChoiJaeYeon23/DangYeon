@@ -19,7 +19,8 @@ const Main = ({ navigation }) => {
   const [weekLabel, setWeekLabel] = useState(''); // 주차 레이블
   const [message, setMessage] = useState('');//메시지
   const [isAttendanceModalVisible, setIsAttendanceModalVisible] = useState(false); // 출석체크 관리
-
+  const [daysSinceMeeting, setDaysSinceMeeting] = useState(0);
+  
   useEffect(() => {
     const checkDateAndAttendance = async () => {
       try {
@@ -81,7 +82,28 @@ const Main = ({ navigation }) => {
     setIsAttendanceModalVisible(false);
   };
 
+  useEffect(() => {
+    const fetchMeetingDay = async (userId) => {
+      try {
+        // 'userId'는 현재 로그인한 사용자의 ID나 식별 정보입니다.
+        const response = await fetch(`http://3.34.6.50:8080/api/meeting-day?userId=${userId}`);
+        const data = await response.json();
+        calculateDaysSinceMeeting(data.meetingDay);
+      } catch (error) {
+        console.error('처음 만난 날을 불러오는 중 오류 발생:', error);
+      }
+    };
 
+    fetchMeetingDay();
+  }, []);
+
+  const calculateDaysSinceMeeting = (meetingDay) => { // 처음 만난 날 계산
+    const today = moment();
+    const startDay = moment(meetingDay);
+    const duration = moment.duration(today.diff(startDay));
+    const days = duration.asDays();
+    setDaysSinceMeeting(Math.floor(days));
+  };
 
   return (
     <View style={styles.container}>
@@ -91,7 +113,7 @@ const Main = ({ navigation }) => {
         </View>
         <TouchableOpacity onPress={goToCalendar} style={styles.anniversary}>
           <Text style={styles.anniversaryText}>사랑한 지</Text>
-          <Text style={styles.anniversaryText2}>7017일 째</Text>
+          <Text style={styles.anniversaryText2}>{daysSinceMeeting}일 째</Text>
           <Text style={styles.anniversaryText}>수쨩 💖 원우</Text>
         </TouchableOpacity>
       </View>
@@ -127,7 +149,6 @@ const Main = ({ navigation }) => {
     </View>
   );
 };
-
 
 const styles = StyleSheet.create({
   container: {
@@ -180,29 +201,29 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.5)',
   },
   modalContent: {
-    width: '90%', 
-    height: '30%', 
+    width: '90%',
+    height: '30%',
     backgroundColor: '#FFF9F9',
     padding: 20,
     borderRadius: 10,
-    alignItems: 'center', 
-    justifyContent: 'center', 
-    shadowColor: '#000', 
-    shadowOffset: { width: 0, height: 2 }, 
-    shadowOpacity: 0.25, 
-    shadowRadius: 3.84, 
-    elevation: 5, 
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
   },
   title: {
     fontSize: 24,
     marginBottom: 20,
-    fontWeight: 'bold', 
+    fontWeight: 'bold',
     color: '#585757',
   },
   candiesContainer: {
     flexDirection: 'row',
-    alignItems: 'center', 
-    justifyContent: 'center', 
+    alignItems: 'center',
+    justifyContent: 'center',
     marginBottom: 20,
     padding: 20,
   },
@@ -235,16 +256,16 @@ const styles = StyleSheet.create({
   },
   topContainer: {
     paddingTop: 10,
-    paddingHorizontal: 20, 
-    alignItems: 'center', 
+    paddingHorizontal: 20,
+    alignItems: 'center',
   },
   weatherWidget: {
-    position: 'absolute', 
-    left: 50, 
-    width: 100, 
-    height: 100, 
-    alignItems: 'center', 
-    justifyContent: 'center', 
+    position: 'absolute',
+    left: 50,
+    width: 100,
+    height: 100,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   anniversary: {
     position: 'absolute',
@@ -265,8 +286,8 @@ const styles = StyleSheet.create({
   },
   map: {
     flex: 1,
-    justifyContent: 'center', 
-    borderWidth: 1, 
+    justifyContent: 'center',
+    borderWidth: 1,
     borderColor: 'black',
     margin: 20,
     marginTop: 90,
