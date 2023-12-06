@@ -27,18 +27,19 @@ const Main = ({ navigation }) => {
         const today = moment().format('YYYY-MM-DD');
         const storedDate = await AsyncStorage.getItem('@lastCheckDate');
         const storedAttendance = await AsyncStorage.getItem('@attendance');
-
+  
         if (storedDate !== today) {
           // 자정에 날짜가 변경되었을 때 출석체크 창을 보여주고, 출석체크 배열을 초기화
-          setAttendance(Array(7).fill(false));
           await AsyncStorage.setItem('@lastCheckDate', today);
           setIsAttendanceModalVisible(true);
         } else if (storedAttendance) {
-          // 같은 날짜에 이미 출석체크를 했다면, 출석체크 창을 보이지 않게 함
+          // 같은 날짜에 이미 출석체크를 했다면, 저장된 출석체크 데이터를 불러와서 상태에 반영
           setAttendance(JSON.parse(storedAttendance));
-          // 출석체크를 하지 않았으면 모달이 계속 표시되도록 변경
-          setIsAttendanceModalVisible(!JSON.parse(storedAttendance)[moment().isoWeekday() - 1]);
+        } else {
+          // 출석체크 데이터가 없다면 모달이 표시되도록 설정
+          setIsAttendanceModalVisible(true);
         }
+  
         // 몇월 몇째주인지 계산하고 weekLabel에 저장
         const startOfWeek = moment().startOf('isoWeek');
         const weekInMonth = startOfWeek.isoWeek() - moment(startOfWeek).startOf('month').isoWeek() + 1;
@@ -48,7 +49,7 @@ const Main = ({ navigation }) => {
         console.error('날짜 및 출석체크 데이터 로드 중 오류 발생:', error);
       }
     };
-
+  
     checkDateAndAttendance();
   }, []);
 
