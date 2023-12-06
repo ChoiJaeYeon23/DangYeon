@@ -26,28 +26,32 @@ const EditScreen = ({ route, navigation }) => {
     }
   }, [route.params?.post]);
 
-  // 이미지 선택
-  const pickImage = async () => {
-    // 추가할 예정
-  };
-
   // 게시글 수정 저장 로직
   const editPost = async () => {
     try {
-      const updatedPost = {
-        title: title,
-        content: content,
-        img: images.map((img) => img.uri),
-      };
+      const formData = new FormData();
 
+      // 제목과 내용을 FormData에 추가
+      formData.append("title", title);
+      formData.append("content", content);
+
+      // 이미지 파일을 FormData에 추가
+      images.forEach((image, index) => {
+        // 여기에서는 이미지의 로컬 URI를 가정합니다.
+        // 실제 파일 형식과 이름을 적절하게 처리해야 할 수 있습니다.
+        const { uri } = image;
+        formData.append("img", {
+          uri: uri,
+          name: `수정화면 이미지_${index}.jpg`, // 임시 파일명
+          type: "image/jpeg", // 파일 형식
+        });
+      });
+      // Fetch 요청
       await fetch(
         `http://3.34.6.50:8080/api/update_post/${route.params.post.post_id}`,
         {
           method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(updatedPost),
+          body: formData, // FormData 사용
         }
       );
 

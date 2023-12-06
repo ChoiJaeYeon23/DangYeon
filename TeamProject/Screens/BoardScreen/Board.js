@@ -53,22 +53,6 @@ const Board = ({ route }) => {
     setFilteredPosts(posts);
   }, [posts]);
 
-  // 게시물 수정 함수
-  const editPost = async (postId, updatedPost) => {
-    try {
-      await fetch(`http://3.34.6.50:8080/api/update_post/${postId}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(updatedPost),
-      });
-      loadPosts();
-    } catch (error) {
-      console.error("Error updating post:", error);
-    }
-  };
-
   // 게시물 옵션 함수
   const openOptions = (post) => {
     if (!post) {

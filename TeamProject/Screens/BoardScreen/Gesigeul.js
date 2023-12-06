@@ -45,18 +45,28 @@ const Gesigeul = ({ route }) => {
 
   // 저장 버튼 클릭 시 호출되는 함수
   const handleSavePress = () => {
-    const postData = {
-      title: title,
-      content: text,
-      img: imageSources.map((source) => source.uri),
-    };
+    //FormData 객체 생성
+    const formData = new FormData();
 
+    //제목과 내용을 FormData에 추가
+    formData.append("title", title);
+    formData.append("content", text);
+
+    // 이미지 파일을 FormData에 추가
+    imageSources.forEach((source, index) => {
+      // `uri`를 사용하여 로컬 파일 시스템에서 이미지를 찾고, `name`과 `type`을 지정합니다.
+      const { uri } = source;
+      formData.append("img", {
+        uri,
+        name: `게시글 이미지_${index}.jpg`, // 임시 파일명
+        type: "image/jpeg", // 파일 형식
+      });
+    });
+
+    // Fetch 요청
     fetch("http://3.34.6.50:8080/api/add_post", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(postData),
+      body: formData, // FormData 사용
     })
       .then((response) => {
         if (!response.ok) {

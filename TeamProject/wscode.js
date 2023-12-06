@@ -7,6 +7,23 @@ const axios = require("axios");
 const mysql = require("mysql");
 const session = require("express-session");
 const MySQLStore = require("express-mysql-session")(session);
+const multer = require("multer");
+const path = require("path");
+
+// Multer 설정
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, "/home/ubuntu/chat-server/images"); // 이미지가 저장될 경로
+  },
+  filename: function (req, file, cb) {
+    cb(
+      null,
+      file.fieldname + "-" + Date.now() + path.extname(file.originalname)
+    );
+  },
+});
+
+const upload = multer({ storage: storage });
 
 // Express 앱 초기화
 const app = express();
@@ -342,7 +359,6 @@ app.delete("/api/bucketlist/:id", (req, res) => {
 app.get("/api/D-day/", (req, res) => {
   const id = req.session.userId;
 
-
   const calculateDateQuery = "SELECT meetingDay FROM userInfo WHERE id = ?";
   db.query(calculateDateQuery, [id], (err, result) => {
     if (err) {
@@ -350,7 +366,7 @@ app.get("/api/D-day/", (req, res) => {
       res.status(500).send({ message: "Database error", error: err });
       return;
     }
-    res.send(result) // meetingDay 전달
+    res.send(result); // meetingDay 전달
   });
 });
 
@@ -361,7 +377,8 @@ app.get("/api/usersname", (req, res) => {
   const checkId = req.session.checkId;
 
   // couple_connection_check_for_s 테이블에서 user_id1과 user_id2 조회
-  const getUserIdsQuery = "SELECT user_id1, user_id2 FROM couple_connection_check_for_s WHERE check_id = ?";
+  const getUserIdsQuery =
+    "SELECT user_id1, user_id2 FROM couple_connection_check_for_s WHERE check_id = ?";
   db.query(getUserIdsQuery, [checkId], (err, results) => {
     if (err) {
       console.error("Database error:", err);
@@ -371,7 +388,8 @@ app.get("/api/usersname", (req, res) => {
     if (results.length > 0) {
       const { user_id1, user_id2 } = results[0];
       // userInfo 테이블에서 username 조회
-      const getUsernamesQuery = "SELECT username FROM userInfo WHERE id IN (?, ?)";
+      const getUsernamesQuery =
+        "SELECT username FROM userInfo WHERE id IN (?, ?)";
       db.query(getUsernamesQuery, [user_id1, user_id2], (err, userResults) => {
         if (err) {
           console.error("Database error:", err);
@@ -386,33 +404,31 @@ app.get("/api/usersname", (req, res) => {
   });
 });
 
-
 // 내 정보 화면에 정보 가져오기
 // 내 정보 화면에 정보 가져오기
 // 내 정보 화면에 정보 가져오기
-app.get("/api/userInfos",(req,res)=>{
-  const userId = req.session.userId
-  const getuserInfos = "SELECT username, birthday, meetingDay, blood_type FROM userInfo WHERE id = ?"
-  db.query(getuserInfos, [userId], (err,results)=>{
+app.get("/api/userInfos", (req, res) => {
+  const userId = req.session.userId;
+  const getuserInfos =
+    "SELECT username, birthday, meetingDay, blood_type FROM userInfo WHERE id = ?";
+  db.query(getuserInfos, [userId], (err, results) => {
     if (err) {
       console.error("Database error:", err);
       res.status(500).send({ message: "Database error", error: err });
       return;
     }
-    if(results.length>0){
-      res.send(results)
-    }
-    else{
+    if (results.length > 0) {
+      res.send(results);
+    } else {
       res.status(404).send({ message: "No users found for given userId" });
     }
   });
 });
 
+// 로그아웃 함수
+// 로그아웃 함수
+// 로그아웃 함수
 
-
-// 로그아웃 함수
-// 로그아웃 함수
-// 로그아웃 함수
 app.post("/api/logout", (req, res) => {
   console.log(session);
   if (req.session) {
@@ -482,7 +498,7 @@ app.post("/api/save-code", (req, res) => {
 // 내정보 업데이트
 app.post("/api/my_dataUpdate", (req, res) => {
   const userId = req.session.userId; // 세션에서 사용저 id 가져오기
-  const { username, birthday, meetingDay, user_image } = req.body;
+  const { name, birthday, meetingDay, user_image } = req.body;
 
   if (!userId) {
     return res.status(401).send({ message: "Unauthorized: No session found" });
@@ -563,36 +579,133 @@ app.post("/api/couple_break", (req, res) => {
 // 회원 탈퇴 기능
 
 app.post("/api/member_withdrawal", (req, res) => {
-  const userId = req.session.userId; // 세션에서 사용자 id가져오기
+  const userId = req.session.userId;
 
   if (!userId) {
     return res.status(401).send({ message: "Unauthorized: No session found" });
   }
 
-  // couple_connection_check 테이블에서 해당 사용자의 참조를 먼저 삭제
-  const deleteReferencesQuery =
-    "DELETE FROM couple_connection_check WHERE user_id = ? OR connect_id_lover = ?";
-  db.query(deleteReferencesQuery, [userId, userId], (err, result) => {
+  // invite_codes 테이블에서 해당 사용자를 참조하는 레코드 삭제
+  const deleteFromInviteCodes = "DELETE FROM invite_codes WHERE user_id = ?";
+  db.query(deleteFromInviteCodes, [userId], (err, results) => {
     if (err) {
-      console.error("Error deleting user references:", err);
-      return res.status(500).send({ message: "Database error", error: err });
+      console.error("Error deleting from invite_codes:", err);
+      return res
+        .status(500)
+        .send({ message: "Error deleting from invite_codes", error: err });
     }
 
-    // 이제 userInfo 테이블에서 사용자 정보를 안전하게 삭제
-    const deleteUserQuery = "DELETE FROM userInfo WHERE id = ?";
-    db.query(deleteUserQuery, [userId], (err, result) => {
+    // couple_connection_check_for_s 테이블에서 해당 사용자의 check_id 조회
+    const getCheckIdQuery =
+      "SELECT check_id FROM couple_connection_check_for_s WHERE user_id1 = ? OR user_id2 = ?";
+    db.query(getCheckIdQuery, [userId, userId], (err, checkIds) => {
       if (err) {
-        console.error("Error deleting user:", err);
-        res.status(500).send({ message: "Database error", error: err });
-      } else {
-        req.session.destroy((error) => {
-          if (error) {
-            console.error("Session destruction error:", error);
+        console.error("Error fetching check_id:", err);
+        return res.status(500).send({ message: "Database error", error: err });
+      }
+
+      if (checkIds.length > 0) {
+        const checkId = checkIds[0].check_id;
+
+        // postInfo 테이블에서 해당 check_id를 참조하는 레코드 삭제
+        const deleteFromPostInfo = "DELETE FROM postInfo WHERE check_id = ?";
+        db.query(deleteFromPostInfo, [checkId], (err, results) => {
+          if (err) {
+            console.error("Error deleting from postInfo:", err);
             return res
               .status(500)
-              .send({ message: "Error destroying session", error: error });
+              .send({ message: "Error deleting from postInfo", error: err });
           }
-          res.send({ message: "사용자의 데이터가 모두 제거 되었습니다." });
+
+          // bucketList 테이블에서 해당 check_id를 참조하는 레코드 삭제
+          const deleteFromBucketList =
+            "DELETE FROM bucketList WHERE check_id = ?";
+          db.query(deleteFromBucketList, [checkId], (err, results) => {
+            if (err) {
+              console.error("Error deleting from bucketList:", err);
+              return res.status(500).send({
+                message: "Error deleting from bucketList",
+                error: err,
+              });
+            }
+
+            // chat 테이블에서 해당 사용자와 관련된 레코드 삭제
+            const deleteFromChat = "DELETE FROM chat WHERE user_id = ?";
+            db.query(deleteFromChat, [userId], (err, results) => {
+              if (err) {
+                console.error("Error deleting from chat:", err);
+                return res
+                  .status(500)
+                  .send({ message: "Error deleting from chat", error: err });
+              }
+
+              // couple_connection_check_for_s 테이블에서 해당 사용자의 레코드 삭제
+              const deleteFromCoupleConnection =
+                "DELETE FROM couple_connection_check_for_s WHERE user_id1 = ? OR user_id2 = ?";
+              db.query(
+                deleteFromCoupleConnection,
+                [userId, userId],
+                (err, results) => {
+                  if (err) {
+                    console.error(
+                      "Error deleting from couple_connection_check_for_s:",
+                      err
+                    );
+                    return res.status(500).send({
+                      message:
+                        "Error deleting from couple_connection_check_for_s",
+                      error: err,
+                    });
+                  }
+
+                  // userInfo 테이블에서 사용자 정보 삭제
+                  const deleteUserQuery = "DELETE FROM userInfo WHERE id = ?";
+                  db.query(deleteUserQuery, [userId], (err, result) => {
+                    if (err) {
+                      console.error("Error deleting user from userInfo:", err);
+                      return res.status(500).send({
+                        message: "Error deleting user from userInfo",
+                        error: err,
+                      });
+                    }
+                    req.session.destroy((error) => {
+                      if (error) {
+                        console.error("Error destroying session:", error);
+                        return res.status(500).send({
+                          message: "Error destroying session",
+                          error: error,
+                        });
+                      }
+                      res.send({
+                        message: "사용자의 데이터가 모두 제거 되었습니다.",
+                      });
+                    });
+                  });
+                }
+              );
+            });
+          });
+        });
+      } else {
+        // 해당 check_id가 없는 경우, 바로 userInfo 삭제
+        const deleteUserQuery = "DELETE FROM userInfo WHERE id = ?";
+        db.query(deleteUserQuery, [userId], (err, result) => {
+          if (err) {
+            console.error("Error deleting user from userInfo:", err);
+            return res.status(500).send({
+              message: "Error deleting user from userInfo",
+              error: err,
+            });
+          }
+          req.session.destroy((error) => {
+            if (error) {
+              console.error("Error destroying session:", error);
+              return res
+                .status(500)
+                .send({ message: "Error destroying session", error: error });
+            }
+            res.send({ message: "사용자의 데이터가 모두 제거 되었습니다." });
+          });
         });
       }
     });
@@ -603,17 +716,26 @@ app.post("/api/member_withdrawal", (req, res) => {
 //  게시글 추가
 //  게시글 추가
 
-app.post("/api/add_post", (req, res) => {
+app.post("/api/add_post", upload.single("img"), (req, res) => {
+  //upload.single('img')은 클라이언트에서 'img'라는 이름으로 전송된 단일 파일을 처리
   const { title, content, img } = req.body;
-  const imagesAsString = JSON.stringify(img);
+  const imgFile = req.file; // Multer에 추가된 파일 정보
   console.log("Received data:", req.body);
-
   const userId = req.session.userId; // 예시: 세션에서 user_id 가져오기
   const checkId = req.session.checkId; // 예시: 세션에서 check_id 가져오기
 
+  // 파일이 정상적으로 업로드 되었는지 확인
+  if (!imgFile) {
+    res.status(400).send("이미지가 업로드되지 않았습니다.");
+    return;
+  }
+
+  //이미지 url 생성
+  const imageUrl = `/home/ubuntu/chat-server/images${imgFile.filenmae}`;
+
   db.query(
     "INSERT INTO postInfo (user_id, check_id, title, content, img) VALUES (?, ?, ?, ?, ?)",
-    [userId, checkId, title, content, imagesAsString],
+    [userId, checkId, title, content, imageUrl],
     (err, result) => {
       if (err) {
         res.status(500).send(err);
@@ -685,15 +807,25 @@ app.get("/api/load_post", (req, res) => {
 // 게시글 수정
 // 게시글 수정
 
-app.put("/api/update_post/:id", (req, res) => {
+app.put("/api/update_post/:id", upload.single("img"), (req, res) => {
   const postId = req.params.id;
-  const updatedPost = req.body;
+  const { title, content } = req.body;
+  let updatedPost = { title, content };
+
+  if (req.file) {
+    const imageUrl = `/home/ubuntu/chat-server/images${req.file.filename}`;
+    updatedPost.img = imageUrl;
+  }
+
   db.query(
     "UPDATE postInfo SET ? WHERE post_id = ?",
     [updatedPost, postId],
     (err, result) => {
-      if (err) res.status(500).send(err);
-      res.json({ message: "Post updated" });
+      if (err) {
+        res.status(500).send(err);
+        return;
+      }
+      res.json({ message: "Post updated", updatedPost });
     }
   );
 });
