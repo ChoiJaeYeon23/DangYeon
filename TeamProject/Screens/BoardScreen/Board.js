@@ -13,6 +13,7 @@ import { useNavigation } from "@react-navigation/native";
 import Swiper from "react-native-swiper";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { format } from "date-fns";
+import { useFocusEffect } from '@react-navigation/native';
 
 const Board = ({ route }) => {
   const navigation = useNavigation();
@@ -49,6 +50,11 @@ const Board = ({ route }) => {
     loadPosts();
   }, []);
 
+  useFocusEffect(
+    React.useCallback(() => {
+      loadPosts();
+    }, [])
+  );
   useEffect(() => {
     setFilteredPosts(posts);
   }, [posts]);

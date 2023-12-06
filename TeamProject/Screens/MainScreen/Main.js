@@ -95,7 +95,6 @@ const Main = ({ navigation }) => {
           'Content-Type': 'application/json',
         },
       });
-  
       if (response.ok) {
         const data = await response.json();
         if (data && data.length > 0) {
@@ -136,6 +135,8 @@ const Main = ({ navigation }) => {
     loadmeetingday()
     loadusernames()
   }, []);
+
+
 
   const calculateDaysSinceMeeting = (meetingDay) => { // 처음 만난 날 계산
     const today = moment();

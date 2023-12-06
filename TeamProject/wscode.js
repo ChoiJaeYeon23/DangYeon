@@ -202,33 +202,6 @@ app.post("/api/generate-invite-code", (req, res) => {
   });
 });
 
-// 상대방 기다리는 중
-// 상대방 기다리는 중
-// 상대방 기다리는 중
-app.get("/api/check-couple-status", (req, res) => {
-  const userId = req.session.userId;
-
-  if (!userId) {
-    return res.status(401).send({ message: "Unauthorized: No session found" });
-  }
-
-  const query =
-    "SELECT * FROM couple_connection_check_for_s WHERE user_id1 = ? OR user_id2 = ?";
-  db.query(query, [userId, userId], (err, results) => {
-    if (err) {
-      res.status(500).send({ message: "Database error", error: err });
-      return;
-    }
-
-    // 연결 상태를 확인하여 반환
-    if (results.length > 0) {
-      res.send({ connected: true });
-    } else {
-      res.send({ connected: false });
-    }
-  });
-});
-
 // 커플연결
 // 커플연결
 // 커플연결
