@@ -336,6 +336,33 @@ app.delete("/api/bucketlist/:id", (req, res) => {
   });
 });
 
+
+
+// D-Day 계산
+app.get("/api/D-day/", (req, res) => {
+  const id = req.session.userId;
+
+  console.log("123123123123",id)
+
+  const calculateDateQuery = "SELECT meetingDay FROM userInfo WHERE id = ?";
+  db.query(calculateDateQuery, [id], (err, result) => {
+    if (err) {
+      console.error("Database error:", err);
+      res.status(500).send({ message: "Database error", error: err });
+      return;
+    }
+    console.log("?????????",result[0])
+    res.send(result) // meetingDay 전달
+  });
+});
+
+
+
+
+
+
+
+
 // 로그아웃 함수
 // 로그아웃 함수
 // 로그아웃 함수
