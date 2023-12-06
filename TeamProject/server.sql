@@ -38,7 +38,7 @@ CREATE TABLE postInfo(
     postdate DATE,
     title VARCHAR(255),
     content TEXT,
-    img BLOB,
+    img TEXT,
     FOREIGN KEY (user_id) REFERENCES userInfo(id),
     FOREIGN KEY (check_id) REFERENCES couple_connection_check_for_s(check_id)
 );
