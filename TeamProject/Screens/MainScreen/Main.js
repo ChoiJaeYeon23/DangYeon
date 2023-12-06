@@ -20,7 +20,9 @@ const Main = ({ navigation }) => {
   const [message, setMessage] = useState('');//메시지
   const [isAttendanceModalVisible, setIsAttendanceModalVisible] = useState(false); // 출석체크 관리
   const [daysSinceMeeting, setDaysSinceMeeting] = useState(0);
-  
+  const [user1_name, setuser1_name] = useState('')
+  const [user2_name, setuser2_name] = useState('')
+
   useEffect(() => {
     const checkDateAndAttendance = async () => {
       try {
@@ -106,9 +108,32 @@ const Main = ({ navigation }) => {
     }
   };
 
+  // 서버로부터 사용자 이름들 가져오는 코드
+  const loadusernames = async () => {
+    try{
+      const response = await fetch('http://3.34.6.50:8080/api/usersname',{
+        method: 'GET',
+        headers:{
+          'Content-Type': 'application/json',
+        },
+      });
+      if(response.ok){
+        const usersnamedata = await response.json();
+        if (usersnamedata && usersnamedata.length > 0){
+          setuser1_name(usersnamedata[0].username)
+          setuser2_name(usersnamedata[1].username)
+        }
+      } else {
+        console.error('Failed to fetch username');
+      }
+    } catch (error){
+      console.error('Error fetching meeting day:',error)
+    }
+  }
 
   useEffect(() => {
     loadmeetingday()
+    loadusernames()
   }, []);
 
   const calculateDaysSinceMeeting = (meetingDay) => { // 처음 만난 날 계산
@@ -128,7 +153,7 @@ const Main = ({ navigation }) => {
         <TouchableOpacity onPress={goToCalendar} style={styles.anniversary}>
           <Text style={styles.anniversaryText}>사랑한 지</Text>
           <Text style={styles.anniversaryText2}>{daysSinceMeeting}일 째</Text>
-          <Text style={styles.anniversaryText}>수쨩 💖 원우</Text>
+          <Text style={styles.anniversaryText}>{user1_name} 💖 {user2_name}</Text>
         </TouchableOpacity>
       </View>
       <View style={styles.map}>
