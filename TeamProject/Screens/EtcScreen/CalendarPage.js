@@ -30,57 +30,59 @@ const CustomDay = ({ date, state, marking }) => {
 
 // 달력 페이지 컴포넌트
 const CalendarPage = () => {
-  const [markedDates, setMarkedDates] = useState({});
+  const [markedDates, setMarkedDates] = useState({}); // 각 날짜에 캔디 이미지를 표시
   const [candyCounts, setCandyCounts] = useState({}); // 월별 캔디 수 저장
   const [totalCandyCount, setTotalCandyCount] = useState(0); // 전체 캔디 수
 
-  // 출석체크 데이터를 불러오는 역할
   useEffect(() => {
-    loadAttendanceData();
-    loadTotalCandyCount();
-  }, []);
+    const loadAttendanceData = async () => {
+      try {
+        // 출석체크 캔디와 만보기 캔디를 불러옵니다.
+        const attendanceValue = await AsyncStorage.getItem('@attendance');
+        let pedometerCandyValue = await AsyncStorage.getItem('@candies');
+        pedometerCandyValue = pedometerCandyValue ? parseInt(pedometerCandyValue, 10) : 0;
 
-  // 출석체크 날짜에 캔디 이미지 표시 및 월별 캔디 수 계산
-  const loadAttendanceData = async () => {
-    try {
-      const attendanceValue = await AsyncStorage.getItem('@attendance');
-      if (attendanceValue != null) {
-        const attendance = JSON.parse(attendanceValue);
-        const newMarkedDates = {};
-        const newCandyCounts = { ...candyCounts };
-        let currentMonth = moment().month() + 1; // 현재 월
-        let candyCount = 0;
+        let newMarkedDates = {};
+        let newCandyCounts = {};
+        let totalCandyCount = pedometerCandyValue; // 만보기 캔디로 초기화
 
-        attendance.forEach((attended, index) => {
-          const day = moment().startOf('isoWeek').add(index, 'days');
-          if (attended) {
-            candyCount += 1;
+        if (attendanceValue !== null) {
+          // 출석체크 캔디를 계산
+          const attendance = JSON.parse(attendanceValue);
+          let currentMonth = moment().month() + 1; // 현재 월
+          let monthlyCandyCount = 0;
 
-            // 월이 바뀌면 해당 월의 캔디 수 초기화
-            if (day.month() + 1 !== currentMonth) {
-              currentMonth = day.month() + 1;
-              candyCount = 1;
+          attendance.forEach((attended, index) => {
+            const day = moment().startOf('isoWeek').add(index, 'days');
+            if (attended) {
+              newMarkedDates[day.format('YYYY-MM-DD')] = {
+                customStyles: {
+                  image: CandyImage,
+                },
+              };
+
+              if (day.month() + 1 !== currentMonth) {
+                currentMonth = day.month() + 1;
+                monthlyCandyCount = 0;
+              }
+
+              monthlyCandyCount++;
+              totalCandyCount++; // 출석체크 캔디를 전체 캔디 수에 추가
+              newCandyCounts[currentMonth] = monthlyCandyCount;
             }
+          });
+        }
 
-            newMarkedDates[day.format('YYYY-MM-DD')] = {
-              customStyles: {
-                image: CandyImage,
-              },
-            };
-
-            // 해당 월의 캔디 수 업데이트
-            newCandyCounts[currentMonth] = candyCount;
-          }
-        });
-
-        setTotalCandyCount(candyCount);
         setMarkedDates(newMarkedDates);
         setCandyCounts(newCandyCounts);
+        setTotalCandyCount(totalCandyCount); // 전체 캔디 수 업데이트
+      } catch (error) {
+        console.error('Error loading attendance data', error);
       }
-    } catch (error) {
-      console.error('Error loading attendance data', error);
-    }
-  };
+    };
+
+    loadAttendanceData();
+  }, []);
 
   // 달력에 년도 월 표시 부분
   const CustomHeader = (month) => {

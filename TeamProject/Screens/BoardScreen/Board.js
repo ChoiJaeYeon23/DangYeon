@@ -114,7 +114,7 @@ const Board = ({ route }) => {
   // 검색 텍스트에 따라 게시물 필터링하는 useEffect
   useEffect(() => {
     const filtered = posts.filter((post) =>
-      post.text.toLowerCase().includes(searchText.toLowerCase())
+    post.text?.toLowerCase().includes(searchText.toLowerCase())
     );
     setFilteredPosts(filtered);
   }, [searchText, posts]);

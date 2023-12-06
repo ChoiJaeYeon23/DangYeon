@@ -55,6 +55,7 @@ const Etc = ({ navigation }) => {
     try {
       const attendanceValue = await AsyncStorage.getItem('@attendance');
       const jsonValue = await AsyncStorage.getItem('@bucketList');
+      const lastCheckDate = await AsyncStorage.getItem('@lastCheckDate');
 
       if (attendanceValue != null) {
         setAttendance(JSON.parse(attendanceValue));
@@ -63,22 +64,26 @@ const Etc = ({ navigation }) => {
         setBucketListItems(JSON.parse(jsonValue).slice(0, 2));
       }
 
-      const today = moment();
-      const currentMonth = today.format('M');
-      const monthStart = moment(today).startOf('month');
-      const weeksPassed = today.diff(monthStart, 'weeks') + 1;
-
-      setCurrentWeek(weeksPassed);
-      setCurrentMonth(currentMonth);
+      if (lastCheckDate != null) {
+        // 현재 주차 정보 계산
+        const today = moment();
+        const storedDate = moment(lastCheckDate);
+        const monthStart = moment(storedDate).startOf('month');
+        const weeksPassed = today.diff(monthStart, 'weeks') + 1;
+        const currentMonth = storedDate.format('M');
+  
+        setCurrentWeek(weeksPassed);
+        setCurrentMonth(currentMonth);
+      }
     } catch (e) {
       console.error("Error loading data", e);
     }
   };
-
+  
   useEffect(() => {
     loadData();
   }, []);
-
+  
   useFocusEffect(
     React.useCallback(() => {
       loadData();
