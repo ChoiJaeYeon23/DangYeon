@@ -354,9 +354,9 @@ app.get("/api/D-day/", (req, res) => {
   });
 });
 
-// 사용자 이름 가져오기 (2개)
-// 사용자 이름 가져오기 (2개)
-// 사용자 이름 가져오기 (2개)
+// 사용자 이름 가져오기 (2개) (main화면)
+// 사용자 이름 가져오기 (2개) (main화면)
+// 사용자 이름 가져오기 (2개) (main화면)
 app.get("/api/usersname", (req, res) => {
   const checkId = req.session.checkId;
 
@@ -387,13 +387,32 @@ app.get("/api/usersname", (req, res) => {
 });
 
 
+// 내 정보 화면에 정보 가져오기
+// 내 정보 화면에 정보 가져오기
+// 내 정보 화면에 정보 가져오기
+app.get("/api/userInfos",(req,res)=>{
+  const userId = req.session.userId
+  const getuserInfos = "SELECT username, birthday, meetingDay, blood_type FROM userInfo WHERE id = ?"
+  db.query(getuserInfos, [userId], (err,results)=>{
+    if (err) {
+      console.error("Database error:", err);
+      res.status(500).send({ message: "Database error", error: err });
+      return;
+    }
+    if(results.length>0){
+      res.send(results)
+    }
+    else{
+      res.status(404).send({ message: "No users found for given userId" });
+    }
+  });
+});
 
 
 
 // 로그아웃 함수
 // 로그아웃 함수
 // 로그아웃 함수
-
 app.post("/api/logout", (req, res) => {
   console.log(session);
   if (req.session) {
