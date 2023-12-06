@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import {
   View,
-  TextInput,
   TouchableOpacity,
   Text,
   StyleSheet,
@@ -17,57 +16,42 @@ import { format } from "date-fns";
 
 const Board = ({ route }) => {
   const navigation = useNavigation();
-  const [posts, setPosts] = useState([]); // 게시물 목록을 저장
-  const [filteredPosts, setFilteredPosts] = useState([]); // 게시글 목록
+  const [posts, setPosts] = useState([]);
+  const [filteredPosts, setFilteredPosts] = useState([]);
+
+  // 게시물 목록을 불러오는 함수
+  const loadPosts = async () => {
+    try {
+      const response = await fetch("http://3.34.6.50:8080/api/load_post");
+      const data = await response.json();
+      setPosts(data);
+      setFilteredPosts(data);
+    } catch (error) {
+      console.error("Error fetching posts:", error);
+    }
+  };
+
+  // 게시물 삭제 함수
+  const deletePost = async (postId) => {
+    try {
+      await fetch(`http://3.34.6.50:8080/api/del_post/${postId}`, {
+        method: "DELETE",
+      });
+      Alert.alert("게시글 삭제 성공");
+      loadPosts();
+    } catch (error) {
+      Alert.alert("게시글 삭제 실패");
+      console.error("Error deleting post:", error);
+    }
+  };
 
   useEffect(() => {
-    const loadPosts = async () => {
-      try {
-        const response = await fetch("http://3.34.6.50:8080/api/load_post");
-        const data = await response.json();
-        setPosts(data);
-      } catch (error) {
-        console.error("Error fetching posts:", error);
-      }
-    };
-
     loadPosts();
   }, []);
-  // posts 상태가 변경될 때 filteredPosts 업데이트
+
   useEffect(() => {
     setFilteredPosts(posts);
   }, [posts]);
-
-  // 게시물 저장하는 함수
-  const savePosts = async (newPosts) => {
-    setPosts(newPosts);
-    await saveData("posts", newPosts);
-  };
-
-  // 새 게시물이 추가되거나 수정될 때 게시물 목록 업데이트
-  useEffect(() => {
-    if (route.params?.postData) {
-      const newPost = {
-        ...route.params.postData,
-        id: Math.random().toString(36).substring(7),
-        isLiked: false,
-        createdAt: new Date().toISOString(),
-      };
-      setPosts((currentPosts) => [newPost, ...currentPosts]);
-      savePosts([newPost, ...posts]);
-    }
-
-    if (route.params?.editedData) {
-      setPosts((currentPosts) =>
-        currentPosts.map((post) =>
-          post.id === route.params.editedData.id
-            ? { ...route.params.editedData }
-            : post
-        )
-      );
-      savePosts(posts);
-    }
-  }, [route.params?.postData, route.params?.editedData]);
 
   // 게시물 수정 함수
   const editPost = async (postId, updatedPost) => {
@@ -79,51 +63,26 @@ const Board = ({ route }) => {
         },
         body: JSON.stringify(updatedPost),
       });
-      loadPosts(); // 게시물 목록 다시 불러오기
+      loadPosts();
     } catch (error) {
       console.error("Error updating post:", error);
     }
   };
 
-  // 게시물 업데이트 관련 useEffect
-  useEffect(() => {
-    if (route.params?.editedData) {
-      setPosts((currentPosts) =>
-        currentPosts.map((post) =>
-          post.id === route.params.editedData.id
-            ? { ...route.params.editedData }
-            : post
-        )
-      );
-    }
-  }, [route.params?.editedData]);
-
-  // 게시물 삭제 함수
-  const deletePost = async (postId) => {
-    try {
-      await fetch(`http://3.34.6.50:8080/api/del_post/${postId}`, {
-        method: "DELETE",
-      });
-      loadPosts(); // 게시물 목록 다시 불러오기
-    } catch (error) {
-      console.error("Error deleting post:", error);
-    }
-  };
-
   // 게시물 옵션 함수
-  const openOptions = (postId) => {
+  const openOptions = (post) => {
+    if (!post) {
+      console.error("Post is undefined");
+      return;
+    }
     Alert.alert(
       "게시물",
       null,
       [
-        { text: "수정", onPress: () => editPost(postId) },
+        { text: "수정", onPress: () => editPost(post.post_id, post) },
         {
           text: "삭제",
-
-          onPress: () => (
-            console.log("Deleting post with ID:", postId), deletePost(postId)
-          ),
-
+          onPress: () => deletePost(post.post_id),
           style: "destructive",
         },
         { text: "취소", style: "cancel" },
@@ -131,6 +90,10 @@ const Board = ({ route }) => {
       { cancelable: true }
     );
   };
+
+  useEffect(() => {
+    console.log("Filtered posts:", filteredPosts);
+  }, [filteredPosts]);
 
   return (
     <View style={styles.container}>
@@ -153,18 +116,19 @@ const Board = ({ route }) => {
       </TouchableOpacity>
       <ScrollView>
         {filteredPosts.map((post, index) => (
-          <View key={post.id} style={styles.postContainer}>
+          <View key={post.post_id} style={styles.postContainer}>
             <View style={styles.postHeader}>
+              <Text style={styles.postTitle}>게시글 번호 : {post.post_id}</Text>
               <Text style={styles.postTitle}>{post.title}</Text>
               <Text style={styles.postDate}>
                 {post.createdAt && !isNaN(new Date(post.createdAt).getTime())
-                  ? format(new Date(post.createdAt), "yyyy/MM/dd HH:mm:ss")
+                  ? format(new Date(post.createdAt), "yyyy/MM/dd HH:mm")
                   : "날짜 정보 없음"}
               </Text>
             </View>
             <TouchableOpacity
               style={styles.optionsButton}
-              onPress={() => openOptions(post.id)}
+              onPress={() => openOptions(post)}
             >
               <Ionicons name="ellipsis-horizontal" size={24} color="#000" />
             </TouchableOpacity>
@@ -187,7 +151,7 @@ const Board = ({ route }) => {
               ))}
             </Swiper>
             <View style={styles.dotTextContainer}>
-              <Text style={styles.postText}>{post.text}</Text>
+              <Text style={styles.postText}>{post.content}</Text>
             </View>
           </View>
         ))}

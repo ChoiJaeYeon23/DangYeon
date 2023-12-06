@@ -258,7 +258,8 @@ app.post("/api/bucketlist", (req, res) => {
     return res.status(401).send({ message: "Unauthorized: No session found" });
   }
 
-  const insertQuery = "INSERT INTO bucketList (check_id, bucket_text, isCompleted) VALUES (?, ?, false)";
+  const insertQuery =
+    "INSERT INTO bucketList (check_id, bucket_text, isCompleted) VALUES (?, ?, false)";
   db.query(insertQuery, [checkId, text], (err, result) => {
     if (err) {
       console.error("Database error:", err);
@@ -270,7 +271,6 @@ app.post("/api/bucketlist", (req, res) => {
   });
 });
 
-
 // 버킷리스트 불러오기(checkId 별)
 // 버킷리스트 불러오기(checkId 별)
 // 버킷리스트 불러오기(checkId 별)
@@ -281,7 +281,8 @@ app.get("/api/bucketlist", (req, res) => {
     return res.status(401).send({ message: "Unauthorized: No session found" });
   }
 
-  const query = "SELECT bucket_text, isCompleted,bucket_id FROM bucketList WHERE check_id = ?";
+  const query =
+    "SELECT bucket_text, isCompleted,bucket_id FROM bucketList WHERE check_id = ?";
   db.query(query, [checkId], (err, results) => {
     if (err) {
       console.error("Database error:", err);
@@ -290,7 +291,6 @@ app.get("/api/bucketlist", (req, res) => {
     }
 
     res.status(200).send(results);
-
   });
 });
 
@@ -301,7 +301,8 @@ app.put("/api/bucketlist/:id", (req, res) => {
   const { id } = req.params;
   const { isCompleted } = req.body;
 
-  const updateQuery = "UPDATE bucketList SET isCompleted = ? WHERE bucket_id = ?";
+  const updateQuery =
+    "UPDATE bucketList SET isCompleted = ? WHERE bucket_id = ?";
   db.query(updateQuery, [isCompleted, id], (err, result) => {
     if (err) {
       console.error("Database error:", err);
@@ -312,7 +313,6 @@ app.put("/api/bucketlist/:id", (req, res) => {
     res.status(200).send({ message: "Bucketlist item updated successfully" });
   });
 });
-
 
 // 버킷리스트 항목 삭제 업데이트 (bucket_id로 판단)
 // 버킷리스트 항목 삭제 업데이트 (bucket_id로 판단)
@@ -335,34 +335,6 @@ app.delete("/api/bucketlist/:id", (req, res) => {
     }
   });
 });
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 // 로그아웃 함수
 // 로그아웃 함수
@@ -554,7 +526,6 @@ app.post("/api/member_withdrawal", (req, res) => {
   });
 });
 
-
 //  게시글 추가
 //  게시글 추가
 //  게시글 추가
@@ -663,14 +634,18 @@ app.delete("/api/del_post/:id", (req, res) => {
   console.log("Received delete request for post ID:", postId);
   console.log("Request details:", req);
 
-  db.query("DELETE FROM postInfo WHERE post_id = ?", postId, (err, result) => {
-    if (err) {
-      console.error("Error executing query:", err);
-      return res.status(500).send(err);
+  db.query(
+    "DELETE FROM postInfo WHERE post_id = ?",
+    [postId],
+    (err, result) => {
+      if (err) {
+        console.error("Error executing query:", err);
+        return res.status(500).send(err);
+      }
+      console.log("Query result:", result);
+      res.json({ message: "Post deleted" });
     }
-    console.log("Query result:", result);
-    res.json({ message: "Post deleted" });
-  });
+  );
 });
 
 // WebSocket 연결 처리
