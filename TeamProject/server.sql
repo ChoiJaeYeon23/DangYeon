@@ -44,7 +44,6 @@ CREATE TABLE postInfo(
 );
 
 -- 채팅 테이블
-
 CREATE TABLE chat(
     message_id INTEGER AUTO_INCREMENT PRIMARY KEY,
     room_id VARCHAR(10),
@@ -53,19 +52,13 @@ CREATE TABLE chat(
     MessageTime DATETIME
 );
 
--- 커플 연결 확인 테이블
-CREATE TABLE couple_connection_check (
-    check_id INTEGER AUTO_INCREMENT PRIMARY KEY,
-    user_id VARCHAR(50),
-    connect_id_me VARCHAR(50),
-    connect_id_lover VARCHAR(50),
-    FOREIGN KEY (user_id) REFERENCES userInfo(id)
-);
-
 -- 버킷리스트 테이블
-CREATE TABLE bucketList(
-    bucket_id INTEGER PRIMARY KEY AUTO_INCREMENT,
-    bucket_text TEXT
+CREATE TABLE bucketList (
+  bucket_id INT AUTO_INCREMENT PRIMARY KEY,
+  bucket_text VARCHAR(255) NOT NULL,
+  isCompleted BOOLEAN NOT NULL DEFAULT FALSE,
+  check_id INT,
+  FOREIGN KEY (check_id) REFERENCES couple_connection_check_for_s(check_id)
 );
 
 -- 달력 테이블
