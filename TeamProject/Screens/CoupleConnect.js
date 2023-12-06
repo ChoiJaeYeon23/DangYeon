@@ -49,8 +49,8 @@ const CoupleConnect = ({ navigation }) => {
     })
       .then((response) => response.json())
       .then((data) => {
-        Alert.alert("성공", "커플로 연결되었습니다!");
-        navigation.navigate("MainTab");
+        Alert.alert("성공", "상대방의 코드를 저장했습니다. 이제 상대방이 당신의 코드를 저장하게되면 연결됩니다. 연결대기화면으로 넘어갑니다.");
+        navigation.navigate("Waitcouple");
       })
       .catch((error) => {
         console.error("Error connecting couple:", error);

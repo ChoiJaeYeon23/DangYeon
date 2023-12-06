@@ -62,7 +62,6 @@ const Etc = ({ navigation }) => {
       if (response.ok) {
         const data = await response.json();
         const incompleteItems = data
-          .filter(item => item.isCompleted === 0) // 완료되지 않은 (isCompleted가 false) 아이템만 선택
           .slice(0, 2) // 최대 2개만 선택
           .map(item => ({
             ...item,
