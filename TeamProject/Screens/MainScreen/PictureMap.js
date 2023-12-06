@@ -4,7 +4,6 @@ import * as ImagePicker from 'expo-image-picker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AntDesign } from '@expo/vector-icons';
 import addimage from '../../assets/add_image.png'
-import axios from 'axios';
 
 const PictureMap = () => {
   const [regionImages, setRegionImages] = useState({}); // 지역별 사진 URI를 저장하는 객체
@@ -124,8 +123,6 @@ const PictureMap = () => {
     }
     setRegionImages(newRegionImages);
     saveImages(newRegionImages);
-
-        
   };
 
   const getReverseGeocodingData = async (lat, lon) => {
@@ -242,12 +239,6 @@ const PictureMap = () => {
     );
   };
 
-
-
-
-
-
-
   return (
     <View style={styles.container}>
       <TouchableOpacity onPress={pickImage}>
@@ -257,7 +248,7 @@ const PictureMap = () => {
         <Image source={require('../../assets/8domap.png')} style={styles.mapStyle} />
         {Object.keys(regionImages).map(region => renderImageOnMap(region))}
       </View>
-      <Modal visible={modalVisible} animationType="slide" onRequestClose={() => setModalVisible(false)}>
+      <Modal visible={modalVisible} animationType="fade" onRequestClose={() => setModalVisible(false)}>
         {renderModalContent()}
       </Modal>
     </View>
