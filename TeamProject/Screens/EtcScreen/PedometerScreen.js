@@ -158,7 +158,7 @@ const PedometerScreen = () => {
         await AsyncStorage.setItem('@candies', JSON.stringify(candies));
         // console.log(candies)
       } catch (error) {
-        console.error('캔디 저장 중 오류 발생:', error);
+        console.error('캔디 저장 중 오류 발생 : ', error);
       }
     };
 

@@ -111,7 +111,7 @@ const Chat = () => {
               style={styles.input}
               value={userId}
               onChangeText={setUserId}
-              placeholder="사용자 ID를 입력해주세요."
+              placeholder="본인의 ID를 입력해주세요."
               editable={!userIdSubmitted}
             />
             <TouchableOpacity onPress={submitUserId}>
@@ -170,7 +170,7 @@ const styles = StyleSheet.create({
     borderRadius: 15,
   },
   messageBubble: {
-    padding: 10,
+    padding: 12,
     borderRadius: 20,
     marginBottom: 10,
     maxWidth: "80%",
@@ -180,6 +180,16 @@ const styles = StyleSheet.create({
     backgroundColor: "#DCF8C6",
   },
   otherMessage: {
+    alignSelf: "flex-start",
+    backgroundColor: "#ECECEC",
+  },
+  userMessageText: {
+    fontSize: 18,
+    alignSelf: "flex-end",
+    backgroundColor: "#DCF8C6",
+  },
+  otherMessageText: {
+    fontSize: 18,
     alignSelf: "flex-start",
     backgroundColor: "#ECECEC",
   },
