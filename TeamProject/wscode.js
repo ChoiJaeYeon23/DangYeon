@@ -257,7 +257,6 @@ app.post("/api/bucketlist", (req, res) => {
   if (!checkId) {
     return res.status(401).send({ message: "Unauthorized: No session found" });
   }
-  console.log("이거 추가할건데 니 체크아이디 이거임 : ",checkId)
 
   const insertQuery = "INSERT INTO bucketList (check_id, bucket_text, isCompleted) VALUES (?, ?, false)";
   db.query(insertQuery, [checkId, text], (err, result) => {
@@ -277,7 +276,6 @@ app.post("/api/bucketlist", (req, res) => {
 // 버킷리스트 불러오기(checkId 별)
 app.get("/api/bucketlist", (req, res) => {
   const checkId = req.session.checkId;
-  console.log("이거 불러올건데 니 체크아이디 이거임 : ",checkId)
 
   if (!checkId) {
     return res.status(401).send({ message: "Unauthorized: No session found" });
@@ -290,13 +288,14 @@ app.get("/api/bucketlist", (req, res) => {
       res.status(500).send({ message: "Database error", error: err });
       return;
     }
-    
-    console.log("123123",results)
+
     res.status(200).send(results);
-    
+
   });
 });
 
+// 버킷리스트 항목 완료 상태 업데이트
+// 버킷리스트 항목 완료 상태 업데이트
 // 버킷리스트 항목 완료 상태 업데이트
 app.put("/api/bucketlist/:id", (req, res) => {
   const { id } = req.params;
@@ -315,8 +314,27 @@ app.put("/api/bucketlist/:id", (req, res) => {
 });
 
 
+// 버킷리스트 항목 삭제 업데이트 (bucket_id로 판단)
+// 버킷리스트 항목 삭제 업데이트 (bucket_id로 판단)
+// 버킷리스트 항목 삭제 업데이트 (bucket_id로 판단)
+app.delete("/api/bucketlist/:id", (req, res) => {
+  const { id } = req.params;
 
+  const deleteQuery = "DELETE FROM bucketList WHERE bucket_id = ?";
+  db.query(deleteQuery, [id], (err, result) => {
+    if (err) {
+      console.error("Database error:", err);
+      res.status(500).send({ message: "Database error", error: err });
+      return;
+    }
 
+    if (result.affectedRows === 0) {
+      res.status(404).send({ message: "Item not found" });
+    } else {
+      res.status(200).send({ message: "Bucketlist item deleted successfully" });
+    }
+  });
+});
 
 
 

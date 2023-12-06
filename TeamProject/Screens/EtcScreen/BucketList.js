@@ -19,8 +19,7 @@ const BucketList = () => {
   const [deleteConfirmationVisible, setDeleteConfirmationVisible] = useState(false);
   const [deleteIndex, setDeleteIndex] = useState(null); // 삭제할 항목 관리
 
-  // 서버에서 버킷리스트 데이터 로드
-// 서버에서 버킷리스트 데이터 로드
+  // 서버에서 버킷리스트 데이터 로드// 서버에서 버킷리스트 데이터 로드
 const loadBucketList = async () => {
   try {
     const response = await fetch('http://3.34.6.50:8080/api/bucketlist', {
@@ -32,18 +31,19 @@ const loadBucketList = async () => {
 
     if (response.ok) {
       const data = await response.json();
-      console.log("456",data)
-      const formattedData = data.map(item => ({
-        bucket_id: item.bucket_id, // 서버에서 받은 bucket_id 추가
-        text: item.bucket_text,
-        isCompleted: item.isCompleted === 1
-      }));
-      console.log("111",formattedData.bucket_id)
-      console.log("222",formattedData.bucket_text)
-      console.log("333",formattedData.isCompleted)
-      
-      setList(formattedData);
-      console.log(list)
+      if (data.length === 0) {
+        // 데이터가 비어 있는 경우
+        console.log("Bucket list is empty.");
+        setList([]);
+      } else {
+        // 데이터가 있는 경우
+        const formattedData = data.map(item => ({
+          bucket_id: item.bucket_id,
+          text: item.bucket_text,
+          isCompleted: item.isCompleted === 1
+        }));
+        setList(formattedData);
+      }
     } else {
       console.error('Failed to fetch bucket list');
     }
@@ -55,10 +55,12 @@ const loadBucketList = async () => {
 
 
 
+
   useEffect(() => {
     loadBucketList();
   }, []);
 
+  
   // 서버에 버킷리스트 항목 추가 요청 보내기
   const addToBucketList = async (newItem) => {
     try {
@@ -99,37 +101,66 @@ const loadBucketList = async () => {
     setDeleteIndex(index);
     setDeleteConfirmationVisible(true);
   };
-  // 리스트에서 항목 제거
-  const removeFromList = () => {
-    const newList = list.filter((_, idx) => idx !== deleteIndex);
-    setList(newList);
+
+
+  // 리스트에서 항목 제거 및 서버에 삭제 요청
+  const removeFromList = async () => {
+    const itemToDelete = list[deleteIndex];
+    if (!itemToDelete || !itemToDelete.bucket_id) {
+      console.error('Error: Invalid item or bucket_id is missing');
+      return;
+    }
+
+    try {
+      // 서버에 삭제 요청을 보냅니다.
+      const response = await fetch(`http://3.34.6.50:8080/api/bucketlist/${itemToDelete.bucket_id}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (response.ok) {
+        // 삭제 성공 시 클라이언트 상태 업데이트
+        const newList = list.filter((_, idx) => idx !== deleteIndex);
+        setList(newList);
+      } else {
+        console.error('Failed to delete item from bucket list');
+      }
+    } catch (error) {
+      console.error('Error deleting item:', error);
+    }
+
     setDeleteConfirmationVisible(false);
     setDeleteIndex(null);
-    saveData(newList);
   };
+
+
+
   // 삭제 취소
   const cancelDelete = () => {
     setDeleteConfirmationVisible(false);
     setDeleteIndex(null);
   };
-  // 항목 완료 상태// 항목 완료 상태 토글
+
+  // 항목 완료 상태// 항목 완료 상태 토글// 항목 완료 상태 토글
   const toggleCompletion = async (index) => {
     const item = list[index];
-    if (!item.bucketId) {
+    if (!item.bucket_id) {
       console.error('Bucket ID is undefined');
       return;
     }
     const updatedItem = { ...item, isCompleted: !item.isCompleted };
-  
+
     try {
-      const response = await fetch(`http://3.34.6.50:8080/api/bucketlist/${item.bucketId}`, {
+      const response = await fetch(`http://3.34.6.50:8080/api/bucketlist/${item.bucket_id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ isCompleted: updatedItem.isCompleted }),
       });
-  
+
       if (response.ok) {
         const newList = list.map((it, idx) => idx === index ? updatedItem : it);
         setList(newList);
@@ -140,11 +171,10 @@ const loadBucketList = async () => {
       console.error('Error updating item:', error);
     }
   };
-  
 
-// ... 기존 코드 ...
 
-  
+
+
 
 
   // 버킷리스트 완료 상태에 따라 다른 하트 표시

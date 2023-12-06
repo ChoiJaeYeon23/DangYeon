@@ -33,13 +33,13 @@ const Etc = ({ navigation }) => {
       // AsyncStorage에서 걸음 수와 캔디 수 로드
       const storedSteps = await AsyncStorage.getItem('@currentStepCount');
       const storedCandies = await AsyncStorage.getItem('@candies');
-  
+
       if (storedSteps !== null) {
         setCurrentStepCount(parseInt(storedSteps, 10));
       } else {
         console.log("Stored steps not found");
       }
-  
+
       if (storedCandies !== null) {
         setCandies(JSON.parse(storedCandies));
       } else {
@@ -50,8 +50,46 @@ const Etc = ({ navigation }) => {
     }
   };
 
-   // AsyncStorage에서 출석체크 데이터와 현재 주차 정보, 버킷 리스트 데이터 로드
-   const loadData = async () => {
+  // 서버에서 버킷리스트 데이터 로드하는 함수
+  const loadBucketListFromServer = async () => {
+    try {
+      const response = await fetch('http://3.34.6.50:8080/api/bucketlist', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      if (response.ok) {
+        const data = await response.json();
+        const incompleteItems = data
+          .filter(item => item.isCompleted === 0) // 완료되지 않은 (isCompleted가 false) 아이템만 선택
+          .slice(0, 2) // 최대 2개만 선택
+          .map(item => ({
+            ...item,
+            isCompleted: item.isCompleted === 1
+          }));
+        setBucketListItems(incompleteItems);
+      } else {
+        console.error('Failed to fetch bucket list from server');
+      }
+    } catch (error) {
+      console.error('Error fetching bucket list from server:', error);
+    }
+  };
+
+  useEffect(() => {
+    loadBucketListFromServer();
+  }, []);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      loadBucketListFromServer();
+    }, [])
+  );
+
+
+  // AsyncStorage에서 출석체크 데이터와 현재 주차 정보, 버킷 리스트 데이터 로드
+  const loadData = async () => {
     try {
       const attendanceValue = await AsyncStorage.getItem('@attendance');
       const jsonValue = await AsyncStorage.getItem('@bucketList');
@@ -107,7 +145,7 @@ const Etc = ({ navigation }) => {
             <Text style={styles.refreshButtonText}>새로고침</Text>
           </TouchableOpacity>
         </TouchableOpacity>
-        
+
         <View style={styles.box} />
       </View>
       <View style={styles.dotsContainer}>
@@ -124,7 +162,7 @@ const Etc = ({ navigation }) => {
               style={styles.icon}
             />
             <Text style={[styles.listItemText, item.isCompleted && styles.strikethrough]}>
-              {item.text}
+              {item.bucket_text}
             </Text>
           </View>
         ))}
