@@ -20,7 +20,9 @@ const Main = ({ navigation }) => {
   const [message, setMessage] = useState('');//메시지
   const [isAttendanceModalVisible, setIsAttendanceModalVisible] = useState(false); // 출석체크 관리
   const [daysSinceMeeting, setDaysSinceMeeting] = useState(0);
-  
+  const [user1_name, setuser1_name] = useState('')
+  const [user2_name, setuser2_name] = useState('')
+
   useEffect(() => {
     const checkDateAndAttendance = async () => {
       try {
@@ -83,19 +85,56 @@ const Main = ({ navigation }) => {
     setIsAttendanceModalVisible(false);
   };
 
-  useEffect(() => {
-    const fetchMeetingDay = async (userId) => {
-      try {
-        // 'userId'는 현재 로그인한 사용자의 ID나 식별 정보입니다.
-        const response = await fetch(`http://3.34.6.50:8080/api/meeting-day?userId=${userId}`);
-        const data = await response.json();
-        calculateDaysSinceMeeting(data.meetingDay);
-      } catch (error) {
-        console.error('처음 만난 날을 불러오는 중 오류 발생:', error);
-      }
-    };
 
-    fetchMeetingDay();
+  // 서버로부터 처음만난날 가져오는 코드
+  const loadmeetingday = async () => {
+    try {
+      const response = await fetch('http://3.34.6.50:8080/api/D-day', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+  
+      if (response.ok) {
+        const data = await response.json();
+        if (data && data.length > 0) {
+          calculateDaysSinceMeeting(data[0].meetingDay); // 처음 만난 날을 사용하여 계산
+        }
+      } else {
+        console.error('Failed to fetch meeting day');
+      }
+    } catch (error) {
+      console.error('Error fetching meeting day:', error);
+    }
+  };
+
+  // 서버로부터 사용자 이름들 가져오는 코드
+  const loadusernames = async () => {
+    try{
+      const response = await fetch('http://3.34.6.50:8080/api/usersname',{
+        method: 'GET',
+        headers:{
+          'Content-Type': 'application/json',
+        },
+      });
+      if(response.ok){
+        const usersnamedata = await response.json();
+        if (usersnamedata && usersnamedata.length > 0){
+          setuser1_name(usersnamedata[0].username)
+          setuser2_name(usersnamedata[1].username)
+        }
+      } else {
+        console.error('Failed to fetch username');
+      }
+    } catch (error){
+      console.error('Error fetching meeting day:',error)
+    }
+  }
+
+  useEffect(() => {
+    loadmeetingday()
+    loadusernames()
   }, []);
 
   const calculateDaysSinceMeeting = (meetingDay) => { // 처음 만난 날 계산
@@ -115,7 +154,7 @@ const Main = ({ navigation }) => {
         <TouchableOpacity onPress={goToCalendar} style={styles.anniversary}>
           <Text style={styles.anniversaryText}>사랑한 지</Text>
           <Text style={styles.anniversaryText2}>{daysSinceMeeting}일 째</Text>
-          <Text style={styles.anniversaryText}>수쨩 💖 원우</Text>
+          <Text style={styles.anniversaryText}>{user1_name} 💖 {user2_name}</Text>
         </TouchableOpacity>
       </View>
       <View style={styles.map}>

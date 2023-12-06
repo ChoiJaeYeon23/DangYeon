@@ -24,50 +24,41 @@ const UserInfo = ({ navigation }) => {
   const [meetingDay, setMeetingDay] = useState(""); //처음 만난 날
   const [bloodType, setBloodType] = useState(""); //혈액형
   const [isBirthdayPickerVisible, setIsBirthdayPickerVisible] = useState(false); //생년월일 picker
-  const [isMeetingDayPickerVisible, setIsMeetingDayPickerVisible] =
-    useState(false); //처음 만난 날 picker
+  const [isMeetingDayPickerVisible, setIsMeetingDayPickerVisible] = useState(false); //처음 만난 날 picker
   const [profilePic, setProfilePic] = useState(null); // 프로필 사진
   const [isBloodTypeModalVisible, setIsBloodTypeModalVisible] = useState(false); // 혈액형 모달
   const [connect_id, setConnectId] = useState(""); // 연인 코드 추가
 
-  const saveProfileData = async () => {
-    try {
-      const profileData = {
-        name,
-        birthday,
-        bloodType,
-        meetingDay,
-        profilePic: profilePic ? profilePic.uri : null,
-      };
-      await AsyncStorage.setItem("userProfile", JSON.stringify(profileData));
-      alert("프로필이 저장되었습니다.");
-    } catch (error) {
-      alert("프로필 저장에 실패했습니다.");
+
+
+  const loaduserInfos = async () => {
+    try{
+      const response = await fetch('http://3.34.6.50:8080/api/userInfos',{
+        method: 'GET',
+        headers:{
+          'Content-Type': 'application/json',
+        },
+      });
+      if(response.ok){
+        const userInfos = await response.json();
+        if (userInfos && userInfos.length > 0){
+          setName(userInfos[0].username)
+          setBirthday(userInfos[0].birthday)
+          setMeetingDay(userInfos[0].meetingDay)
+          setBloodType(userInfos[0].blood_type)
+        }
+      } else {
+        console.error('Failed to fetch username');
+      }
+    } catch (error){
+      console.error('Error fetching meeting day:',error)
     }
-  };
+  }
 
   useEffect(() => {
-    const loadProfileData = async () => {
-      try {
-        const savedProfileData = await AsyncStorage.getItem("userProfile");
-        if (savedProfileData !== null) {
-          const { name, birthday, bloodType, meetingDay, profilePic } =
-            JSON.parse(savedProfileData);
-          setName(name);
-          setBirthday(birthday);
-          setBloodType(bloodType);
-          setMeetingDay(meetingDay);
-          if (profilePic) {
-            setProfilePic({ uri: profilePic }); // URI를 사용하여 이미지 설정
-          }
-        }
-      } catch (error) {
-        console.error("프로필 로드 실패:", error);
-      }
-    };
-
-    loadProfileData();
+    loaduserInfos()
   }, []);
+
 
   //회원탈퇴 클라이언트 요청 코드
   const member_withdrawal = () => {
@@ -81,6 +72,8 @@ const UserInfo = ({ navigation }) => {
       { cancelable: false }
     );
   };
+
+  
   const memberDelete = () => {
     fetch("http://3.34.6.50:8080/api/member_withdrawal", {
       method: "POST",
@@ -107,34 +100,6 @@ const UserInfo = ({ navigation }) => {
   const handleConnectIdChange = (text) => {
     setConnectId(text);
   };
-
-  // // 내정보 수정하기 클라이언트 요청 코드
-  // // 스타일과 꾸미는건 해줘...
-  // const UpdateMyData = () => {
-  //   name, birthday, meetingDay, user_image;
-  // };
-
-  // fetch("http://3.34.6.50:8080/api/my_dataUpdate"),
-  //   {
-  //     method: "POST",
-  //     headers: {
-  //       "Content-Type": "application/json",
-  //     },
-  //     body: JSON.stringify(UpdateMyData),
-  //   }
-  //     .then((response) => {
-  //       if (response.ok) {
-  //         return response.json();
-  //       }
-  //       throw new Error("서버에서 처리하는데 문제가 발생하였습니다.");
-  //     })
-  //     .then((data) => {
-  //       Alert.alert("성공", "정보가 업데이트되었습니다.");
-  //     })
-  //     .catch((error) => {
-  //       console.error("Error:", error);
-  //       Alert.alert("실패", "정보 업데이트에 실패하였습니다.");
-  //     });
 
   // 생년월일 변경
   const onBirthdayChange = (event, selectedDate) => {
@@ -280,7 +245,6 @@ const UserInfo = ({ navigation }) => {
             <TextInput
               onChangeText={handleNameChange}
               value={name}
-              placeholder="수쨩"
               style={styles.input}
             />
           </View>
@@ -289,7 +253,6 @@ const UserInfo = ({ navigation }) => {
             <View style={styles.dateInputContainer}>
               <TextInput
                 value={birthday}
-                placeholder="2003-02-17"
                 style={styles.dateInput}
                 editable={false}
               />
@@ -314,7 +277,6 @@ const UserInfo = ({ navigation }) => {
             <View style={styles.dateInputContainer}>
               <TextInput
                 value={meetingDay}
-                placeholder="2023-10-17"
                 style={styles.dateInput}
                 editable={false}
                 onPress={showMeetingDayPicker}
@@ -367,7 +329,7 @@ const UserInfo = ({ navigation }) => {
           </View>
           <Separator />
           <View style={styles.saveButtonContainer}>
-            <TouchableOpacity style={styles.Button} onPress={saveProfileData}>
+            <TouchableOpacity style={styles.Button}>
               <Text style={styles.ButtonText}>저장</Text>
             </TouchableOpacity>
             <View style={styles.buttonContainer}>

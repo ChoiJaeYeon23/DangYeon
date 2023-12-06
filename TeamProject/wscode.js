@@ -336,10 +336,83 @@ app.delete("/api/bucketlist/:id", (req, res) => {
   });
 });
 
-// 로그아웃 함수
-// 로그아웃 함수
-// 로그아웃 함수
+// D-Day 계산 (Main화면)
+// D-Day 계산 (Main화면)
+// D-Day 계산 (Main화면)
+app.get("/api/D-day/", (req, res) => {
+  const id = req.session.userId;
 
+
+  const calculateDateQuery = "SELECT meetingDay FROM userInfo WHERE id = ?";
+  db.query(calculateDateQuery, [id], (err, result) => {
+    if (err) {
+      console.error("Database error:", err);
+      res.status(500).send({ message: "Database error", error: err });
+      return;
+    }
+    res.send(result) // meetingDay 전달
+  });
+});
+
+// 사용자 이름 가져오기 (2개) (main화면)
+// 사용자 이름 가져오기 (2개) (main화면)
+// 사용자 이름 가져오기 (2개) (main화면)
+app.get("/api/usersname", (req, res) => {
+  const checkId = req.session.checkId;
+
+  // couple_connection_check_for_s 테이블에서 user_id1과 user_id2 조회
+  const getUserIdsQuery = "SELECT user_id1, user_id2 FROM couple_connection_check_for_s WHERE check_id = ?";
+  db.query(getUserIdsQuery, [checkId], (err, results) => {
+    if (err) {
+      console.error("Database error:", err);
+      res.status(500).send({ message: "Database error", error: err });
+      return;
+    }
+    if (results.length > 0) {
+      const { user_id1, user_id2 } = results[0];
+      // userInfo 테이블에서 username 조회
+      const getUsernamesQuery = "SELECT username FROM userInfo WHERE id IN (?, ?)";
+      db.query(getUsernamesQuery, [user_id1, user_id2], (err, userResults) => {
+        if (err) {
+          console.error("Database error:", err);
+          res.status(500).send({ message: "Database error", error: err });
+          return;
+        }
+        res.send(userResults); // 두 사용자의 username 전달
+      });
+    } else {
+      res.status(404).send({ message: "No users found for given check_id" });
+    }
+  });
+});
+
+
+// 내 정보 화면에 정보 가져오기
+// 내 정보 화면에 정보 가져오기
+// 내 정보 화면에 정보 가져오기
+app.get("/api/userInfos",(req,res)=>{
+  const userId = req.session.userId
+  const getuserInfos = "SELECT username, birthday, meetingDay, blood_type FROM userInfo WHERE id = ?"
+  db.query(getuserInfos, [userId], (err,results)=>{
+    if (err) {
+      console.error("Database error:", err);
+      res.status(500).send({ message: "Database error", error: err });
+      return;
+    }
+    if(results.length>0){
+      res.send(results)
+    }
+    else{
+      res.status(404).send({ message: "No users found for given userId" });
+    }
+  });
+});
+
+
+
+// 로그아웃 함수
+// 로그아웃 함수
+// 로그아웃 함수
 app.post("/api/logout", (req, res) => {
   console.log(session);
   if (req.session) {
