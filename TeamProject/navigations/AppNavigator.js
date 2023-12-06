@@ -12,7 +12,6 @@ import etc from "../assets/etc.png";
 import Login from "../Screens/Login";
 import SignUp from "../Screens/SignUp";
 import CoupleConnect from "../Screens/CoupleConnect";
-import Waitcouple from "../Screens/Waitcouple";
 import Main from "../Screens/MainScreen/Main";
 import PictureMap from "../Screens/MainScreen/PictureMap";
 import CalendarScreen from "../Screens/MainScreen/CalendarScreen";
@@ -215,20 +214,6 @@ function AuthStackScreen() {
         component={CoupleConnect}
         options={{
           title: "커플 연결?(CoupleConnect)",
-          headerShown: false,
-          headerStyle: { backgroundColor: "#FFCCFF" },
-          headerTintColor: "white",
-          headerTitleStyle: {
-            fontWeight: "bold",
-            color: "white",
-          },
-        }}
-      />
-      <AuthStack.Screen
-        name="Waitcouple"
-        component={Waitcouple}
-        options={{
-          title: "커플기다리기",
           headerShown: false,
           headerStyle: { backgroundColor: "#FFCCFF" },
           headerTintColor: "white",
