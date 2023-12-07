@@ -843,7 +843,8 @@ app.put("/api/update_post/:id", upload.single("img"), (req, res) => {
   let updatedPost = { title, content };
 
   if (req.file) {
-    const imageUrl = `/home/ubuntu/chat-server/images${req.file.filename}`;
+    // 올바른 이미지 URL 경로 생성
+    const imageUrl = `http://3.34.6.50:8080/images/${req.file.filename}`;
     updatedPost.img = imageUrl;
   }
 

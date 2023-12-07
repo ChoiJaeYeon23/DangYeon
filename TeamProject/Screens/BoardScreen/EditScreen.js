@@ -8,6 +8,7 @@ import {
   Image,
   ScrollView,
   Alert,
+  TouchableOpacity,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 
@@ -16,16 +17,37 @@ const EditScreen = ({ route, navigation }) => {
   const [content, setContent] = useState("");
   const [images, setImages] = useState([]);
 
+  // 이미지 선택
+  const pickImage = async () => {
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 1,
+    });
+
+    if (!result.cancelled) {
+      setImages([...images, result.uri]);
+    }
+  };
+
+  // 이미지 삭제
+  const removeImage = (index) => {
+    const updatedImages = images.filter((_, i) => i !== index);
+    setImages(updatedImages);
+  };
+
   // 게시글 정보 로드
   useEffect(() => {
     if (route.params?.post) {
-      const { title, content, images } = route.params.post;
+      const { title, content, img } = route.params.post;
       setTitle(title);
       setContent(content);
-      setImages(images ? images : []);
+      setImages(img ? [img] : []);
     }
   }, [route.params?.post]);
 
+  // 게시글 수정 저장 로직
   // 게시글 수정 저장 로직
   const editPost = async () => {
     try {
@@ -36,22 +58,23 @@ const EditScreen = ({ route, navigation }) => {
       formData.append("content", content);
 
       // 이미지 파일을 FormData에 추가
-      images.forEach((image, index) => {
-        // 여기에서는 이미지의 로컬 URI를 가정합니다.
-        // 실제 파일 형식과 이름을 적절하게 처리해야 할 수 있습니다.
-        const { uri } = image;
+      images.forEach((uri, index) => {
         formData.append("img", {
-          uri: uri,
+          uri,
           name: `수정화면 이미지_${index}.jpg`, // 임시 파일명
           type: "image/jpeg", // 파일 형식
         });
       });
+
       // Fetch 요청
       await fetch(
         `http://3.34.6.50:8080/api/update_post/${route.params.post.post_id}`,
         {
           method: "PUT",
-          body: formData, // FormData 사용
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+          body: formData,
         }
       );
 
@@ -80,8 +103,16 @@ const EditScreen = ({ route, navigation }) => {
         multiline
       />
       <View style={styles.imageContainer}>
-        {images.map((image, index) => (
-          <Image key={index} source={{ uri: image }} style={styles.image} />
+        {images.map((uri, index) => (
+          <View key={index} style={styles.imageWrapper}>
+            <Image source={{ uri }} style={styles.image} />
+            <TouchableOpacity
+              onPress={() => removeImage(index)}
+              style={styles.deleteButton}
+            >
+              <Text style={styles.deleteButtonText}>삭제</Text>
+            </TouchableOpacity>
+          </View>
         ))}
       </View>
       <Button title="이미지 선택" onPress={pickImage} />
@@ -105,10 +136,25 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     marginVertical: 10,
   },
+  imageWrapper: {
+    position: "relative",
+    marginRight: 10,
+  },
   image: {
     width: 100,
     height: 100,
-    marginRight: 10,
+  },
+  deleteButton: {
+    position: "absolute",
+    right: 0,
+    top: 0,
+    backgroundColor: "red",
+    padding: 5,
+    borderRadius: 5,
+  },
+  deleteButtonText: {
+    color: "white",
+    fontSize: 12,
   },
 });
 
