@@ -88,6 +88,7 @@ const PictureMap = () => {
     loadImages();
   }, []);
 
+  // 어싱크 ㅋㅋ 사진저장 어싱크
   const loadImages = async () => {
     try {
       const storedImages = await AsyncStorage.getItem('regionImages');
@@ -99,6 +100,7 @@ const PictureMap = () => {
     }
   };
 
+  // 어싱크 ㅋㅋ 지역저장 어싱크
   const saveImages = async (images) => {
     try {
       await AsyncStorage.setItem('regionImages', JSON.stringify(images));
@@ -107,6 +109,7 @@ const PictureMap = () => {
     }
   };
 
+  // 이미지에 저장된 위도경도를 구글 역지오코딩 API를 활용해 주소로 변환 후 주소에 포함된 시를 검색 후 해당되는 8도(+제주도)(경기도.. 강원도.. 제주도.. 등 ) 중 하나에 저장
   const processImages = async (assets) => {
     let newRegionImages = { ...regionImages };
 
@@ -125,6 +128,7 @@ const PictureMap = () => {
     saveImages(newRegionImages);
   };
 
+  // 역지오코딩(구글맵 지오코딩api 활용) 
   const getReverseGeocodingData = async (lat, lon) => {
 
     const apiKey = 'AIzaSyAUoOgEdqAJjl2MbnqQiztR-8Et2_vFQMA';
@@ -135,7 +139,7 @@ const PictureMap = () => {
       const json = await response.json();
       if (json.status === 'OK') {
         const address = json.results[0].formatted_address;
-        console.log(address); // 로그로 주소를 출력
+        console.log(address); // 로그로 주소를 출력 address에 결과 저장
         return address;
       } else {
         console.log(json.error_message);
@@ -147,6 +151,7 @@ const PictureMap = () => {
     }
   };
 
+  // 역지오코딩으로 나온 결과를 8도 중 하나(데이터는 region에 저장)로 변환해주는 함수
   const determineRegion = (address) => {
     if (!address) {
       return '주소 정보 없음';
@@ -159,8 +164,10 @@ const PictureMap = () => {
       }
     }
     return '지역을 결정할 수 없음';
-  };  // 역지오코딩으로 나온 결과를 8도 중 하나(데이터는 region에 저장)로 변환해주는 함수
+  };
 
+
+  // 8도(+제주도)반환 결과 및 사진 uri를 8도이미지 위 해당하는 도에 이미지형태(배열)로 저장
   const renderImageOnMap = (region) => {
     const uris = regionImages[region];
     const coordinates = regionCoordinates[region];
@@ -189,17 +196,20 @@ const PictureMap = () => {
     );
   };
 
+
+
+  // 각 도에 저장된 이미지 클릭시 해당 도에 저장된 사진 및 해당주소 모달화면 보여주기
   const onRegionPress = (region) => {
     setCurrentRegion(region);
     setModalVisible(true);
   };
-
+  // 모달화면에서 이미지 클릭시 Main화면에 보여질 각 도에 해당하는 이미지(프로필이미지) 선택
   const onImageSelect = (uri) => {
     setSelectedImage({ ...selectedImage, [currentRegion]: uri });
     setModalVisible(false);
   };
 
-  // 사진 삭제 함수
+  // 모달화면에서 사진 및 해당주소 삭제 함수
   const deleteImage = (region, uriToDelete) => {
     const updatedImages = regionImages[region].filter(imageData => imageData.uri !== uriToDelete);
     const updatedRegionImages = { ...regionImages, [region]: updatedImages }; // 업데이트된 이미지 목록으로 상태를 설정
