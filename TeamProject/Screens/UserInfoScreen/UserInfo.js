@@ -23,13 +23,13 @@ const UserInfo = ({ navigation }) => {
   const [meetingDay, setMeetingDay] = useState(""); //처음 만난 날
   const [bloodType, setBloodType] = useState(""); //혈액형
   const [isBirthdayPickerVisible, setIsBirthdayPickerVisible] = useState(false); //생년월일 picker
-  const [isMeetingDayPickerVisible, setIsMeetingDayPickerVisible] = useState(false); //처음 만난 날 picker
+  const [isMeetingDayPickerVisible, setIsMeetingDayPickerVisible] =
+    useState(false); //처음 만난 날 picker
   const [profilePic, setProfilePic] = useState(null); // 프로필 사진
   const [isBloodTypeModalVisible, setIsBloodTypeModalVisible] = useState(false); // 혈액형 모달
   const [errorMessage, setErrorMessage] = useState(""); // 에러 메시지 상태
-  const [user1_name, setuser1_name] = useState('')
-  const [user2_name, setuser2_name] = useState('')
-
+  const [user1_name, setuser1_name] = useState("");
+  const [user2_name, setuser2_name] = useState("");
 
   const validateInput = () => {
     if (!name) return "이름을 입력해주세요.";
@@ -39,61 +39,60 @@ const UserInfo = ({ navigation }) => {
     return "";
   };
 
-
   // 서버로부터 유저 정보 가져옴
   const loaduserInfos = async () => {
     try {
-      const response = await fetch('http://3.34.6.50:8080/api/userInfos', {
-        method: 'GET',
+      const response = await fetch("http://3.34.6.50:8080/api/userInfos", {
+        method: "GET",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
       });
       if (response.ok) {
         const userInfos = await response.json();
         if (userInfos && userInfos.length > 0) {
-          setName(userInfos[0].username)
-          setBirthday(userInfos[0].birthday)
-          setMeetingDay(userInfos[0].meetingDay)
-          setBloodType(userInfos[0].blood_type)
+          setName(userInfos[0].username);
+          setBirthday(userInfos[0].birthday);
+          setMeetingDay(userInfos[0].meetingDay);
+          setBloodType(userInfos[0].blood_type);
         }
       } else {
-        console.error('Failed to fetch username');
+        console.error("Failed to fetch username");
       }
     } catch (error) {
-      console.error('Error fetching meeting day:', error)
+      console.error("Error fetching meeting day:", error);
     }
-  }
+  };
 
   useEffect(() => {
-    loaduserInfos()
+    loaduserInfos();
   }, []);
 
   // 서버로부터 사용자 이름들 가져오는 코드
   const loadusernames = async () => {
     try {
-      const response = await fetch('http://3.34.6.50:8080/api/usersname', {
-        method: 'GET',
+      const response = await fetch("http://3.34.6.50:8080/api/usersname", {
+        method: "GET",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
       });
       if (response.ok) {
         const usersnamedata = await response.json();
         if (usersnamedata && usersnamedata.length > 0) {
-          setuser1_name(usersnamedata[0].username)
-          setuser2_name(usersnamedata[1].username)
+          setuser1_name(usersnamedata[0].username);
+          setuser2_name(usersnamedata[1].username);
         }
       } else {
-        console.error('Failed to fetch username');
+        console.error("Failed to fetch username");
       }
     } catch (error) {
-      console.error('Error fetching meeting day:', error)
+      console.error("Error fetching meeting day:", error);
     }
-  }
+  };
 
   useEffect(() => {
-    loadusernames()
+    loadusernames();
   }, []);
 
   // 저장누르면 사용자 개인 프로필 수정하는 함수
@@ -113,23 +112,23 @@ const UserInfo = ({ navigation }) => {
     fetch("http://3.34.6.50:8080/api/userInfo_modify", {
       method: "POST",
       headers: {
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
       },
       body: JSON.stringify(profileData),
     })
       .then((response) => response.json())
       .then((data) => {
-        alert("프로필 수정 완료")
+        console.log("Server response:", data); // 서버의 응답 로그 남기기
+        alert("프로필 수정 완료");
       })
-      .catch((error)=>{
-        alert("뭔가 에러가 있음"+error.message)
-      })
-
+      .catch((error) => {
+        alert("뭔가 에러가 있음" + error.message);
+      });
   };
 
   useEffect(() => {
-    saveProfileData()
-  }, [])
+    saveProfileData();
+  }, []);
 
   //회원탈퇴 클라이언트 요청 코드
   const member_withdrawal = () => {
@@ -137,7 +136,7 @@ const UserInfo = ({ navigation }) => {
       "회원 탈퇴",
       "회원을 탈퇴할 경우 모든 데이터가 삭제됩니다. 계속 하시겠습니까?",
       [
-        { text: "취소", onPress: () => { }, style: "cancel" },
+        { text: "취소", onPress: () => {}, style: "cancel" },
         { text: "탈퇴", onPress: () => memberDelete() }, //memberDelete :  사용자가 "탈퇴" 버튼을 눌렀을 때 호출되는 이벤트 핸들러
       ],
       { cancelable: false }
@@ -278,10 +277,10 @@ const UserInfo = ({ navigation }) => {
     >
       <KeyboardAwareScrollView
         style={{ flex: 1 }}
-        contentContainerStyle={{ flexGrow: 1, justifyContent: 'space-between' }}
+        contentContainerStyle={{ flexGrow: 1, justifyContent: "space-between" }}
         keyboardShouldPersistTaps="handled"
         enableOnAndroid={true}
-        enableAutomaticScroll={Platform.OS === 'ios'}
+        enableAutomaticScroll={Platform.OS === "ios"}
       >
         <View style={styles.container}>
           <View style={styles.headerContainer}>
@@ -303,7 +302,9 @@ const UserInfo = ({ navigation }) => {
                 />
               )}
             </TouchableOpacity>
-            <Text style={styles.titleText}>{user1_name} 💖 {user2_name}</Text>
+            <Text style={styles.titleText}>
+              {user1_name} 💖 {user2_name}
+            </Text>
           </View>
           <Separator />
           <View style={styles.inputRow}>

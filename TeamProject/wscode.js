@@ -439,17 +439,22 @@ app.get("/api/userInfos", (req, res) => {
 // 프로필 수정부분
 // 프로필 수정부분
 app.post("/api/userInfo_modify", (req, res) => {
-  const userId = req.session.userId; // 세션에서 사용자 ID를 가져온다.
+  const userId = req.session.userId;
   const { username, birthday, meetingDay, bloodType } = req.body;
+
+  console.log("Received profile data from client:", req.body); // 클라이언트로부터 받은 데이터 로그 남기기
+
   const modifyQuery =
-    "UPDATE userInfo SET username = ?, bithday = ?, meetingDay = ? bloodType = ? WHERE id = ?";
+    "UPDATE userInfo SET username = ?, birthday = ?, meetingDay = ?, blood_Type = ? WHERE id = ?";
   db.query(
     modifyQuery,
-    [username, birthday, meetingDay, bloodType],
+    [username, birthday, meetingDay, bloodType, userId],
     (err, result) => {
       if (err) {
+        console.error("Database error:", err); // 데이터베이스 에러 로그 남기기
         res.send({ message: "뭔가 에러가 있음", error: err });
       } else {
+        console.log("Profile updated successfully", result); // 성공적인 업데이트 로그 남기기
         res.send({ message: "성공" });
       }
     }
@@ -522,33 +527,6 @@ app.post("/api/save-code", (req, res) => {
       res.status(200).send({ message: "Couple code saved successfully" });
     }
   });
-});
-
-// 내정보 업데이트
-// 내정보 업데이트
-// 내정보 업데이트
-app.post("/api/my_dataUpdate", (req, res) => {
-  const userId = req.session.userId; // 세션에서 사용저 id 가져오기
-  const { name, birthday, meetingDay, user_image } = req.body;
-
-  if (!userId) {
-    return res.status(401).send({ message: "Unauthorized: No session found" });
-  }
-
-  const query =
-    "UPDATE userInfo SET username = ? ,birthday = ?, meetingDay =?, user_image=? WHERE id = ?";
-  db.query(
-    query,
-    [name, birthday, meetingDay, userId],
-    (err, result) => {
-      if (err) {
-        console.err("Query error:", err);
-        res.status(500).send({ message: "Database error", error: err });
-      } else {
-        res.send({ message: "사용자 정보를 수정하는데 성공하였습니다!" });
-      }
-    }
-  );
 });
 
 // 연인 커플코드 추가하기
