@@ -113,11 +113,7 @@ const Board = ({ route }) => {
             <View style={styles.postHeader}>
               <Text style={styles.postTitle}>게시글 번호 : {post.post_id}</Text>
               <Text style={styles.postTitle}>{post.title}</Text>
-              <Text style={styles.postDate}>
-                {post.createdAt && !isNaN(new Date(post.createdAt).getTime())
-                  ? format(new Date(post.createdAt), "yyyy/MM/dd HH:mm")
-                  : "날짜 정보 없음"}
-              </Text>
+              <Text style={styles.postDate}>{post.postdate}</Text>
             </View>
             <TouchableOpacity
               style={styles.optionsButton}

@@ -18,6 +18,7 @@ const fileFilter = (req, file, cb) => {
     cb(null, false); // 다른 형식의 파일은 저장을 거부
   }
 };
+
 // Multer 설정
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
@@ -724,7 +725,6 @@ app.post("/api/member_withdrawal", (req, res) => {
 //  게시글 추가
 //  게시글 추가
 //  게시글 추가
-
 app.post("/api/add_post", upload.single("img"), (req, res) => {
   const { title, content } = req.body;
   console.log("Received body:", req.body);
@@ -742,10 +742,14 @@ app.post("/api/add_post", upload.single("img"), (req, res) => {
   const userId = req.session.userId;
   const checkId = req.session.checkId;
 
+  const now = new Date();
+  now.setHours(now.getHours() + 9); // 서버 시간대가 UTC를 사용한다고 가정할 때 KST로 조정합니다.
+  const postdate = now.toISOString().slice(0, 19).replace("T", " ");
+  console.log("여긴가봐요 : userId, checkId, postdate, title, content, imageUrl",userId, checkId, postdate, title, content, imageUrl)
   // 데이터베이스에 게시글 정보와 이미지 URL 저장
   db.query(
-    "INSERT INTO postInfo (user_id, check_id, title, content, img) VALUES (?, ?, ?, ?, ?)",
-    [userId, checkId, title, content, imageUrl],
+    "INSERT INTO postInfo (user_id, check_id, postdate, title, content, img) VALUES (?, ?, ?, ?, ?, ?)",
+    [userId, checkId, postdate, title, content, imageUrl],
     (err, result) => {
       if (err) {
         res.status(500).send(err);
@@ -756,6 +760,7 @@ app.post("/api/add_post", upload.single("img"), (req, res) => {
         postId: result.insertId,
         userId: userId,
         checkId: checkId,
+        postdate: postdate,
         title: title,
         content: content,
         img: imageUrl, // 클라이언트에서 접근 가능한 URL 전달
@@ -790,7 +795,7 @@ app.get("/api/load_post", (req, res) => {
 
         // check_id를 기반으로 게시글 필터링
         db.query(
-          "SELECT post_id, title, content, img FROM postInfo WHERE check_id = ?",
+          "SELECT post_id, title, content, img, postdate FROM postInfo WHERE check_id = ?",
           [checkId],
           (err, posts) => {
             if (err) {
