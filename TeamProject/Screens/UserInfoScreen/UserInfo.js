@@ -85,6 +85,22 @@ const UserInfo = ({ navigation }) => {
     loadusernames()
   }, []);
 
+  const saveProfileData = async () => {
+    try {
+      const profileData = {
+        name,
+        birthday,
+        bloodType,
+        meetingDay,
+        profilePic: profilePic ? profilePic.uri : null,
+      };
+      await AsyncStorage.setItem("userProfile", JSON.stringify(profileData));
+      alert("프로필이 저장되었습니다.");
+    } catch (error) {
+      alert("프로필 저장에 실패했습니다.");
+    }
+  };
+
   //회원탈퇴 클라이언트 요청 코드
   const member_withdrawal = () => {
     Alert.alert(
@@ -97,7 +113,6 @@ const UserInfo = ({ navigation }) => {
       { cancelable: false }
     );
   };
-
 
   const memberDelete = () => {
     fetch("http://3.34.6.50:8080/api/member_withdrawal", {
@@ -350,7 +365,7 @@ const UserInfo = ({ navigation }) => {
           </View>
           <Separator />
           <View style={styles.saveButtonContainer}>
-            <TouchableOpacity style={styles.Button}>
+            <TouchableOpacity style={styles.Button} onPress={saveProfileData}>
               <Text style={styles.ButtonText}>저장</Text>
             </TouchableOpacity>
             <View style={styles.buttonContainer}>
