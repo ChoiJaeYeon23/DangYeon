@@ -536,10 +536,10 @@ app.post("/api/my_dataUpdate", (req, res) => {
   }
 
   const query =
-    "UPDATE userInfo SET username = ? ,birthday = ?, meetingDay =?, user_image=? ";
+    "UPDATE userInfo SET username = ? ,birthday = ?, meetingDay =?, user_image=? WHERE id = ?";
   db.query(
     query,
-    [name, birthday, bloodType, meetingDay, userId],
+    [name, birthday, meetingDay, userId],
     (err, result) => {
       if (err) {
         console.err("Query error:", err);
