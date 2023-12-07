@@ -65,7 +65,10 @@ CREATE TABLE bucketList (
 CREATE TABLE calendar(
     schedule_id INTEGER PRIMARY KEY AUTO_INCREMENT,
     schedule_text TEXT,
-    schedule_date DATE
+    schedule_date DATE,
+    check_id INT,
+    FOREIGN KEY (check_id) REFERENCES couple_connection_check_for_s(check_id)
+
 );
 
 -- 채팅 테이블
@@ -74,6 +77,8 @@ CREATE TABLE picture(
     image_uri VARCHAR(255) NOT NULL,
     image_region VARCHAR(100)
 );
+
+
 
 SET SQL_SAFE_UPDATES = 0;
 

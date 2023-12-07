@@ -274,10 +274,139 @@ app.post("/api/connect-couple", (req, res) => {
   });
 });
 
+// 캘린더 내용 저장
+// 캘린더 내용 저장
+// 캘린더 내용 저장
+
+app.post("/api/calendar_schedule", (req, res) => {
+  console.log("Received request to save event:", req.body);
+  if (!req.session.checkId) {
+    return res.status(403).send("권한 없음");
+  }
+  const { date: schedule_date, text: schedule_text } = req.body;
+  const checkId = req.session.checkId;
+
+  const query =
+    "INSERT INTO calendar (schedule_text, schedule_date, check_id) VALUES (?, ?, ?)";
+  db.query(query, [schedule_text, schedule_date, checkId], (err, result) => {
+    if (err) {
+      // 데이터베이스 에러 처리
+      console.error(err);
+      return res.status(500).send("서버 에러");
+    }
+    // 성공 응답
+    res.status(200).send("일정 저장 성공");
+  });
+});
+
+// 캘린더 일정 표시
+// 캘린더 내용 표시
+// 캘린더 내용 표시
+
+app.get("/api/calendar_load", (req, res) => {
+  console.log(
+    "Received request to load events for checkId:",
+    req.session.checkId
+  );
+  if (!req.session.checkId) {
+    return res.status(403).send("권한 없음");
+  }
+  const checkId = req.session.checkId;
+
+  const query = "SELECT * FROM calendar WHERE check_id = ?";
+  db.query(query, [checkId], (error, results, fields) => {
+    if (error) {
+      res.status(500).send("서버 에러");
+      return;
+    }
+    res.status(200).json(results);
+  });
+});
+
+// 캘린더 날짜에 데이터 불러오기
+// 캘린더 날짜에 데이터 불러오기
+// 캘린더 날짜에 데이터 불러오기
+
+app.get("/api/load_calendar_text", (req, res) => {
+  const { date } = req.query;
+  if (!date) {
+    return res.status(400).send("Date is required");
+  }
+
+  // 예시 쿼리: 'SELECT * FROM events WHERE date = ?'
+  db.query(
+    "SELECT * FROM calendar WHERE schedule_date= ?",
+    [date],
+    (error, results) => {
+      if (error) {
+        console.error("Error fetching events for date:", date, error);
+        return res.status(500).send("Internal Server Error");
+      }
+
+      res.json(results);
+    }
+  );
+});
+
+//캘린더일정 내용 수정
+//캘린더일정 내용 수정
+//캘린더일정 내용 수정
+
+app.put("/api/calendar_text_update:id", (req, res) => {
+  const { id } = req.params;
+  const { text } = req.body;
+
+  if (!id || !text || !date) {
+    return res.status(400).send("All fields are required");
+  }
+  const query = "UPDATE calendar SET schedule_text = ?, WHERE schedule_id =?";
+  db.query(query, [text, date, id], (error, result) => {
+    if (error) {
+      console.error("Update event error:", error);
+      return res.status(500).send("Internal Server Error");
+    }
+
+    if (result.affectedRows === 0) {
+      // ID에 해당하는 이벤트가 없는 경우
+      return res.status(404).send("Event not found");
+    }
+
+    res.send("Event updated successfully");
+  });
+});
+
+//캘린더일정 삭제
+//캘린더일정 삭제
+//캘린더일정 삭제
+
+app.delete("/api/del_calendar/:id", (req, res) => {
+  const { id } = req.params; // URL 경로에서 캘린더 내용ID를 추출
+
+  if (!id) {
+    return res.status(400).send("Event ID is required");
+  }
+
+  const query = "DELETE FROM calendar WHERE schedule_id = ?";
+  db.query(query, [id], (error, result) => {
+    if (error) {
+      // 에러 발생 시 클라이언트에 에러 메시지 전송
+      console.error("Delete event error:", error);
+      return res.status(500).send("Internal Server Error");
+    }
+    // 성공적으로 삭제되었음을 클라이언트에 알림
+    if (result.affectedRows > 0) {
+      res.send("Event deleted successfully");
+    } else {
+      // 삭제하려는 이벤트가 없는 경우
+      res.status(404).send("Event not found");
+    }
+  });
+});
+
 // 버킷리스트 추가
 // 버킷리스트 추가
 // 버킷리스트 추가
-// 버킷리스트 추가
+
 app.post("/api/bucketlist", (req, res) => {
   const checkId = req.session.checkId;
   const { text } = req.body;
@@ -745,7 +874,15 @@ app.post("/api/add_post", upload.single("img"), (req, res) => {
   const now = new Date();
   now.setHours(now.getHours() + 9); // 서버 시간대가 UTC를 사용한다고 가정할 때 KST로 조정합니다.
   const postdate = now.toISOString().slice(0, 19).replace("T", " ");
-  console.log("여긴가봐요 : userId, checkId, postdate, title, content, imageUrl",userId, checkId, postdate, title, content, imageUrl)
+  console.log(
+    "여긴가봐요 : userId, checkId, postdate, title, content, imageUrl",
+    userId,
+    checkId,
+    postdate,
+    title,
+    content,
+    imageUrl
+  );
   // 데이터베이스에 게시글 정보와 이미지 URL 저장
   db.query(
     "INSERT INTO postInfo (user_id, check_id, postdate, title, content, img) VALUES (?, ?, ?, ?, ?, ?)",
