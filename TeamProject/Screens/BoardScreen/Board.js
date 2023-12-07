@@ -11,9 +11,8 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import Swiper from "react-native-swiper";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { format } from "date-fns";
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect } from "@react-navigation/native";
 
 const Board = ({ route }) => {
   const navigation = useNavigation();
@@ -55,6 +54,7 @@ const Board = ({ route }) => {
       loadPosts();
     }, [])
   );
+
   useEffect(() => {
     setFilteredPosts(posts);
   }, [posts]);
@@ -133,15 +133,15 @@ const Board = ({ route }) => {
               dotStyle={styles.dotContainer}
               activeDotStyle={styles.activeDotContainer}
             >
-              {(post.images || []).map((uri, idx) => (
-                <View key={idx} style={styles.slide}>
+              {post.img ? (
+                <View key={index} style={styles.slide}>
                   <Image
-                    source={{ uri: uri }}
+                    source={{ uri: post.img }}
                     style={styles.postImage}
                     resizeMode="contain"
                   />
                 </View>
-              ))}
+              ) : null}
             </Swiper>
             <View style={styles.dotTextContainer}>
               <Text style={styles.postText}>{post.content}</Text>

@@ -10,6 +10,14 @@ const MySQLStore = require("express-mysql-session")(session);
 const multer = require("multer");
 const path = require("path");
 
+// 파일 필터링 함수
+const fileFilter = (req, file, cb) => {
+  if (file.mimetype === "image/jpeg" || file.mimetype === "image/png") {
+    cb(null, true); // 이미지가 jpeg나 png인 경우 파일 저장을 허용
+  } else {
+    cb(null, false); // 다른 형식의 파일은 저장을 거부
+  }
+};
 // Multer 설정
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
@@ -23,10 +31,12 @@ const storage = multer.diskStorage({
   },
 });
 
-const upload = multer({ storage: storage });
+const upload = multer({ storage: storage, fileFilter: fileFilter });
 
 // Express 앱 초기화
 const app = express();
+// 정적 파일로서 '/home/ubuntu/chat-server/images' 디렉토리 제공
+app.use("/images", express.static("/home/ubuntu/chat-server/images"));
 
 // bodyParser 미들웨어 적용
 // 제한 값을 더 큰 값으로 설정, 예를 들어 '50mb'
@@ -425,33 +435,26 @@ app.get("/api/userInfos", (req, res) => {
   });
 });
 
-
 // 프로필 수정부분
 // 프로필 수정부분
 // 프로필 수정부분
 app.post("/api/userInfo_modify", (req, res) => {
   const userId = req.session.userId; // 세션에서 사용자 ID를 가져온다.
-  const { username, birthday, meetingDay, bloodType } = req.body
-  const modifyQuery = "UPDATE userInfo SET username = ?, bithday = ?, meetingDay = ? bloodType = ? WHERE id = ?";
-  db.query(modifyQuery, [username, birthday, meetingDay, bloodType], (err, result) => {
-    if (err) {
-      res.send({ message: "뭔가 에러가 있음", error: err })
+  const { username, birthday, meetingDay, bloodType } = req.body;
+  const modifyQuery =
+    "UPDATE userInfo SET username = ?, bithday = ?, meetingDay = ? bloodType = ? WHERE id = ?";
+  db.query(
+    modifyQuery,
+    [username, birthday, meetingDay, bloodType],
+    (err, result) => {
+      if (err) {
+        res.send({ message: "뭔가 에러가 있음", error: err });
+      } else {
+        res.send({ message: "성공" });
+      }
     }
-    else {
-      res.send({ message: "성공" })
-    }
-  })
-})
-
-
-
-
-
-
-
-
-
-
+  );
+});
 
 // 로그아웃 함수
 // 로그아웃 함수
@@ -745,22 +748,23 @@ app.post("/api/member_withdrawal", (req, res) => {
 //  게시글 추가
 
 app.post("/api/add_post", upload.single("img"), (req, res) => {
-  //upload.single('img')은 클라이언트에서 'img'라는 이름으로 전송된 단일 파일을 처리
-  const { title, content, img } = req.body;
-  const imgFile = req.file; // Multer에 추가된 파일 정보
-  console.log("Received data:", req.body);
-  const userId = req.session.userId; // 예시: 세션에서 user_id 가져오기
-  const checkId = req.session.checkId; // 예시: 세션에서 check_id 가져오기
-
-  // 파일이 정상적으로 업로드 되었는지 확인
+  const { title, content } = req.body;
+  console.log("Received body:", req.body);
+  const imgFile = req.file; // Multer에 의해 추가된 파일 정보
+  console.log("Received file:", imgFile);
+  // 파일이 정상적으로 업로드되었는지 확인
   if (!imgFile) {
     res.status(400).send("이미지가 업로드되지 않았습니다.");
     return;
   }
 
-  //이미지 url 생성
-  const imageUrl = `/home/ubuntu/chat-server/images${imgFile.filenmae}`;
+  // 이미지 URL 생성 (클라이언트에서 접근 가능한 웹 URL)
+  const imageUrl = `http://3.34.6.50:8080/images/${imgFile.filename}`;
 
+  const userId = req.session.userId;
+  const checkId = req.session.checkId;
+
+  // 데이터베이스에 게시글 정보와 이미지 URL 저장
   db.query(
     "INSERT INTO postInfo (user_id, check_id, title, content, img) VALUES (?, ?, ?, ?, ?)",
     [userId, checkId, title, content, imageUrl],
@@ -770,16 +774,14 @@ app.post("/api/add_post", upload.single("img"), (req, res) => {
         return;
       }
 
-      // 생성된 게시글의 post_id 반환 -> 클라이언트쪽에서 post_id를 못받아오고 있기때문에 글을 저장하고 생성된 post_id 값을 바로 넘겨준다.
       res.json({
-        postId: result.insertId, // 자동 생성된 게시글 ID
+        postId: result.insertId,
         userId: userId,
         checkId: checkId,
         title: title,
         content: content,
-        img: img,
+        img: imageUrl, // 클라이언트에서 접근 가능한 URL 전달
       });
-      console.log("Insert result:", result);
     }
   );
 });

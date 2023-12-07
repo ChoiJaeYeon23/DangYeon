@@ -78,7 +78,7 @@ const Gesigeul = ({ route }) => {
         navigation.navigate("Board", { newPostData: data });
       })
       .catch((error) => console.error("Error adding post:", error));
-    console.log(postData);
+    //console.log(postData);
   };
 
   // 모달의 확인 버튼 클릭 시 호출되는 함수
