@@ -97,9 +97,9 @@ const PedometerScreen = () => {
 
   // 캔디 보상 함수
   const claimCandy = async (steps) => {
-    const key = steps === 10 ? 'ten' : steps === 50 ? 'fifty' : 'hundred';
+    const key = steps === 1000 ? 'ten' : steps === 5000 ? 'fifty' : 'hundred';
     if (currentStepCount >= steps && !candyRewardsReceived[key]) {
-      let candyReward = steps === 10 ? 1 : steps === 50 ? 5 : 10;
+      let candyReward = steps === 1000 ? 1 : steps === 5000 ? 5 : 10000;
       const newCandyCount = candies + candyReward;
       setCandies(newCandyCount);
 
@@ -166,7 +166,7 @@ const PedometerScreen = () => {
   }, [candies]);
 
   const RewardBox = ({ steps, candyReward }) => {
-    const key = steps === 10 ? 'ten' : steps === 50 ? 'fifty' : 'hundred';
+    const key = steps === 1000 ? 'ten' : steps === 5000 ? 'fifty' : 'hundred';
     const isRewardAvailable = currentStepCount >= steps;
     const isRewardClaimed = candyRewardsReceived[key];
 
@@ -221,9 +221,9 @@ const PedometerScreen = () => {
         <Text style={styles.buttonText}>걸음 수 업데이트</Text>
       </TouchableOpacity>
       <View style={styles.rewardContainer}>
-        <RewardBox steps={10} candyReward={1} onClaim={claimCandy} />
-        <RewardBox steps={50} candyReward={5} onClaim={claimCandy} />
-        <RewardBox steps={100} candyReward={10} onClaim={claimCandy} />
+        <RewardBox steps={1000} candyReward={1} onClaim={claimCandy} />
+        <RewardBox steps={5000} candyReward={5} onClaim={claimCandy} />
+        <RewardBox steps={10000} candyReward={10} onClaim={claimCandy} />
       </View>
       <Text style={styles.descriptionText}>만보기를 더 정확하게 사용하고 싶으시다면 업데이트 버튼을 누른 후에 사용해주세요!</Text>
     </View>

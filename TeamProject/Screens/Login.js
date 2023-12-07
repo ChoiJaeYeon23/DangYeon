@@ -20,7 +20,6 @@ const Login = () => {
     setPw("");
   };
 
-  
   const handleLogin = () => {
     const inputData = {
       id: id,
@@ -60,7 +59,6 @@ const Login = () => {
       });
   };
   
-
   const navigateToSignUp = () => {
     navigation.navigate("SignUp");
   };
@@ -90,9 +88,6 @@ const Login = () => {
         />
         <TouchableOpacity style={styles.button} onPress={handleLogin}>
           <Text style={styles.buttonText}>로그인</Text>
-        </TouchableOpacity>
-        <TouchableOpacity onPress={() => navigation.navigate("MainTab")}>
-          <Text style={styles.buttonText}>로그인1111</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.button} onPress={navigateToSignUp}>
           <Text style={styles.buttonText}>회원가입</Text>
