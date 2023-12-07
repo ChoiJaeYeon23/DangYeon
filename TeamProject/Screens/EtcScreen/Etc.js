@@ -108,7 +108,7 @@ const Etc = ({ navigation }) => {
         const monthStart = moment(storedDate).startOf('month');
         const weeksPassed = today.diff(monthStart, 'weeks') + 1;
         const currentMonth = storedDate.format('M');
-  
+
         setCurrentWeek(weeksPassed);
         setCurrentMonth(currentMonth);
       }
@@ -116,11 +116,11 @@ const Etc = ({ navigation }) => {
       console.error("Error loading data", e);
     }
   };
-  
+
   useEffect(() => {
     loadData();
   }, []);
-  
+
   useFocusEffect(
     React.useCallback(() => {
       loadData();
@@ -149,8 +149,13 @@ const Etc = ({ navigation }) => {
             <Text style={styles.refreshButtonText}>새로고침</Text>
           </TouchableOpacity>
         </TouchableOpacity>
+        {/* 데이트 추천 박스 */}
+        <View style={styles.box}>
+          <TouchableOpacity onPress={() => navigation.navigate('DateCourse')}>
+            <Text style={styles.boxTitle}>데이트코스 추천</Text>
+          </TouchableOpacity>
+        </View>
 
-        <View style={styles.box} />
       </View>
       <View style={styles.dotsContainer}>
         {firstDots.map((_, index) => (
