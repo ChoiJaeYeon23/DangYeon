@@ -14,7 +14,6 @@ import {
 } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import calendar from "../../assets/calendar.png";
 import * as ImagePicker from "expo-image-picker";
 
@@ -27,21 +26,21 @@ const UserInfo = ({ navigation }) => {
   const [isMeetingDayPickerVisible, setIsMeetingDayPickerVisible] = useState(false); //처음 만난 날 picker
   const [profilePic, setProfilePic] = useState(null); // 프로필 사진
   const [isBloodTypeModalVisible, setIsBloodTypeModalVisible] = useState(false); // 혈액형 모달
-  const [connect_id, setConnectId] = useState(""); // 연인 코드 추가
+  const [user1_name, setuser1_name] = useState('')
+  const [user2_name, setuser2_name] = useState('')
 
-
-
+  // 서버로부터 유저 정보 가져옴
   const loaduserInfos = async () => {
-    try{
-      const response = await fetch('http://3.34.6.50:8080/api/userInfos',{
+    try {
+      const response = await fetch('http://3.34.6.50:8080/api/userInfos', {
         method: 'GET',
-        headers:{
+        headers: {
           'Content-Type': 'application/json',
         },
       });
-      if(response.ok){
+      if (response.ok) {
         const userInfos = await response.json();
-        if (userInfos && userInfos.length > 0){
+        if (userInfos && userInfos.length > 0) {
           setName(userInfos[0].username)
           setBirthday(userInfos[0].birthday)
           setMeetingDay(userInfos[0].meetingDay)
@@ -50,8 +49,8 @@ const UserInfo = ({ navigation }) => {
       } else {
         console.error('Failed to fetch username');
       }
-    } catch (error){
-      console.error('Error fetching meeting day:',error)
+    } catch (error) {
+      console.error('Error fetching meeting day:', error)
     }
   }
 
@@ -59,6 +58,32 @@ const UserInfo = ({ navigation }) => {
     loaduserInfos()
   }, []);
 
+  // 서버로부터 사용자 이름들 가져오는 코드
+  const loadusernames = async () => {
+    try {
+      const response = await fetch('http://3.34.6.50:8080/api/usersname', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      if (response.ok) {
+        const usersnamedata = await response.json();
+        if (usersnamedata && usersnamedata.length > 0) {
+          setuser1_name(usersnamedata[0].username)
+          setuser2_name(usersnamedata[1].username)
+        }
+      } else {
+        console.error('Failed to fetch username');
+      }
+    } catch (error) {
+      console.error('Error fetching meeting day:', error)
+    }
+  }
+
+  useEffect(() => {
+    loadusernames()
+  }, []);
 
   //회원탈퇴 클라이언트 요청 코드
   const member_withdrawal = () => {
@@ -73,7 +98,7 @@ const UserInfo = ({ navigation }) => {
     );
   };
 
-  
+
   const memberDelete = () => {
     fetch("http://3.34.6.50:8080/api/member_withdrawal", {
       method: "POST",
@@ -94,11 +119,6 @@ const UserInfo = ({ navigation }) => {
       .catch((error) => {
         Alert.alert("오류", error.message);
       });
-  };
-
-  //연인 코드 입력값을 상태에 저장하는 함수
-  const handleConnectIdChange = (text) => {
-    setConnectId(text);
   };
 
   // 생년월일 변경
@@ -238,6 +258,7 @@ const UserInfo = ({ navigation }) => {
                 />
               )}
             </TouchableOpacity>
+            <Text style={styles.titleText}>{user1_name} 💖 {user2_name}</Text>
           </View>
           <Separator />
           <View style={styles.inputRow}>

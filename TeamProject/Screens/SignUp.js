@@ -215,7 +215,7 @@ const SignUp = () => {
             <Text style={styles.inputLabel}>이름</Text>
             <TextInput
               style={styles.inputTT}
-              placeholder="이름"
+              placeholder="앱에서 쓰일 이름"
               value={username}
               onChangeText={setName}
               autoFocus={true}
