@@ -28,6 +28,8 @@ import Etc from "../Screens/EtcScreen/Etc";
 import BucketList from "../Screens/EtcScreen/BucketList";
 import PedometerScreen from "../Screens/EtcScreen/PedometerScreen";
 import CalendarPage from "../Screens/EtcScreen/CalendarPage";
+import DateCourse from "../Screens/EtcScreen/DateCourse ";
+
 
 const MainStack = createStackNavigator();
 const AuthStack = createStackNavigator();
@@ -347,6 +349,21 @@ function EtcStackScreen() {
         options={{
           headerLeft: () => null,
           title: "출석확인달력",
+          headerShown: true,
+          headerStyle: { backgroundColor: "#FFCCFF" },
+          headerTintColor: "white",
+          headerTitleStyle: {
+            fontWeight: "bold",
+            color: "white",
+          },
+        }}
+      />
+      <EtcStack.Screen
+        name="DateCourse"
+        component={DateCourse}
+        options={{
+          headerLeft: () => null,
+          title: "데이트 코스 추천",
           headerShown: true,
           headerStyle: { backgroundColor: "#FFCCFF" },
           headerTintColor: "white",
