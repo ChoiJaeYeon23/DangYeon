@@ -425,6 +425,34 @@ app.get("/api/userInfos", (req, res) => {
   });
 });
 
+
+// 프로필 수정부분
+// 프로필 수정부분
+// 프로필 수정부분
+app.post("/api/userInfo_modify", (req, res) => {
+  const userId = req.session.userId; // 세션에서 사용자 ID를 가져온다.
+  const { username, birthday, meetingDay, bloodType } = req.body
+  const modifyQuery = "UPDATE userInfo SET username = ?, bithday = ?, meetingDay = ? bloodType = ? WHERE id = ?";
+  db.query(modifyQuery, [username, birthday, meetingDay, bloodType], (err, result) => {
+    if (err) {
+      res.send({ message: "뭔가 에러가 있음", error: err })
+    }
+    else {
+      res.send({ message: "성공" })
+    }
+  })
+})
+
+
+
+
+
+
+
+
+
+
+
 // 로그아웃 함수
 // 로그아웃 함수
 // 로그아웃 함수
