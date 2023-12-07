@@ -26,8 +26,19 @@ const UserInfo = ({ navigation }) => {
   const [isMeetingDayPickerVisible, setIsMeetingDayPickerVisible] = useState(false); //처음 만난 날 picker
   const [profilePic, setProfilePic] = useState(null); // 프로필 사진
   const [isBloodTypeModalVisible, setIsBloodTypeModalVisible] = useState(false); // 혈액형 모달
+  const [errorMessage, setErrorMessage] = useState(""); // 에러 메시지 상태
   const [user1_name, setuser1_name] = useState('')
   const [user2_name, setuser2_name] = useState('')
+
+
+  const validateInput = () => {
+    if (!name) return "이름을 입력해주세요.";
+    if (!birthday) return "생년월일을 입력해주세요.";
+    if (!meetingDay) return "처음 만난 날을 입력해주세요.";
+    if (!bloodType) return "혈액형을 선택해주세요.";
+    return "";
+  };
+
 
   // 서버로부터 유저 정보 가져옴
   const loaduserInfos = async () => {
@@ -85,21 +96,40 @@ const UserInfo = ({ navigation }) => {
     loadusernames()
   }, []);
 
-  const saveProfileData = async () => {
-    try {
-      const profileData = {
-        name,
-        birthday,
-        bloodType,
-        meetingDay,
-        profilePic: profilePic ? profilePic.uri : null,
-      };
-      await AsyncStorage.setItem("userProfile", JSON.stringify(profileData));
-      alert("프로필이 저장되었습니다.");
-    } catch (error) {
-      alert("프로필 저장에 실패했습니다.");
+  // 저장누르면 사용자 개인 프로필 수정하는 함수
+  const saveProfileData = () => {
+    const error = validateInput();
+    if (error) {
+      setErrorMessage(error);
+      return; // 에러가 있으면 여기서 함수 종료
     }
+
+    const profileData = {
+      username: name,
+      birthday: birthday,
+      bloodType: bloodType,
+      meetingDay: meetingDay,
+    };
+    fetch("http://3.34.6.50:8080/api/userInfo_modify", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(profileData),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        alert("프로필 수정 완료")
+      })
+      .catch((error)=>{
+        alert("뭔가 에러가 있음"+error.message)
+      })
+
   };
+
+  useEffect(() => {
+    saveProfileData()
+  }, [])
 
   //회원탈퇴 클라이언트 요청 코드
   const member_withdrawal = () => {
