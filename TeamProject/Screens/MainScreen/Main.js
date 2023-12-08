@@ -29,7 +29,7 @@ const Main = ({ navigation }) => {
         const today = moment().format('YYYY-MM-DD');
         const storedDate = await AsyncStorage.getItem('@lastCheckDate');
         const storedAttendance = await AsyncStorage.getItem('@attendance');
-  
+
         if (storedDate !== today) {
           // 자정에 날짜가 변경되었을 때 출석체크 창을 보여주고, 출석체크 배열을 초기화
           await AsyncStorage.setItem('@lastCheckDate', today);
@@ -41,7 +41,7 @@ const Main = ({ navigation }) => {
           // 출석체크 데이터가 없다면 모달이 표시되도록 설정
           setIsAttendanceModalVisible(true);
         }
-  
+
         // 몇월 몇째주인지 계산하고 weekLabel에 저장
         const startOfWeek = moment().startOf('isoWeek');
         const weekInMonth = startOfWeek.isoWeek() - moment(startOfWeek).startOf('month').isoWeek() + 1;
@@ -51,7 +51,7 @@ const Main = ({ navigation }) => {
         console.error('날짜 및 출석체크 데이터 로드 중 오류 발생:', error);
       }
     };
-  
+
     checkDateAndAttendance();
   }, []);
 
@@ -110,24 +110,24 @@ const Main = ({ navigation }) => {
 
   // 서버로부터 사용자 이름들 가져오는 코드
   const loadusernames = async () => {
-    try{
-      const response = await fetch('http://3.34.6.50:8080/api/usersname',{
+    try {
+      const response = await fetch('http://3.34.6.50:8080/api/usersname', {
         method: 'GET',
-        headers:{
+        headers: {
           'Content-Type': 'application/json',
         },
       });
-      if(response.ok){
+      if (response.ok) {
         const usersnamedata = await response.json();
-        if (usersnamedata && usersnamedata.length > 0){
+        if (usersnamedata && usersnamedata.length > 0) {
           setuser1_name(usersnamedata[0].username)
           setuser2_name(usersnamedata[1].username)
         }
       } else {
         console.error('Failed to fetch username');
       }
-    } catch (error){
-      console.error('Error fetching meeting day:',error)
+    } catch (error) {
+      console.error('Error fetching meeting day:', error)
     }
   }
 

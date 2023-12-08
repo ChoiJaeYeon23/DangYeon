@@ -90,14 +90,6 @@ const Board = ({ route }) => {
 
   return (
     <View style={styles.container}>
-      <View style={styles.searchSection}>
-        <Ionicons
-          name="ios-search"
-          size={20}
-          color="#000"
-          style={styles.searchIcon}
-        />
-      </View>
       <TouchableOpacity
         style={styles.addButton}
         onPress={() => {
@@ -156,19 +148,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: "#FFF9F9",
     paddingTop: 20,
-  },
-  searchSection: {
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "#F6E6E6",
-    paddingHorizontal: 10,
-    borderRadius: 20,
-    width: "90%",
-    height: 40,
-  },
-  searchIcon: {
-    padding: 5,
   },
   input: {
     flex: 1,

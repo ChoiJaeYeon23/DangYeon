@@ -87,43 +87,35 @@ const Etc = ({ navigation }) => {
   );
 
 
-  // AsyncStorage에서 출석체크 데이터와 현재 주차 정보, 버킷 리스트 데이터 로드
-  const loadData = async () => {
+  // 출석체크 데이터와 현재 주차 정보 로드
+  const loadAttendanceData = async () => {
     try {
       const attendanceValue = await AsyncStorage.getItem('@attendance');
-      const jsonValue = await AsyncStorage.getItem('@bucketList');
       const lastCheckDate = await AsyncStorage.getItem('@lastCheckDate');
 
       if (attendanceValue != null) {
         setAttendance(JSON.parse(attendanceValue));
       }
-      if (jsonValue != null) {
-        setBucketListItems(JSON.parse(jsonValue).slice(0, 2));
-      }
 
       if (lastCheckDate != null) {
-        // 현재 주차 정보 계산
-        const today = moment();
-        const storedDate = moment(lastCheckDate);
-        const monthStart = moment(storedDate).startOf('month');
-        const weeksPassed = today.diff(monthStart, 'weeks') + 1;
-        const currentMonth = storedDate.format('M');
+        const month = moment(lastCheckDate).format('M');
+        setCurrentMonth(month); // 마지막 체크 날짜의 월 설정
 
-        setCurrentWeek(weeksPassed);
-        setCurrentMonth(currentMonth);
+        const weekInMonth = moment(lastCheckDate).isoWeek() - moment(lastCheckDate).startOf('month').isoWeek() + 1;
+        setCurrentWeek(weekInMonth); // 해당 날짜의 주차 계산
       }
     } catch (e) {
-      console.error("Error loading data", e);
+      console.error("Error loading attendance data", e);
     }
   };
 
   useEffect(() => {
-    loadData();
+    loadAttendanceData();
   }, []);
 
   useFocusEffect(
     React.useCallback(() => {
-      loadData();
+      loadAttendanceData();
     }, [])
   );
 
@@ -152,7 +144,8 @@ const Etc = ({ navigation }) => {
         {/* 데이트 추천 박스 */}
         <View style={styles.box}>
           <TouchableOpacity onPress={() => navigation.navigate('DateCourse')}>
-            <Text style={styles.boxTitle}>데이트코스 추천</Text>
+            <Text style={styles.boxTitle2}>AI가 추천해주는</Text>
+            <Text style={styles.boxTitle2}>데이트 코스</Text>
           </TouchableOpacity>
         </View>
 
@@ -226,9 +219,16 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   boxText: {
-    fontSize: 17,
+    fontSize: 16,
     color: '#544848',
     marginBottom: 7,
+  },
+  boxTitle2: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#544848',
+    marginBottom: 20,
+    textAlign: 'center', // 텍스트 중앙 정렬 추가
   },
   refreshButton: {
     marginTop: 20,
