@@ -1013,6 +1013,71 @@ app.delete("/api/del_post/:id", (req, res) => {
   );
 });
 
+// multer 설정 picutreMap 컴포넌트 부분
+const upload_pic = multer({
+  storage: multer.diskStorage({
+    destination: function (req, file, cb) {
+      cb(null, "/home/ubuntu/chat-server/images"); // 이미지 저장 경로
+    },
+    filename: function (req, file, cb) {
+      cb(null, file.fieldname + "-" + Date.now() + path.extname(file.originalname));
+    }
+  }),
+  fileFilter: function (req, file, cb) {
+    if (file.mimetype === "image/jpeg" || file.mimetype === "image/png") {
+      cb(null, true);
+    } else {
+      cb(new Error("Invalid file type"), false);
+    }
+  }
+});
+
+
+// picutreMap 컴포넌트에서 사용자의 사진을 서버에 저장(한번에 최대10장)
+app.post("/api/upload_images", upload_pic.array("img", 10), (req, res) => {
+  const files = req.files;
+  const checkId = req.session.checkId; // 세션에서 checkId 가져오기
+
+  if (!files || files.length === 0) {
+    return res.status(400).send("이미지가 업로드되지 않았습니다.");
+  }
+
+  files.forEach(file => {
+    const imageUrl = `http://3.34.6.50:8080/images/${file.filename}`;
+
+    // 데이터베이스에 이미지 정보 저장
+    db.query(
+      "INSERT INTO picture (image_uri, check_id) VALUES (?, ?)",
+      [imageUrl, checkId],
+      (err, result) => {
+        if (err) {
+          console.error("Database insertion error:", err);
+          return res.status(500).send("데이터베이스 저장 중 오류 발생");
+        }
+        console.log("성공")
+        // 성공적으로 데이터베이스에 저장된 경우의 처리
+      }
+    );
+  });
+  res.status(200).json({ message: "이미지가 성공적으로 업로드되었습니다.", files });
+});
+
+
+// 사진 불러오기(picutreMap)
+app.get("/api/get_images", (req, res) => {
+  const checkId = req.session.checkId; // 세션에서 checkId 가져오기
+
+  db.query("SELECT image_uri FROM picture WHERE check_id = ?", [checkId], (err, results) => {
+    if (err) {
+      res.status(500).send("데이터베이스 조회 중 오류 발생");
+    } else {
+      res.status(200).json(results);
+    }
+  });
+});
+
+
+
 // WebSocket 연결 처리
 // WebSocket 연결 처리
 // WebSocket 연결 처리
