@@ -1,21 +1,24 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { View, Text, TextInput, Button, ScrollView, StyleSheet } from 'react-native';
+import { View, Text, TextInput, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
+import { KeyboardAvoidingView, Platform } from 'react-native';
+import ApiKeys from '../../ApiKeys';
 
 const DateCourse = () => {
-    const [inputMessage, setInputMessage] = useState('');
-    const [messages, setMessages] = useState([]);
-    const [isLoading, setIsLoading] = useState(false);
-    const scrollViewRef = useRef();
+    const [inputMessage, setInputMessage] = useState(''); // 사용자 입력 메시지
+    const [messages, setMessages] = useState([]); // 대화 목록
+    const [isLoading, setIsLoading] = useState(false); // 로딩 상태
+    const scrollViewRef = useRef(); // 스클롤 뷰
 
+    // 메시지 추가 함수
     const addMessage = (sender, message) => {
-        // 새 메시지를 배열의 끝에 추가
         setMessages(previousMessages => [...previousMessages, { sender, message }]);
     };
-
+    // AI 응답을 가져오는 함수
     const fetchAIResponse = async (prompt) => {
-        const apiKey = '안녕';
-        const apiEndpoint = 'https://api.openai.com/v1/chat/completions';
-
+        const apiKey = ApiKeys.OPENAI_API_KEY;
+        console.log("Loaded API Key:", apiKey); // 로드된 API 키 확인
+           const apiEndpoint = 'https://api.openai.com/v1/chat/completions';
+        // API 요청 옵션 설정
         const requestOptions = {
             method: 'POST',
             headers: {
@@ -38,7 +41,7 @@ const DateCourse = () => {
 
         };
 
-        setIsLoading(true);
+        setIsLoading(true); // 로딩 상태 시작
         try {
             const response = await fetch(apiEndpoint, requestOptions);
             if (!response.ok) {
@@ -49,25 +52,25 @@ const DateCourse = () => {
                 throw new Error('응답에 적절한 데이터가 없습니다.');
             }
             const aiResponse = data.choices[0].message.content;
-            setIsLoading(false);
+            setIsLoading(false); // 로딩 상태 종료
             return aiResponse;
         } catch (error) {
             console.error('OpenAI API 호출 중 오류 발생:', error);
-            setIsLoading(false);
+            setIsLoading(false); // 로딩 상태 종료
             return `오류: ${error.message}`;
         }
     };
-
-
+    // 메시지 전송 핸들러
     const handleSend = async () => {
-        if (inputMessage.length === 0) return;
-        addMessage('나', inputMessage);
-        const aiResponse = await fetchAIResponse(inputMessage);
-        addMessage('챗봇', aiResponse);
-        setInputMessage('');
+        if (inputMessage.trim() === '') return; // 입력란이 비었는지 확인
+
+        addMessage('나', inputMessage); // 메시지 추가
+        const aiResponse = await fetchAIResponse(inputMessage); // AI 응답 받기
+        addMessage('챗봇', aiResponse); // AI 응답 메시지 추가
+
+        setInputMessage(''); // 입력란을 비움
     };
-
-
+    // 메시지 목록이 업데이트될 때 스크롤을 맨 아래로 이동
     useEffect(() => {
         if (scrollViewRef.current) {
             scrollViewRef.current.scrollToEnd({ animated: true });
@@ -76,32 +79,38 @@ const DateCourse = () => {
 
     return (
         <View style={styles.container}>
-            <ScrollView
-                style={styles.messagesContainer}
-                ref={scrollViewRef}
-                onContentSizeChange={() => scrollViewRef.current.scrollToEnd({ animated: true })}
+            <KeyboardAvoidingView
+                style={styles.container}
+                behavior={Platform.OS === "ios" ? "padding" : "height"}
+                keyboardVerticalOffset={Platform.OS === "ios" ? 100 : 0} 
             >
-                {messages.map((msg, index) => (
-                    <Text
-                        key={index}
-                        style={[styles.message, msg.sender === '챗봇' ? styles.chatbotMessage : null]}>
-                        {msg.sender}: {msg.message}
-                    </Text>
-                ))}
-            </ScrollView>
-            {isLoading && <Text style={styles.loading}>Loading...</Text>}
-            <View style={styles.inputContainer}>
-                <TextInput
-                    style={styles.input}
-                    placeholder="메시지를 입력하세요..."
-                    value={inputMessage}
-                    onChangeText={setInputMessage}
-                    onSubmitEditing={handleSend}
-                />
-                <TouchableOpacity onPress={handleSend} style={styles.sendButton}>
-                    <Text style={styles.sendButtonText}>전송</Text>
-                </TouchableOpacity>
-            </View>
+                <ScrollView
+                    style={styles.messagesContainer}
+                    ref={scrollViewRef}
+                    onContentSizeChange={() => scrollViewRef.current.scrollToEnd({ animated: true })}
+                >
+                    {messages.map((msg, index) => (
+                        <Text
+                            key={index}
+                            style={[styles.message, msg.sender === '챗봇' ? styles.chatbotMessage : null]}>
+                            {msg.sender}: {msg.message}
+                        </Text>
+                    ))}
+                </ScrollView>
+                {isLoading && <Text style={styles.loading}>Loading...</Text>}
+                <View style={styles.inputContainer}>
+                    <TextInput
+                        style={styles.input}
+                        placeholder="메시지를 입력하세요..."
+                        value={inputMessage}
+                        onChangeText={setInputMessage}
+                        onSubmitEditing={handleSend}
+                    />
+                    <TouchableOpacity onPress={handleSend} style={styles.sendButton}>
+                        <Text style={styles.sendButtonText}>전송</Text>
+                    </TouchableOpacity>
+                </View>
+            </KeyboardAvoidingView>
         </View>
     );
 };
@@ -109,8 +118,7 @@ const DateCourse = () => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        padding: 20,
-        backgroundColor: '#FFF9F9', // 흰색 배경 설정
+        backgroundColor: '#FFF9F9', 
     },
     messagesContainer: {
         flex: 1,
@@ -120,27 +128,40 @@ const styles = StyleSheet.create({
         padding: 10,
         backgroundColor: '#FFFFFF',
         borderRadius: 5,
-        borderWidth: 1, // 테두리 두께 추가
-        borderColor: '#ccc', // 테두리 색상 추가
+        borderWidth: 1, 
+        borderColor: '#ccc', 
     },
     loading: {
         alignSelf: 'center',
     },
     inputContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        marginTop: 10,
+        flexDirection: "row",
+        padding: 10,
+        borderTopWidth: 1,
+        borderTopColor: "#ddd",
+        backgroundColor: "#FFF",
+        alignItems: "center",
     },
     input: {
         flex: 1,
+        borderWidth: 1,
+        borderColor: "gray",
         padding: 10,
         marginRight: 10,
-        borderWidth: 1,
-        borderColor: '#ccc',
-        borderRadius: 5,
+        borderRadius: 15,
     },
     chatbotMessage: {
-        backgroundColor: '#d1f7c4', // 연두색 배경
+        backgroundColor: '#d1f7c4', 
+    },
+    sendButton: {
+        padding: 10,
+        backgroundColor: '#FFCECE', 
+        borderRadius: 5,
+        borderWidth: 1,
+        borderColor: '#ccc',
+    },
+    sendButtonText: {
+        color: '#000',
     },
 });
 
