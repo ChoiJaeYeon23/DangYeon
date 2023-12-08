@@ -1035,8 +1035,7 @@ const upload_pic = multer({
   },
 });
 
-// picutreMap 컴포넌트에서 사용자의 사진을 서버에 저장(한번에 최대10장)
-// picutreMap 컴포넌트에서 사용자의 사진을 서버에 저장(한번에 최대10장)
+
 // picutreMap 컴포넌트에서 사용자의 사진을 서버에 저장(한번에 최대10장)
 // picutreMap 컴포넌트에서 사용자의 사진을 서버에 저장(한번에 최대10장)
 // picutreMap 컴포넌트에서 사용자의 사진을 서버에 저장(한번에 최대10장)
@@ -1065,9 +1064,7 @@ app.post("/api/upload_images", upload.array("img", 10), (req, res) => {
     );
   });
 
-  res
-    .status(200)
-    .json({ message: "이미지가 성공적으로 업로드되었습니다.", files });
+  res.status(200).json({ message: "이미지가 성공적으로 업로드되었습니다.", files });
 });
 
 // 사진 불러오기(picutreMap)
@@ -1093,22 +1090,19 @@ app.get("/api/get_images", (req, res) => {
 // 사진 삭제하기(pictureMap)
 // 사진 삭제하기(pictureMap)
 // 사진 삭제하기(pictureMap)
-app.delete("/api/delete_image/:imageId", (req, res) => {
+app.delete('/api/delete_image/:imageId', (req, res) => {
   const imageId = req.params.imageId;
 
-  db.query(
-    "DELETE FROM picture WHERE image_id = ?",
-    [imageId],
-    (err, result) => {
-      if (err) {
-        console.error("Database deletion error:", err);
-        res.status(500).send("Error deleting image");
-      } else {
-        res.status(200).send("Image deleted successfully");
-      }
+  db.query('DELETE FROM picture WHERE image_id = ?', [imageId], (err, result) => {
+    if (err) {
+      console.error('Database deletion error:', err);
+      res.status(500).send('Error deleting image');
+    } else {
+      res.status(200).send('Image deleted successfully');
     }
-  );
+  });
 });
+
 
 // 캔디 수 업데이트
 // 캔디 수 업데이트

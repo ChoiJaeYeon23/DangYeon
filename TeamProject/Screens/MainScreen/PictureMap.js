@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { View, Image, Alert, Text, ScrollView, StyleSheet, TouchableWithoutFeedback, Modal, TouchableOpacity } from 'react-native';
+import { View, Image, Alert, Text, ScrollView, StyleSheet, TouchableWithoutFeedback, Modal, TouchableOpacity, ActivityIndicator } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AntDesign } from '@expo/vector-icons';
 import addimage from '../../assets/add_image.png'
 
@@ -10,6 +9,7 @@ const PictureMap = () => {
   const [selectedImage, setSelectedImage] = useState({}); // 각 지역별로 선택된 이미지 URI를 저장
   const [modalVisible, setModalVisible] = useState(false);
   const [currentRegion, setCurrentRegion] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   // 인천광역시, 서울특별시            => 경기도
   // 대전광역시, 세종특별자치시        => 충청남도
@@ -93,13 +93,13 @@ const PictureMap = () => {
         name: `upload-${Date.now()}.jpg`,
         type: "image/jpeg",
       });
-  
+
       if (asset.exif) {
         const { GPSLatitude, GPSLongitude } = asset.exif;
         if (GPSLatitude && GPSLongitude) {
           const addr = await getReverseGeocodingData(GPSLatitude, GPSLongitude);
           const region = determineRegion(addr || '');
-  
+
           formData.append("address", addr);
           formData.append("region", region);
 
@@ -112,11 +112,11 @@ const PictureMap = () => {
                 "Content-Type": "multipart/form-data",
               },
             });
-  
+
             if (!response.ok) {
               throw new Error("Server response not OK");
             }
-  
+
             const data = await response.json();
             console.log("Image uploaded:", data);
           } catch (error) {
@@ -126,6 +126,8 @@ const PictureMap = () => {
       }
     }
   };
+
+
 
   // 역지오코딩(구글맵 지오코딩api 활용) 
   const getReverseGeocodingData = async (lat, lon) => {
@@ -164,6 +166,7 @@ const PictureMap = () => {
     return '지역을 결정할 수 없음';
   };
 
+
   // 서버로부터 이미지 가져오기
   const fetchImages = async () => {
     try {
@@ -172,38 +175,46 @@ const PictureMap = () => {
         throw new Error("Server response not OK");
       }
       const data = await response.json();
+  
       // 지역별로 이미지 그룹화
-      const groupedImages = data.reduce((acc, image) => {
+      const groupedImages = {};
+      const initialSelectedImage = {};
+  
+      data.forEach(image => {
         const region = image.image_region || '기타';
-        acc[region] = acc[region] || [];
-        acc[region].push({ uri: image.image_uri, address: image.image_address,  id: image.image_id  });
-        return acc;
-      }, {});
-      
+        if (!groupedImages[region]) {
+          groupedImages[region] = [];
+          initialSelectedImage[region] = image.image_uri; // 첫 번째 이미지를 기본 이미지로 설정
+        }
+        groupedImages[region].push({ uri: image.image_uri, address: image.image_address, id: image.image_id });
+      });
+  
       setRegionImages(groupedImages);
+      setSelectedImage(initialSelectedImage); // 초기 선택된 이미지 설정
     } catch (error) {
       console.error("Error fetching images:", error);
     }
   };
-
+  
   useEffect(() => {
     fetchImages();
   }, []);
   
+
   // 8도(+제주도)반환 결과 및 사진 uri를 8도이미지 위 해당하는 도에 이미지형태(배열)로 저장
   const renderImageOnMap = (region) => {
     // 지역별 이미지 URI 배열 가져오기
     const uris = regionImages[region];
     if (!uris || uris.length === 0) {
-      return null;
+      return <ActivityIndicator size="small" color="#0000ff" />;
     }
-  
+
     // 지역별 좌표 가져오기
     const coordinates = regionCoordinates[region];
     if (!coordinates) {
       return null;
     }
-  
+
     // 이미지 스타일 정의
     const imageStyle = {
       position: 'absolute',
@@ -214,18 +225,21 @@ const PictureMap = () => {
       zIndex: 1,
       borderRadius: 25 // 원형 이미지로 표시
     };
-  
+
     // 선택된 이미지 또는 첫 번째 이미지를 기본적으로 표시
     const imageUri = selectedImage[region] || uris[0];
-  
+
     return (
       <TouchableWithoutFeedback key={region} onPress={() => onRegionPress(region)}>
         <Image source={{ uri: imageUri }} style={imageStyle} />
       </TouchableWithoutFeedback>
     );
   };
-  
-  
+
+  useEffect(() => {
+    // selectedImage 상태가 변경될 때마다 실행되는 로직
+  }, [selectedImage]);
+
 
 
   // 각 도에 저장된 이미지 클릭시 해당 도에 저장된 사진 및 해당주소 모달화면 보여주기
@@ -239,17 +253,30 @@ const PictureMap = () => {
     setModalVisible(false);
   };
 
-  // 모달화면에서 사진 및 해당주소 삭제 함수
-  const deleteImage = (region, uriToDelete) => {
-    const updatedImages = regionImages[region].filter(imageData => imageData.uri !== uriToDelete);
-    const updatedRegionImages = { ...regionImages, [region]: updatedImages }; // 업데이트된 이미지 목록으로 상태를 설정
-    setRegionImages(updatedRegionImages);
+  // 이미지 삭제 함수
+  const deleteImage = async (region, imageToDelete) => {
+    try {
+      const response = await fetch(`http://3.34.6.50:8080/api/delete_image/${imageToDelete.id}`, {
+        method: 'DELETE',
+      });
+
+      if (response.ok) {
+        const updatedImages = regionImages[region].filter(image => image.id !== imageToDelete.id);
+        setRegionImages({ ...regionImages, [region]: updatedImages });
+      } else {
+        console.error('Failed to delete image from server');
+      }
+    } catch (error) {
+      console.error('Error deleting image:', error);
+    }
   };
+
 
   // 사진선택시 모달을 통해 사진선택하게 만든 함수 및 각 지역에 배열형태로 사진 저장
   const renderModalContent = () => {
-    if (!currentRegion || !regionImages[currentRegion]) return null;
-    console.log("seeeeeex",regionImages)
+    if (!currentRegion || !regionImages[currentRegion]) {
+      return <ActivityIndicator size="large" color="#0000ff" />;
+    }
     return (
       <View>
         <TouchableOpacity
@@ -263,7 +290,7 @@ const PictureMap = () => {
             <View key={index} style={styles.imageContainer}>
               <TouchableOpacity
                 style={styles.deleteButton}
-                onPress={() => deleteImage(currentRegion, imageData.uri)}
+                onPress={() => deleteImage(currentRegion, imageData)}
               >
                 <AntDesign name="delete" size={24} color="black" />
               </TouchableOpacity>
@@ -277,6 +304,9 @@ const PictureMap = () => {
       </View>
     );
   };
+
+
+
 
   return (
     <View style={styles.container}>
