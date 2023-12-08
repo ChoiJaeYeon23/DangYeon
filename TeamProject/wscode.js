@@ -1038,6 +1038,8 @@ const upload_pic = multer({
 // picutreMap 컴포넌트에서 사용자의 사진을 서버에 저장(한번에 최대10장)
 // picutreMap 컴포넌트에서 사용자의 사진을 서버에 저장(한번에 최대10장)
 // picutreMap 컴포넌트에서 사용자의 사진을 서버에 저장(한번에 최대10장)
+// picutreMap 컴포넌트에서 사용자의 사진을 서버에 저장(한번에 최대10장)
+// picutreMap 컴포넌트에서 사용자의 사진을 서버에 저장(한번에 최대10장)
 app.post("/api/upload_images", upload.array("img", 10), (req, res) => {
   const files = req.files;
   const checkId = req.session.checkId;
@@ -1087,6 +1089,27 @@ app.get("/api/get_images", (req, res) => {
     }
   );
 });
+
+// 사진 삭제하기(pictureMap)
+// 사진 삭제하기(pictureMap)
+// 사진 삭제하기(pictureMap)
+app.delete("/api/delete_image/:imageId", (req, res) => {
+  const imageId = req.params.imageId;
+
+  db.query(
+    "DELETE FROM picture WHERE image_id = ?",
+    [imageId],
+    (err, result) => {
+      if (err) {
+        console.error("Database deletion error:", err);
+        res.status(500).send("Error deleting image");
+      } else {
+        res.status(200).send("Image deleted successfully");
+      }
+    }
+  );
+});
+
 // 캔디 수 업데이트
 // 캔디 수 업데이트
 // 캔디 수 업데이트

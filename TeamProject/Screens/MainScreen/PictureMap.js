@@ -102,7 +102,8 @@ const PictureMap = () => {
   
           formData.append("address", addr);
           formData.append("region", region);
-  
+
+          console.log("여기라고", formData)
           try {
             const response = await fetch("http://3.34.6.50:8080/api/upload_images", {
               method: "POST",
@@ -137,7 +138,6 @@ const PictureMap = () => {
       const json = await response.json();
       if (json.status === 'OK') {
         const address = json.results[0].formatted_address;
-        console.log(address); // 로그로 주소를 출력 address에 결과 저장
         return address;
       } else {
         console.log(json.error_message);
@@ -168,18 +168,15 @@ const PictureMap = () => {
   const fetchImages = async () => {
     try {
       const response = await fetch(`http://3.34.6.50:8080/api/get_images`);
-      console.log(response)
       if (!response.ok) {
         throw new Error("Server response not OK");
       }
       const data = await response.json();
-      console.log("123123",data[0])
-      console.log("456456",data[1])
       // 지역별로 이미지 그룹화
       const groupedImages = data.reduce((acc, image) => {
         const region = image.image_region || '기타';
         acc[region] = acc[region] || [];
-        acc[region].push(image.image_uri);
+        acc[region].push({ uri: image.image_uri, address: image.image_address,  id: image.image_id  });
         return acc;
       }, {});
       
@@ -194,39 +191,40 @@ const PictureMap = () => {
   }, []);
   
   // 8도(+제주도)반환 결과 및 사진 uri를 8도이미지 위 해당하는 도에 이미지형태(배열)로 저장
-const renderImageOnMap = (region) => {
-  // 지역별 이미지 URI 배열 가져오기
-  const uris = regionImages[region];
-  if (!uris || uris.length === 0) {
-    return null;
-  }
-
-  // 지역별 좌표 가져오기
-  const coordinates = regionCoordinates[region];
-  if (!coordinates) {
-    return null;
-  }
-
-  // 이미지 스타일 정의
-  const imageStyle = {
-    position: 'absolute',
-    left: coordinates.x,
-    top: coordinates.y,
-    width: 50,
-    height: 50,
-    zIndex: 1,
-    borderRadius: 25 // 원형 이미지로 표시
+  const renderImageOnMap = (region) => {
+    // 지역별 이미지 URI 배열 가져오기
+    const uris = regionImages[region];
+    if (!uris || uris.length === 0) {
+      return null;
+    }
+  
+    // 지역별 좌표 가져오기
+    const coordinates = regionCoordinates[region];
+    if (!coordinates) {
+      return null;
+    }
+  
+    // 이미지 스타일 정의
+    const imageStyle = {
+      position: 'absolute',
+      left: coordinates.x,
+      top: coordinates.y,
+      width: 50,
+      height: 50,
+      zIndex: 1,
+      borderRadius: 25 // 원형 이미지로 표시
+    };
+  
+    // 선택된 이미지 또는 첫 번째 이미지를 기본적으로 표시
+    const imageUri = selectedImage[region] || uris[0];
+  
+    return (
+      <TouchableWithoutFeedback key={region} onPress={() => onRegionPress(region)}>
+        <Image source={{ uri: imageUri }} style={imageStyle} />
+      </TouchableWithoutFeedback>
+    );
   };
-
-  // 선택된 이미지 또는 첫 번째 이미지를 기본적으로 표시
-  const imageUri = selectedImage[region] || uris[0].uri;
-
-  return (
-    <TouchableWithoutFeedback key={region} onPress={() => onRegionPress(region)}>
-      <Image source={{ uri: imageUri }} style={imageStyle} />
-    </TouchableWithoutFeedback>
-  );
-};
+  
   
 
 
@@ -251,7 +249,7 @@ const renderImageOnMap = (region) => {
   // 사진선택시 모달을 통해 사진선택하게 만든 함수 및 각 지역에 배열형태로 사진 저장
   const renderModalContent = () => {
     if (!currentRegion || !regionImages[currentRegion]) return null;
-
+    console.log("seeeeeex",regionImages)
     return (
       <View>
         <TouchableOpacity
