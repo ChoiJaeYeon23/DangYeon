@@ -18,7 +18,7 @@ CREATE TABLE invite_codes (
     code_id INTEGER AUTO_INCREMENT PRIMARY KEY,
     user_id VARCHAR(50),
     code VARCHAR(255),
-    FOREIGN KEY (user_id) REFERENCES userInfo(id)
+    FOREIGN KEY (user_id) REFERENCES userInfo(id) ON DELETE CASCADE
 );
 
 -- 커플 연결을 위한 테이블
@@ -26,8 +26,8 @@ CREATE TABLE couple_connection_check_for_s (
     check_id INTEGER AUTO_INCREMENT PRIMARY KEY,
     user_id1 VARCHAR(50),
     user_id2 VARCHAR(50),
-    FOREIGN KEY (user_id1) REFERENCES userInfo(id),
-    FOREIGN KEY (user_id2) REFERENCES userInfo(id)
+    FOREIGN KEY (user_id1) REFERENCES userInfo(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id2) REFERENCES userInfo(id)ON DELETE CASCADE
 );
 
 -- 게시판 테이블
@@ -39,8 +39,8 @@ CREATE TABLE postInfo(
     title VARCHAR(255),
     content TEXT,
     img TEXT,
-    FOREIGN KEY (user_id) REFERENCES userInfo(id),
-    FOREIGN KEY (check_id) REFERENCES couple_connection_check_for_s(check_id)
+    FOREIGN KEY (user_id) REFERENCES userInfo(id) ON DELETE CASCADE,
+    FOREIGN KEY (check_id) REFERENCES couple_connection_check_for_s(check_id) ON DELETE CASCADE
 );
 
 -- 채팅 테이블
@@ -58,7 +58,7 @@ CREATE TABLE bucketList (
   bucket_text VARCHAR(255) NOT NULL,
   isCompleted BOOLEAN NOT NULL DEFAULT FALSE,
   check_id INT,
-  FOREIGN KEY (check_id) REFERENCES couple_connection_check_for_s(check_id)
+    FOREIGN KEY (check_id) REFERENCES couple_connection_check_for_s(check_id) ON DELETE CASCADE
 );
 
 -- 달력 테이블
@@ -67,18 +67,17 @@ CREATE TABLE calendar(
     schedule_text TEXT,
     schedule_date DATE,
     check_id INT,
-    FOREIGN KEY (check_id) REFERENCES couple_connection_check_for_s(check_id)
-
+    FOREIGN KEY (check_id) REFERENCES couple_connection_check_for_s(check_id) ON DELETE CASCADE
 );
 
--- 채팅 테이블
+-- 픽쳐맵 테이블
 CREATE TABLE picture(
     image_id INTEGER AUTO_INCREMENT PRIMARY KEY,
     image_uri VARCHAR(255) NOT NULL,
     image_region VARCHAR(100),
     image_address VARCHAR(255),
     check_id INT,
-    FOREIGN KEY (check_id) REFERENCES couple_connection_check_for_s(check_id)
+    FOREIGN KEY (check_id) REFERENCES couple_connection_check_for_s(check_id) ON DELETE CASCADE
 );
 
 -- 캔디 저장 테이블
@@ -86,7 +85,7 @@ CREATE TABLE candy(
     check_id INT PRIMARY KEY,
     candy INTEGER,
     month_candy INT,
-    FOREIGN KEY(check_id) REFERENCES couple_connection_check_for_s(check_id)
+    FOREIGN KEY (check_id) REFERENCES couple_connection_check_for_s(check_id) ON DELETE CASCADE
 );
 
 SET SQL_SAFE_UPDATES = 0;
