@@ -63,7 +63,8 @@ const CalendarPage = () => {
   const [markedDates, setMarkedDates] = useState({});
   const [monthlyCandyCount, setMonthlyCandyCount] = useState(0); // 이번 달 캔디 수
   const [totalCandyCount, setTotalCandyCount] = useState(0); // 전체 캔디 수
-
+  const [currentMonth, setCurrentMonth] = useState(moment().format('YYYY-MM-DD'));
+  
   // 서버로부터 캔디 수를 가져오는 함수
   const fetchCandyCounts = async () => {
     try {
