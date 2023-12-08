@@ -707,17 +707,17 @@ app.post("/api/couple_break", (req, res) => {
     return res.status(401).send({ message: "Unauthorized: No session found" });
   }
 
-  // DB에서 해당 사용자의 connect_id_me를 NULL로 변경
+  // couple_connection_check_for_s 테이블에서 해당 사용자를 포함하는 모든 레코드 삭제
   const query =
-    "UPDATE couple_connection_check SET connect_id_lover = NULL WHERE user_id = ?";
-  db.query(query, [userId], (err, result) => {
+    "DELETE FROM couple_connection_check_for_s WHERE user_id1 = ? OR user_id2 = ?";
+  db.query(query, [userId, userId], (err, result) => {
     if (err) {
       // DB 오류 처리
       console.error("Query error:", err);
       res.status(500).send({ message: "Database error", error: err });
     } else {
-      // connect_id를 제거했음을 알림
-      res.send({ message: "connect_id 제거에 성공하였습니다." });
+      // 커플 연결 해제에 성공했음을 알림
+      res.send({ message: "Couple connection successfully disconnected" });
     }
   });
 });
