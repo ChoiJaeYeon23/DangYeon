@@ -1081,6 +1081,20 @@ app.get("/api/get_images", (req, res) => {
   });
 });
 
+// 사진 삭제하기(pictureMap)
+app.delete('/api/delete_image/:imageId', (req, res) => {
+  const imageId = req.params.imageId;
+
+  db.query('DELETE FROM picture WHERE image_id = ?', [imageId], (err, result) => {
+    if (err) {
+      console.error('Database deletion error:', err);
+      res.status(500).send('Error deleting image');
+    } else {
+      res.status(200).send('Image deleted successfully');
+    }
+  });
+});
+
 
 // WebSocket 연결 처리
 // WebSocket 연결 처리
