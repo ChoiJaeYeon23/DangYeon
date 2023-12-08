@@ -84,49 +84,78 @@ const PictureMap = () => {
     }
   };
 
+
+
+  const fetchImages = async () => {
+    try {
+      const response = await fetch(`http://3.34.6.50:8080/api/get_images`);
+      if (!response.ok) {
+        throw new Error("Server response not OK");
+      }
+      const data = await response.json();
+      setRegionImages(data);
+    } catch (error) {
+      console.error("Error fetching images:", error);
+    }
+  };
+
+  // 컴포넌트가 마운트되었을 때 서버에서 이미지 데이터 불러오기
   useEffect(() => {
-    loadImages();
+    fetchImages();
   }, []);
 
-  // 어싱크 ㅋㅋ 사진저장 어싱크
-  const loadImages = async () => {
-    try {
-      const storedImages = await AsyncStorage.getItem('regionImages');
-      if (storedImages !== null) {
-        setRegionImages(JSON.parse(storedImages));
-      }
-    } catch (error) {
-      console.error('Failed to load images', error);
-    }
-  };
 
-  // 어싱크 ㅋㅋ 지역저장 어싱크
-  const saveImages = async (images) => {
-    try {
-      await AsyncStorage.setItem('regionImages', JSON.stringify(images));
-    } catch (error) {
-      console.error('Failed to save images', error);
-    }
-  };
+
 
   // 이미지에 저장된 위도경도를 구글 역지오코딩 API를 활용해 주소로 변환 후 주소에 포함된 시를 검색 후 해당되는 8도(+제주도)(경기도.. 강원도.. 제주도.. 등 ) 중 하나에 저장
   const processImages = async (assets) => {
     let newRegionImages = { ...regionImages };
-
+  
+    const formData = new FormData();
+  
     for (const asset of assets) {
+      formData.append("img", {
+        uri: asset.uri,
+        name: `upload-${Date.now()}.jpg`,
+        type: "image/jpeg",
+      });
+  
       if (asset.exif) {
         const { GPSLatitude, GPSLongitude } = asset.exif;
         if (GPSLatitude && GPSLongitude) {
+          // await를 사용하기 위해 for...of 루프 사용
           const addr = await getReverseGeocodingData(GPSLatitude, GPSLongitude);
           const region = determineRegion(addr || '');
           newRegionImages[region] = newRegionImages[region] || [];
-          newRegionImages[region].push({ uri: asset.uri, address: addr }); // 이미지 객체에 주소 추가
+          newRegionImages[region].push({ uri: asset.uri, address: addr });
         }
       }
     }
+  
+    try {
+      const response = await fetch("http://3.34.6.50:8080/api/upload_images", {
+        method: "POST",
+        body: formData,
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+  
+      if (!response.ok) {
+        throw new Error("Server response not OK");
+      }
+  
+      const data = await response.json();
+      console.log("Images uploaded:", data);
+    } catch (error) {
+      console.error("Error uploading images:", error);
+    }
+  
     setRegionImages(newRegionImages);
-    saveImages(newRegionImages);
   };
+  
+
+
 
   // 역지오코딩(구글맵 지오코딩api 활용) 
   const getReverseGeocodingData = async (lat, lon) => {
@@ -214,7 +243,6 @@ const PictureMap = () => {
     const updatedImages = regionImages[region].filter(imageData => imageData.uri !== uriToDelete);
     const updatedRegionImages = { ...regionImages, [region]: updatedImages }; // 업데이트된 이미지 목록으로 상태를 설정
     setRegionImages(updatedRegionImages);
-    saveImages(updatedRegionImages);
   };
 
   // 사진선택시 모달을 통해 사진선택하게 만든 함수 및 각 지역에 배열형태로 사진 저장
