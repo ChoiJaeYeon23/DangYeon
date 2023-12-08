@@ -12,6 +12,7 @@ import {
 } from "react-native";
 import { Calendar, LocaleConfig } from "react-native-calendars";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { id } from "date-fns/locale";
 
 LocaleConfig.locales["kr"] = {
   monthNames: [
@@ -130,7 +131,7 @@ const CalendarScreen = () => {
   const handleDayPress = async (day) => {
     setSelectedDate(day.dateString);
     setText("");
-    // 서버로부터 해당 날짜의 이벤트를 로드합니다.
+
     try {
       const response = await fetch(
         `http://3.34.6.50:8080/api/load_calendar_text?date=${day.dateString}`,
@@ -141,16 +142,25 @@ const CalendarScreen = () => {
       );
       if (response.ok) {
         const dailyEvents = await response.json();
-        // 로드한 이벤트를 상태에 설정합니다.
-        setEvents({ ...events, [day.dateString]: dailyEvents });
+        if (dailyEvents.length > 0) {
+          // 해당 날짜에 이벤트가 있을 경우
+          setEvents({ ...events, [day.dateString]: dailyEvents });
+        } else {
+          // 해당 날짜에 이벤트가 없을 경우
+          if (events[day.dateString]) {
+            // 이벤트가 이미 표시된 경우는 표시를 유지합니다.
+            setEvents({ ...events, [day.dateString]: [] });
+          } else {
+            // 이벤트가 표시되지 않은 경우는 이벤트 추가 모달을 표시합니다.
+            setShowAddEventModal(true);
+          }
+        }
       } else {
         throw new Error("Failed to load events for the selected date.");
       }
     } catch (error) {
       console.error("Error loading events for the selected date:", error);
     }
-
-    setShowAddEventModal(true); // 일정 추가 모달을 보여줍니다.
   };
 
   const closeModal = () => {
@@ -178,14 +188,13 @@ const CalendarScreen = () => {
       setEvents(updatedEvents);
       saveEvents(updatedEvents); // 변경된 내용 저장
       add_calendar(selectedDate, text.trim()); // 서버에 이벤트 저장
+    } else {
+      // 이벤트가 입력되지 않은 경우, 해당 날짜의 마커를 제거합니다.
+      const updatedEvents = { ...events };
+      delete updatedEvents[selectedDate];
+      setEvents(updatedEvents);
     }
-    closeModal();
-  };
-
-  const handleEventPress = (event) => {
-    setText(event.schedule_text);
-    setEditingEventIndex(event.schedule_id); // 여기서 schedule_id를 저장합니다.
-    setShowEditEventModal(true); // 일정 수정 모달을 보여줍니다.
+    setShowAddEventModal(false);
   };
 
   // 선택한 일정 수정하는 함수
