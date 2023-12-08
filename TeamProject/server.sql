@@ -76,6 +76,7 @@ CREATE TABLE picture(
     image_id INTEGER AUTO_INCREMENT PRIMARY KEY,
     image_uri VARCHAR(255) NOT NULL,
     image_region VARCHAR(100),
+    image_address VARCHAR(255),
     check_id INT,
     FOREIGN KEY (check_id) REFERENCES couple_connection_check_for_s(check_id)
 );

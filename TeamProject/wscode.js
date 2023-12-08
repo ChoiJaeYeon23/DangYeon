@@ -1036,26 +1036,33 @@ const upload_pic = multer({
 });
 
 // picutreMap 컴포넌트에서 사용자의 사진을 서버에 저장(한번에 최대10장)
-app.post("/api/upload_images", upload_pic.array("img", 10), (req, res) => {
+// 파일 업로드 처리
+app.post("/api/upload_images", upload.array("img", 10), (req, res) => {
   const files = req.files;
-  const checkId = req.session.checkId; // 세션에서 checkId 가져오기
+  const checkId = req.session.checkId;
 
   if (!files || files.length === 0) {
     return res.status(400).send("이미지가 업로드되지 않았습니다.");
   }
 
+<<<<<<< HEAD
   files.forEach((file) => {
+=======
+  files.forEach((file, index) => {
+>>>>>>> 4de72f0de8a3bbf5e00e6949b16701c4bce1020b
     const imageUrl = `http://3.34.6.50:8080/images/${file.filename}`;
+    const address = req.body.address[index];
+    const region = req.body.region[index];
 
-    // 데이터베이스에 이미지 정보 저장
     db.query(
-      "INSERT INTO picture (image_uri, check_id) VALUES (?, ?)",
-      [imageUrl, checkId],
+      "INSERT INTO picture (image_uri, image_region, image_address, check_id) VALUES (?, ?, ?, ?)",
+      [imageUrl, region, address, checkId],
       (err, result) => {
         if (err) {
           console.error("Database insertion error:", err);
           return res.status(500).send("데이터베이스 저장 중 오류 발생");
         }
+<<<<<<< HEAD
         console.log("성공");
         // 성공적으로 데이터베이스에 저장된 경우의 처리
       }
@@ -1064,12 +1071,20 @@ app.post("/api/upload_images", upload_pic.array("img", 10), (req, res) => {
   res
     .status(200)
     .json({ message: "이미지가 성공적으로 업로드되었습니다.", files });
+=======
+      }
+    );
+  });
+
+  res.status(200).json({ message: "이미지가 성공적으로 업로드되었습니다.", files });
+>>>>>>> 4de72f0de8a3bbf5e00e6949b16701c4bce1020b
 });
 
 // 사진 불러오기(picutreMap)
 app.get("/api/get_images", (req, res) => {
   const checkId = req.session.checkId; // 세션에서 checkId 가져오기
 
+<<<<<<< HEAD
   db.query(
     "SELECT image_uri FROM picture WHERE check_id = ?",
     [checkId],
@@ -1099,11 +1114,19 @@ app.post("/api/candy_update", (req, res) => {
     month_candy = IF(MONTH(CURRENT_DATE()) = MONTH(last_updated), month_candy + ?, 0),
     last_updated = CURRENT_DATE()`;
   db.query(Query, [checkId, candy, candy], (err, result) => {
+=======
+  db.query("SELECT image_uri, image_region, image_address FROM picture WHERE check_id = ?", [checkId], (err, results) => {
+>>>>>>> 4de72f0de8a3bbf5e00e6949b16701c4bce1020b
     if (err) {
       console.error("Database error:", err);
       res.status(500).send({ message: "Database error", error: err });
     } else {
+<<<<<<< HEAD
       res.send({ message: "Candy count updated successfully" });
+=======
+      console.log(results)
+      res.status(200).json(results);
+>>>>>>> 4de72f0de8a3bbf5e00e6949b16701c4bce1020b
     }
   });
 });
@@ -1112,6 +1135,7 @@ app.post("/api/candy_update", (req, res) => {
 // 이번달 캔디수 조회
 // 이번달 캔디수 조회
 
+<<<<<<< HEAD
 app.get("/api/month_candy", (req, res) => {
   const checkId = req.session.checkId;
 
@@ -1151,6 +1175,8 @@ app.get("/api/all_candy", (req, res) => {
   });
 });
 
+=======
+>>>>>>> 4de72f0de8a3bbf5e00e6949b16701c4bce1020b
 // WebSocket 연결 처리
 // WebSocket 연결 처리
 // WebSocket 연결 처리

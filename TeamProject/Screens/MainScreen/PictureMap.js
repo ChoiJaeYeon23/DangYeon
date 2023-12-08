@@ -84,36 +84,10 @@ const PictureMap = () => {
     }
   };
 
-
-
-  const fetchImages = async () => {
-    try {
-      const response = await fetch(`http://3.34.6.50:8080/api/get_images`);
-      if (!response.ok) {
-        throw new Error("Server response not OK");
-      }
-      const data = await response.json();
-      setRegionImages(data);
-    } catch (error) {
-      console.error("Error fetching images:", error);
-    }
-  };
-
-  // 컴포넌트가 마운트되었을 때 서버에서 이미지 데이터 불러오기
-  useEffect(() => {
-    fetchImages();
-  }, []);
-
-
-
-
   // 이미지에 저장된 위도경도를 구글 역지오코딩 API를 활용해 주소로 변환 후 주소에 포함된 시를 검색 후 해당되는 8도(+제주도)(경기도.. 강원도.. 제주도.. 등 ) 중 하나에 저장
   const processImages = async (assets) => {
-    let newRegionImages = { ...regionImages };
-  
-    const formData = new FormData();
-  
     for (const asset of assets) {
+      const formData = new FormData();
       formData.append("img", {
         uri: asset.uri,
         name: `upload-${Date.now()}.jpg`,
@@ -123,39 +97,34 @@ const PictureMap = () => {
       if (asset.exif) {
         const { GPSLatitude, GPSLongitude } = asset.exif;
         if (GPSLatitude && GPSLongitude) {
-          // await를 사용하기 위해 for...of 루프 사용
           const addr = await getReverseGeocodingData(GPSLatitude, GPSLongitude);
           const region = determineRegion(addr || '');
-          newRegionImages[region] = newRegionImages[region] || [];
-          newRegionImages[region].push({ uri: asset.uri, address: addr });
+  
+          formData.append("address", addr);
+          formData.append("region", region);
+  
+          try {
+            const response = await fetch("http://3.34.6.50:8080/api/upload_images", {
+              method: "POST",
+              body: formData,
+              headers: {
+                "Content-Type": "multipart/form-data",
+              },
+            });
+  
+            if (!response.ok) {
+              throw new Error("Server response not OK");
+            }
+  
+            const data = await response.json();
+            console.log("Image uploaded:", data);
+          } catch (error) {
+            console.error("Error uploading image:", error);
+          }
         }
       }
     }
-  
-    try {
-      const response = await fetch("http://3.34.6.50:8080/api/upload_images", {
-        method: "POST",
-        body: formData,
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
-  
-      if (!response.ok) {
-        throw new Error("Server response not OK");
-      }
-  
-      const data = await response.json();
-      console.log("Images uploaded:", data);
-    } catch (error) {
-      console.error("Error uploading images:", error);
-    }
-  
-    setRegionImages(newRegionImages);
   };
-  
-
-
 
   // 역지오코딩(구글맵 지오코딩api 활용) 
   const getReverseGeocodingData = async (lat, lon) => {
@@ -195,36 +164,70 @@ const PictureMap = () => {
     return '지역을 결정할 수 없음';
   };
 
-
-  // 8도(+제주도)반환 결과 및 사진 uri를 8도이미지 위 해당하는 도에 이미지형태(배열)로 저장
-  const renderImageOnMap = (region) => {
-    const uris = regionImages[region];
-    const coordinates = regionCoordinates[region];
-
-    if (!coordinates || !uris || uris.length === 0) {
-      return null;
+  // 서버로부터 이미지 가져오기
+  const fetchImages = async () => {
+    try {
+      const response = await fetch(`http://3.34.6.50:8080/api/get_images`);
+      console.log(response)
+      if (!response.ok) {
+        throw new Error("Server response not OK");
+      }
+      const data = await response.json();
+      console.log("123123",data[0])
+      console.log("456456",data[1])
+      // 지역별로 이미지 그룹화
+      const groupedImages = data.reduce((acc, image) => {
+        const region = image.image_region || '기타';
+        acc[region] = acc[region] || [];
+        acc[region].push(image.image_uri);
+        return acc;
+      }, {});
+      
+      setRegionImages(groupedImages);
+    } catch (error) {
+      console.error("Error fetching images:", error);
     }
-
-    const imageStyle = {
-      position: 'absolute',
-      left: coordinates.x,
-      top: coordinates.y,
-      width: 50,
-      height: 50,
-      zIndex: 1,
-      borderRadius: 50
-    };
-
-    // 선택된 이미지 또는 첫 번째 이미지를 기본적으로 표시
-    const imageUri = selectedImage[region] || uris[0].uri
-
-    return (
-      <TouchableWithoutFeedback key={region} onPress={() => onRegionPress(region)}>
-        <Image source={{ uri: imageUri }} style={imageStyle} />
-      </TouchableWithoutFeedback>
-    );
   };
 
+  useEffect(() => {
+    fetchImages();
+  }, []);
+  
+  // 8도(+제주도)반환 결과 및 사진 uri를 8도이미지 위 해당하는 도에 이미지형태(배열)로 저장
+const renderImageOnMap = (region) => {
+  // 지역별 이미지 URI 배열 가져오기
+  const uris = regionImages[region];
+  if (!uris || uris.length === 0) {
+    return null;
+  }
+
+  // 지역별 좌표 가져오기
+  const coordinates = regionCoordinates[region];
+  if (!coordinates) {
+    return null;
+  }
+
+  // 이미지 스타일 정의
+  const imageStyle = {
+    position: 'absolute',
+    left: coordinates.x,
+    top: coordinates.y,
+    width: 50,
+    height: 50,
+    zIndex: 1,
+    borderRadius: 25 // 원형 이미지로 표시
+  };
+
+  // 선택된 이미지 또는 첫 번째 이미지를 기본적으로 표시
+  const imageUri = selectedImage[region] || uris[0].uri;
+
+  return (
+    <TouchableWithoutFeedback key={region} onPress={() => onRegionPress(region)}>
+      <Image source={{ uri: imageUri }} style={imageStyle} />
+    </TouchableWithoutFeedback>
+  );
+};
+  
 
 
   // 각 도에 저장된 이미지 클릭시 해당 도에 저장된 사진 및 해당주소 모달화면 보여주기
