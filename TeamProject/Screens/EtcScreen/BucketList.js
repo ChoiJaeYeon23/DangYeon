@@ -50,10 +50,6 @@ const loadBucketList = async () => {
   }
 };
 
-
-
-
-
   useEffect(() => {
     loadBucketList();
   }, []);
@@ -100,7 +96,6 @@ const loadBucketList = async () => {
     setDeleteConfirmationVisible(true);
   };
 
-
   // 리스트에서 항목 제거 및 서버에 삭제 요청
   const removeFromList = async () => {
     const itemToDelete = list[deleteIndex];
@@ -132,8 +127,6 @@ const loadBucketList = async () => {
     setDeleteConfirmationVisible(false);
     setDeleteIndex(null);
   };
-
-
 
   // 삭제 취소
   const cancelDelete = () => {
@@ -170,11 +163,6 @@ const loadBucketList = async () => {
     }
   };
 
-
-
-
-
-
   // 버킷리스트 완료 상태에 따라 다른 하트 표시
   const renderItem = ({ item, index }) => (
     <View style={styles.item}>
@@ -195,7 +183,6 @@ const loadBucketList = async () => {
       </Text>
     </View>
   );
-
 
   return (
     <View style={styles.container}>

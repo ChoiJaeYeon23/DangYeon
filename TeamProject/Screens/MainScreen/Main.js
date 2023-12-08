@@ -138,8 +138,6 @@ const Main = ({ navigation }) => {
     loadusernames()
   }, []);
 
-
-
   const calculateDaysSinceMeeting = (meetingDay) => { // 처음 만난 날 계산
     const today = moment();
     const startDay = moment(meetingDay);

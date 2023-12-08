@@ -11,7 +11,6 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import Swiper from "react-native-swiper";
-import { format } from "date-fns";
 import { useFocusEffect } from "@react-navigation/native";
 
 const Board = ({ route }) => {
@@ -244,26 +243,5 @@ const styles = StyleSheet.create({
     marginTop: 20, // 동그라미 아래 텍스트와 간격 조정
   },
 });
-
-const saveData = async (key, data) => {
-  try {
-    const jsonData = JSON.stringify(data);
-    await AsyncStorage.setItem(key, jsonData);
-  } catch (error) {
-    console.error("데이터 저장 중 오류 발생:", error);
-  }
-};
-
-const loadData = async (key) => {
-  try {
-    const jsonData = await AsyncStorage.getItem(key);
-    if (jsonData !== null) {
-      return JSON.parse(jsonData);
-    }
-  } catch (error) {
-    console.error("데이터 불러오기 중 오류 발생:", error);
-  }
-  return null;
-};
 
 export default Board;
