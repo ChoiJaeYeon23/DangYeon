@@ -1038,6 +1038,8 @@ const upload_pic = multer({
 // picutreMap 컴포넌트에서 사용자의 사진을 서버에 저장(한번에 최대10장)
 // picutreMap 컴포넌트에서 사용자의 사진을 서버에 저장(한번에 최대10장)
 // picutreMap 컴포넌트에서 사용자의 사진을 서버에 저장(한번에 최대10장)
+// picutreMap 컴포넌트에서 사용자의 사진을 서버에 저장(한번에 최대10장)
+// picutreMap 컴포넌트에서 사용자의 사진을 서버에 저장(한번에 최대10장)
 app.post("/api/upload_images", upload.array("img", 10), (req, res) => {
   const files = req.files;
   const checkId = req.session.checkId;
@@ -1046,10 +1048,10 @@ app.post("/api/upload_images", upload.array("img", 10), (req, res) => {
     return res.status(400).send("이미지가 업로드되지 않았습니다.");
   }
 
-  files.forEach((file, index) => {
+  files.forEach((file) => {
     const imageUrl = `http://3.34.6.50:8080/images/${file.filename}`;
-    const address = req.body.address[index];
-    const region = req.body.region[index];
+    const address = req.body.address;
+    const region = req.body.region;
 
     db.query(
       "INSERT INTO picture (image_uri, image_region, image_address, check_id) VALUES (?, ?, ?, ?)",
@@ -1063,9 +1065,7 @@ app.post("/api/upload_images", upload.array("img", 10), (req, res) => {
     );
   });
 
-  res
-    .status(200)
-    .json({ message: "이미지가 성공적으로 업로드되었습니다.", files });
+  res.status(200).json({ message: "이미지가 성공적으로 업로드되었습니다.", files });
 });
 
 // 사진 불러오기(picutreMap)
@@ -1074,18 +1074,44 @@ app.post("/api/upload_images", upload.array("img", 10), (req, res) => {
 app.get("/api/get_images", (req, res) => {
   const checkId = req.session.checkId; // 세션에서 checkId 가져오기
 
-  db.query(
-    "SELECT image_uri, image_region, image_address FROM picture WHERE check_id = ?",
-    [checkId],
-    (err, results) => {
-      if (err) {
-        res.status(500).send("데이터베이스 조회 중 오류 발생");
-      } else {
-        console.log(results);
-        res.status(200).json(results);
-      }
+  db.query("SELECT image_id, image_uri, image_region, image_address FROM picture WHERE check_id = ?", [checkId], (err, results) => {
+    if (err) {
+      res.status(500).send("데이터베이스 조회 중 오류 발생");
+    } else {
+      console.log(results)
+      res.status(200).json(results);
     }
-  );
+  });
+});
+
+// 사진 삭제하기(pictureMap)
+// 사진 삭제하기(pictureMap)
+// 사진 삭제하기(pictureMap)
+app.delete('/api/delete_image/:imageId', (req, res) => {
+  const imageId = req.params.imageId;
+
+  db.query('DELETE FROM picture WHERE image_id = ?', [imageId], (err, result) => {
+    if (err) {
+      console.error('Database deletion error:', err);
+      res.status(500).send('Error deleting image');
+    } else {
+      res.status(200).send('Image deleted successfully');
+    }
+  });
+});
+
+// 사진 삭제하기(pictureMap)
+app.delete('/api/delete_image/:imageId', (req, res) => {
+  const imageId = req.params.imageId;
+
+  db.query('DELETE FROM picture WHERE image_id = ?', [imageId], (err, result) => {
+    if (err) {
+      console.error('Database deletion error:', err);
+      res.status(500).send('Error deleting image');
+    } else {
+      res.status(200).send('Image deleted successfully');
+    }
+  });
 });
 
 // 캔디 수 업데이트
