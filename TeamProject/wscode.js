@@ -1046,10 +1046,10 @@ app.post("/api/upload_images", upload.array("img", 10), (req, res) => {
     return res.status(400).send("이미지가 업로드되지 않았습니다.");
   }
 
-  files.forEach((file, index) => {
+  files.forEach((file) => {
     const imageUrl = `http://3.34.6.50:8080/images/${file.filename}`;
-    const address = req.body.address[index];
-    const region = req.body.region[index];
+    const address = req.body.address;
+    const region = req.body.region;
 
     db.query(
       "INSERT INTO picture (image_uri, image_region, image_address, check_id) VALUES (?, ?, ?, ?)",
@@ -1075,7 +1075,7 @@ app.get("/api/get_images", (req, res) => {
   const checkId = req.session.checkId; // 세션에서 checkId 가져오기
 
   db.query(
-    "SELECT image_uri, image_region, image_address FROM picture WHERE check_id = ?",
+    "SELECT image_id, image_uri, image_region, image_address FROM picture WHERE check_id = ?",
     [checkId],
     (err, results) => {
       if (err) {
@@ -1087,25 +1087,26 @@ app.get("/api/get_images", (req, res) => {
     }
   );
 });
-
 // 캔디 수 업데이트
 // 캔디 수 업데이트
 // 캔디 수 업데이트
 
 app.post("/api/candy_update", (req, res) => {
   const checkId = req.session.checkId; // 세션에서 checkId 가져오기
-  const { candy } = req.body;
+  const { newCandyCount } = req.body; // "newCandyCount"로 변경
+  const currentDate = new Date().toISOString().split("T")[0]; // 현재 날짜 가져오기
 
   const query = `
-  INSERT INTO candy_rewards (check_id, candy_count, month_candy, last_updated)
-  VALUES (?, ?, ?, CURRENT_DATE())
+  INSERT INTO candy (check_id, candy, month_candy, candy_date)
+  VALUES (?, ?, ?, ?)
   ON DUPLICATE KEY UPDATE
-    candy_count = candy_count + ?,
-    month_candy = IF(MONTH(CURRENT_DATE()) = MONTH(last_updated), month_candy + ?, ?),
-    last_updated = CURRENT_DATE()`;
+    candy = candy + VALUES(candy),
+    month_candy = IF(MONTH(CURRENT_DATE()) = MONTH(candy_date), month_candy + VALUES(month_candy), VALUES(month_candy)),
+    candy_date = VALUES(candy_date)`;
+
   db.query(
     query,
-    [checkId, candy, candy, candy, candy, CURRENT_DATE()],
+    [checkId, newCandyCount, newCandyCount, currentDate, currentDate],
     (err, result) => {
       if (err) {
         console.error("Database error:", err);

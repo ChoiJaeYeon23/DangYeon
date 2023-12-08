@@ -126,9 +126,9 @@ const PedometerScreen = () => {
   };
 
   const claimCandy = async (steps) => {
-    const key = steps === 1000 ? "ten" : steps === 5000 ? "fifty" : "hundred";
+    const key = steps === 10 ? "ten" : steps === 50 ? "fifty" : "hundred";
     if (currentStepCount >= steps && !candyRewardsReceived[key]) {
-      let candyReward = steps === 1000 ? 1 : steps === 5000 ? 5 : 10000;
+      let candyReward = 1; // 10걸음당 1캔디
       const newCandyCount = candies + candyReward;
       setCandies(newCandyCount);
 
@@ -198,7 +198,7 @@ const PedometerScreen = () => {
   }, [candies]);
 
   const RewardBox = ({ steps, candyReward }) => {
-    const key = steps === 1000 ? "ten" : steps === 5000 ? "fifty" : "hundred";
+    const key = steps === 10 ? "ten" : steps === 50 ? "fifty" : "hundred";
     const isRewardAvailable = currentStepCount >= steps;
     const isRewardClaimed = candyRewardsReceived[key];
 
@@ -265,9 +265,9 @@ const PedometerScreen = () => {
         <Text style={styles.buttonText}>걸음 수 업데이트</Text>
       </TouchableOpacity>
       <View style={styles.rewardContainer}>
-        <RewardBox steps={1000} candyReward={1} />
-        <RewardBox steps={5000} candyReward={5} />
-        <RewardBox steps={10000} candyReward={10} />
+        <RewardBox steps={10} candyReward={1} />
+        <RewardBox steps={50} candyReward={5} />
+        <RewardBox steps={100} candyReward={10} />
       </View>
       <Text style={styles.descriptionText}>
         만보기를 더 정확하게 사용하고 싶으시다면 업데이트 버튼을 누른 후에
