@@ -80,7 +80,13 @@ CREATE TABLE picture(
     FOREIGN KEY (check_id) REFERENCES couple_connection_check_for_s(check_id)
 );
 
-
+-- 캔디 저장 테이블
+CREATE TABLE candy(
+    check_id INT PRIMARY KEY,
+    candy INTEGER,
+    month_candy INT,
+    FOREIGN KEY(check_id) REFERENCES couple_connection_check_for_s(check_id)
+);
 
 SET SQL_SAFE_UPDATES = 0;
 

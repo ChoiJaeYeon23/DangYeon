@@ -1020,8 +1020,11 @@ const upload_pic = multer({
       cb(null, "/home/ubuntu/chat-server/images"); // 이미지 저장 경로
     },
     filename: function (req, file, cb) {
-      cb(null, file.fieldname + "-" + Date.now() + path.extname(file.originalname));
-    }
+      cb(
+        null,
+        file.fieldname + "-" + Date.now() + path.extname(file.originalname)
+      );
+    },
   }),
   fileFilter: function (req, file, cb) {
     if (file.mimetype === "image/jpeg" || file.mimetype === "image/png") {
@@ -1029,9 +1032,8 @@ const upload_pic = multer({
     } else {
       cb(new Error("Invalid file type"), false);
     }
-  }
+  },
 });
-
 
 // picutreMap 컴포넌트에서 사용자의 사진을 서버에 저장(한번에 최대10장)
 app.post("/api/upload_images", upload_pic.array("img", 10), (req, res) => {
@@ -1042,7 +1044,7 @@ app.post("/api/upload_images", upload_pic.array("img", 10), (req, res) => {
     return res.status(400).send("이미지가 업로드되지 않았습니다.");
   }
 
-  files.forEach(file => {
+  files.forEach((file) => {
     const imageUrl = `http://3.34.6.50:8080/images/${file.filename}`;
 
     // 데이터베이스에 이미지 정보 저장
@@ -1054,29 +1056,100 @@ app.post("/api/upload_images", upload_pic.array("img", 10), (req, res) => {
           console.error("Database insertion error:", err);
           return res.status(500).send("데이터베이스 저장 중 오류 발생");
         }
-        console.log("성공")
+        console.log("성공");
         // 성공적으로 데이터베이스에 저장된 경우의 처리
       }
     );
   });
-  res.status(200).json({ message: "이미지가 성공적으로 업로드되었습니다.", files });
+  res
+    .status(200)
+    .json({ message: "이미지가 성공적으로 업로드되었습니다.", files });
 });
-
 
 // 사진 불러오기(picutreMap)
 app.get("/api/get_images", (req, res) => {
   const checkId = req.session.checkId; // 세션에서 checkId 가져오기
 
-  db.query("SELECT image_uri FROM picture WHERE check_id = ?", [checkId], (err, results) => {
+  db.query(
+    "SELECT image_uri FROM picture WHERE check_id = ?",
+    [checkId],
+    (err, results) => {
+      if (err) {
+        res.status(500).send("데이터베이스 조회 중 오류 발생");
+      } else {
+        res.status(200).json(results);
+      }
+    }
+  );
+});
+
+// 캔디 수 업데이트
+// 캔디 수 업데이트
+// 캔디 수 업데이트
+
+app.post("/api/candy_update", (req, res) => {
+  const checkId = req.session.checkId; // 세션에서 checkId 가져오기
+  const { candy } = req.body;
+
+  const query = `
+  INSERT INTO candy_rewards (check_id, candy_count, month_candy)
+  VALUES (?, ?, ?)
+  ON DUPLICATE KEY UPDATE
+    candy_count = candy_count + ?,
+    month_candy = IF(MONTH(CURRENT_DATE()) = MONTH(last_updated), month_candy + ?, 0),
+    last_updated = CURRENT_DATE()`;
+  db.query(Query, [checkId, candy, candy], (err, result) => {
     if (err) {
-      res.status(500).send("데이터베이스 조회 중 오류 발생");
+      console.error("Database error:", err);
+      res.status(500).send({ message: "Database error", error: err });
     } else {
-      res.status(200).json(results);
+      res.send({ message: "Candy count updated successfully" });
     }
   });
 });
 
+// 이번달 캔디수 조회
+// 이번달 캔디수 조회
+// 이번달 캔디수 조회
 
+app.get("/api/month_candy", (req, res) => {
+  const checkId = req.session.checkId;
+
+  if (!checkId) {
+    return res.status(401).send({ message: "Unauthorized: No session found" });
+  }
+  const query = "SELECT month_candy FROM candy WHERE check_id = ?";
+  db.query(query, [checkId], (err, results) => {
+    if (err) {
+      console.error("Database error:", err);
+      res.status(500).send({ message: "Database error", error: err });
+    } else {
+      // 결과가 없는 경우, 이번 달 캔디 수는 0으로 간주
+      const monthCandyCount = results[0] ? results[0].month_candy : 0;
+      res.send({ monthCandyCount });
+    }
+  });
+});
+
+// 종합적인 캔디수 조회
+// 종합적인 캔디수 조회
+// 종합적인 캔디수 조회
+
+app.get("/api/all_candy", (req, res) => {
+  const checkId = req.session.checkId;
+
+  const getCandyQuery = "SELECT candy FROM candy WHERE check_id = ?";
+  db.query(getCandyQuery, [checkId], (err, results) => {
+    if (err) {
+      console.error("Database error:", err);
+      res.status(500).send({ message: "Database error", error: err });
+    } else {
+      const candyCount =
+        results.length > 0 && results[0].candy ? results[0].candy : 0;
+      res.send({ candy: candyCount });
+    }
+  });
+});
 
 // WebSocket 연결 처리
 // WebSocket 연결 처리
