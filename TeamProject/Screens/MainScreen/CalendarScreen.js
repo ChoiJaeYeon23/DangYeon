@@ -12,7 +12,6 @@ import {
 } from "react-native";
 import { Calendar, LocaleConfig } from "react-native-calendars";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { id } from "date-fns/locale";
 
 LocaleConfig.locales["kr"] = {
   monthNames: [

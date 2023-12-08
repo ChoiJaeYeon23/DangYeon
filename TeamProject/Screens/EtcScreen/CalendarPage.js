@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { View, Text, StyleSheet, Image } from "react-native";
 import { Calendar, LocaleConfig } from "react-native-calendars";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import moment from "moment";
 import CandyImage from "../../assets/candy.png";
 

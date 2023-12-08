@@ -10,7 +10,6 @@ const PictureMap = () => {
   const [selectedImage, setSelectedImage] = useState({}); // 각 지역별로 선택된 이미지 URI를 저장
   const [modalVisible, setModalVisible] = useState(false);
   const [currentRegion, setCurrentRegion] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
 
   // 인천광역시, 서울특별시            => 경기도
   // 대전광역시, 세종특별자치시        => 충청남도
@@ -128,8 +127,6 @@ const PictureMap = () => {
     }
   };
 
-
-
   // 역지오코딩(구글맵 지오코딩api 활용) 
   const getReverseGeocodingData = async (lat, lon) => {
 
@@ -166,7 +163,6 @@ const PictureMap = () => {
     }
     return '지역을 결정할 수 없음';
   };
-
 
   // 서버로부터 이미지 가져오기
   const fetchImages = async () => {
@@ -241,8 +237,6 @@ const PictureMap = () => {
     // selectedImage 상태가 변경될 때마다 실행되는 로직
   }, [selectedImage]);
 
-
-
   // 각 도에 저장된 이미지 클릭시 해당 도에 저장된 사진 및 해당주소 모달화면 보여주기
   const onRegionPress = (region) => {
     setCurrentRegion(region);
@@ -271,7 +265,6 @@ const PictureMap = () => {
       console.error('Error deleting image:', error);
     }
   };
-
 
   // 사진선택시 모달을 통해 사진선택하게 만든 함수 및 각 지역에 배열형태로 사진 저장
   const renderModalContent = () => {
@@ -305,9 +298,6 @@ const PictureMap = () => {
       </View>
     );
   };
-
-
-
 
   return (
     <View style={styles.container}>

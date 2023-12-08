@@ -8,7 +8,6 @@ import {
   Alert,
   KeyboardAvoidingView,
 } from "react-native";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import * as Clipboard from "expo-clipboard";
 
@@ -121,7 +120,6 @@ const CoupleConnect = ({ navigation }) => {
     </KeyboardAvoidingView>
   );
 };
-
 
 const styles = StyleSheet.create({
   container: {

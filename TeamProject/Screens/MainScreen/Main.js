@@ -8,10 +8,12 @@ import Weather from './Weather';
 const whiteCandyImage = require('../../assets/Bincandy.png');
 const brownCandyImage = require('../../assets/candy.png');
 
-// 출서체크 상태에 따라 다른 캔디 이미지를 보여줌
+// 출석체크 상태에 따라 다른 캔디 이미지를 보여줌
 const Candy = ({ isComplete }) => {
   const candyImage = isComplete ? brownCandyImage : whiteCandyImage;
-  return <Image source={candyImage} style={styles.candy} />;
+  return (
+    <Image source={candyImage} style={styles.candy} />
+  );
 };
 
 const Main = ({ navigation }) => {
@@ -135,8 +137,6 @@ const Main = ({ navigation }) => {
     loadmeetingday()
     loadusernames()
   }, []);
-
-
 
   const calculateDaysSinceMeeting = (meetingDay) => { // 처음 만난 날 계산
     const today = moment();
