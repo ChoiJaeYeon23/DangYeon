@@ -1097,20 +1097,24 @@ app.post("/api/candy_update", (req, res) => {
   const { candy } = req.body;
 
   const query = `
-  INSERT INTO candy_rewards (check_id, candy_count, month_candy)
-  VALUES (?, ?, ?)
+  INSERT INTO candy_rewards (check_id, candy_count, month_candy, last_updated)
+  VALUES (?, ?, ?, CURRENT_DATE())
   ON DUPLICATE KEY UPDATE
     candy_count = candy_count + ?,
-    month_candy = IF(MONTH(CURRENT_DATE()) = MONTH(last_updated), month_candy + ?, 0),
+    month_candy = IF(MONTH(CURRENT_DATE()) = MONTH(last_updated), month_candy + ?, ?),
     last_updated = CURRENT_DATE()`;
-  db.query(Query, [checkId, candy, candy], (err, result) => {
-    if (err) {
-      console.error("Database error:", err);
-      res.status(500).send({ message: "Database error", error: err });
-    } else {
-      res.send({ message: "Candy count updated successfully" });
+  db.query(
+    query,
+    [checkId, candy, candy, candy, candy, CURRENT_DATE()],
+    (err, result) => {
+      if (err) {
+        console.error("Database error:", err);
+        res.status(500).send({ message: "Database error", error: err });
+      } else {
+        res.send({ message: "Candy count updated successfully" });
+      }
     }
-  });
+  );
 });
 
 // 이번달 캔디수 조회
@@ -1119,7 +1123,7 @@ app.post("/api/candy_update", (req, res) => {
 
 app.get("/api/month_candy", (req, res) => {
   const checkId = req.session.checkId;
-
+  console.log(req.session.checkId);
   if (!checkId) {
     return res.status(401).send({ message: "Unauthorized: No session found" });
   }
@@ -1142,6 +1146,7 @@ app.get("/api/month_candy", (req, res) => {
 
 app.get("/api/all_candy", (req, res) => {
   const checkId = req.session.checkId;
+  console.log(req.session.checkId);
 
   const getCandyQuery = "SELECT candy FROM candy WHERE check_id = ?";
   db.query(getCandyQuery, [checkId], (err, results) => {
@@ -1149,9 +1154,9 @@ app.get("/api/all_candy", (req, res) => {
       console.error("Database error:", err);
       res.status(500).send({ message: "Database error", error: err });
     } else {
-      const candyCount =
+      const totalCandyCount =
         results.length > 0 && results[0].candy ? results[0].candy : 0;
-      res.send({ candy: candyCount });
+      res.send({ totalCandyCount });
     }
   });
 });

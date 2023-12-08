@@ -12,21 +12,20 @@ import { Pedometer } from "expo-sensors";
 import CandyImage from "../../assets/candy.png";
 
 const PedometerScreen = () => {
-  const [isPedometerAvailable, setIsPedometerAvailable] = useState("checking"); // 만보기가 사용 가능한지 여부 저장
-  const [pastStepCount, setPastStepCount] = useState(0); // 지난 24시간 동안의 걸음 수 저장
-  const [currentStepCount, setCurrentStepCount] = useState(0); // 현재 걸음 수 저장
-  const [candies, setCandies] = useState(0); // 획득한 캔디 수
+  const [isPedometerAvailable, setIsPedometerAvailable] = useState("checking");
+  const [pastStepCount, setPastStepCount] = useState(0);
+  const [currentStepCount, setCurrentStepCount] = useState(0);
+  const [candies, setCandies] = useState(0);
   const [candyRewardsReceived, setCandyRewardsReceived] = useState({
     ten: false,
     fifty: false,
     hundred: false,
-  }); // 각 걸음 수 단계에 대해 보상을 받았는지 여부
-  const [calories, setCalories] = useState(0); // 칼로리
+  });
+  const [calories, setCalories] = useState(0);
 
-  let subscription = null; // 걸음 수 감시 기능 외부 변수로 선언
+  let subscription = null;
 
   useEffect(() => {
-    // 현재 걸음 수 저장
     const storeData = async () => {
       try {
         await AsyncStorage.setItem(
@@ -42,11 +41,9 @@ const PedometerScreen = () => {
 
   useEffect(() => {
     const loadData = async () => {
-      //현재 걸음 수랑 캔디 불러오기
       try {
         const storedSteps = await AsyncStorage.getItem("@currentStepCount");
         const storedCandies = await AsyncStorage.getItem("@candies");
-        console.log("불러온 캔디 수:", storedCandies);
 
         if (storedSteps !== null) {
           setCurrentStepCount(parseInt(storedSteps, 10));
@@ -64,16 +61,13 @@ const PedometerScreen = () => {
 
   useEffect(() => {
     Pedometer.isAvailableAsync().then((isAvailable) => {
-      //만보기 사용 가능한지 여부 판단
       setIsPedometerAvailable(String(isAvailable));
 
       if (isAvailable) {
-        // 실시간 걸음 수 감시 시작
         subscription = Pedometer.watchStepCount((result) => {
           setCurrentStepCount(result.steps);
         });
 
-        // 지난 24시간 동안의 걸음 수 가져오기
         const end = new Date();
         const start = new Date();
         start.setDate(end.getDate() - 1);
@@ -83,7 +77,7 @@ const PedometerScreen = () => {
         });
       }
     });
-    // 구독 해제
+
     return () => {
       if (subscription) {
         subscription.remove();
@@ -91,7 +85,6 @@ const PedometerScreen = () => {
     };
   }, []);
 
-  // 현재 걸음 수 업데이트 함수
   const updateCurrentStepCount = async () => {
     try {
       const now = new Date();
@@ -106,11 +99,9 @@ const PedometerScreen = () => {
         now.getDate() + 1
       );
 
-      // 현재 걸음 수 업데이트
       const result = await Pedometer.getStepCountAsync(startOfDay, endOfDay);
       setCurrentStepCount(result.steps);
 
-      // 캔디 수 업데이트
       const storedCandies = await AsyncStorage.getItem("@candies");
       if (storedCandies !== null) {
         setCandies(JSON.parse(storedCandies));
@@ -120,29 +111,29 @@ const PedometerScreen = () => {
     }
   };
 
-  // 서버에 캔디수를 업데이트하도록 요청하는 함수
-  const update_candy = async (newCandyCount) => {
+  const update_candy = async (newCandyCount, candyDate) => {
     try {
-      // 서버의 엔드포인트에 대한 요청 (예시)
       await fetch("http://3.34.6.50:8080/api/candy_update", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ newCandyCount }),
+        body: JSON.stringify({ newCandyCount, candyDate }),
       });
     } catch (error) {
       console.error("캔디 수 업데이트 중 오류 발생:", error);
     }
   };
 
-  // 캔디 보상 함수
   const claimCandy = async (steps) => {
     const key = steps === 1000 ? "ten" : steps === 5000 ? "fifty" : "hundred";
     if (currentStepCount >= steps && !candyRewardsReceived[key]) {
       let candyReward = steps === 1000 ? 1 : steps === 5000 ? 5 : 10000;
       const newCandyCount = candies + candyReward;
       setCandies(newCandyCount);
+
+      const candyDate = new Date().toISOString();
+      update_candy(newCandyCount, candyDate);
 
       let newCandyRewardsReceived = { ...candyRewardsReceived };
       newCandyRewardsReceived[key] = true;
@@ -151,7 +142,6 @@ const PedometerScreen = () => {
       try {
         await AsyncStorage.setItem("@candies", JSON.stringify(newCandyCount));
         console.log("저장된 캔디 수:", newCandyCount);
-        update_candy(newCandyCount);
       } catch (error) {
         console.error("캔디 저장 중 오류 발생:", error);
       }
@@ -159,9 +149,7 @@ const PedometerScreen = () => {
   };
 
   useEffect(() => {
-    // 자정이 지나면 캔디 받기 초기화 & 캔디 수 누적
     const resetCandyRewards = async () => {
-      // 자정이 지나면 캔디 보상 상태 초기화
       const now = new Date();
       const lastUpdate = await AsyncStorage.getItem("@lastCandyUpdate");
 
@@ -172,7 +160,6 @@ const PedometerScreen = () => {
           lastUpdateDate.getMonth() !== now.getMonth() ||
           lastUpdateDate.getFullYear() !== now.getFullYear()
         ) {
-          // 새로운 날짜가 되었으므로 캔디 보상 상태를 리셋
           setCandyRewardsReceived({ ten: false, fifty: false, hundred: false });
           await AsyncStorage.setItem("@lastCandyUpdate", now.toISOString());
         }
@@ -183,7 +170,6 @@ const PedometerScreen = () => {
     resetCandyRewards();
   }, []);
 
-  // 캔디 보상 상태 저장
   useEffect(() => {
     const storeCandyRewardsReceived = async () => {
       try {
@@ -199,12 +185,10 @@ const PedometerScreen = () => {
     storeCandyRewardsReceived();
   }, [candyRewardsReceived]);
 
-  // 총 캔디 수 저장
   useEffect(() => {
     const storeCandies = async () => {
       try {
         await AsyncStorage.setItem("@candies", JSON.stringify(candies));
-        // console.log(candies)
       } catch (error) {
         console.error("캔디 저장 중 오류 발생 : ", error);
       }
@@ -251,9 +235,7 @@ const PedometerScreen = () => {
   };
 
   useEffect(() => {
-    // 걸음 수에 따른 칼로리 계산
     const calculateCalories = () => {
-      // 칼로리 소모량 = 걸음수 x 0.04
       return currentStepCount * 0.04;
     };
 
@@ -283,9 +265,9 @@ const PedometerScreen = () => {
         <Text style={styles.buttonText}>걸음 수 업데이트</Text>
       </TouchableOpacity>
       <View style={styles.rewardContainer}>
-        <RewardBox steps={1000} candyReward={1} onClaim={claimCandy} />
-        <RewardBox steps={5000} candyReward={5} onClaim={claimCandy} />
-        <RewardBox steps={10000} candyReward={10} onClaim={claimCandy} />
+        <RewardBox steps={1000} candyReward={1} />
+        <RewardBox steps={5000} candyReward={5} />
+        <RewardBox steps={10000} candyReward={10} />
       </View>
       <Text style={styles.descriptionText}>
         만보기를 더 정확하게 사용하고 싶으시다면 업데이트 버튼을 누른 후에

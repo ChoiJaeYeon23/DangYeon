@@ -80,6 +80,8 @@ const CalendarPage = () => {
       );
       const totalCandyData = await totalCandyResponse.json();
       setTotalCandyCount(totalCandyData.totalCandyCount);
+      console.log("Monthly Candy Count:", monthlyCandyData.monthCandyCount);
+      console.log("Total Candy Count:", totalCandyData.totalCandyCount);
     } catch (error) {
       console.error("Error fetching candy counts:", error);
     }
