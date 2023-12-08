@@ -84,7 +84,6 @@ const Board = ({ route }) => {
   };
 
   useEffect(() => {
-    console.log("Filtered posts:", filteredPosts);
   }, [filteredPosts]);
 
   return (
