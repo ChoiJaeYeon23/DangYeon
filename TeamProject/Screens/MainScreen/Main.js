@@ -217,13 +217,13 @@ const styles = StyleSheet.create({
   },
   anniversaryText: {
     color: '#544848',
-    fontSize: 20,
+    fontSize: "20%",
     textAlign: 'center',
     margin: 2,
   },
   anniversaryText2: {
     color: '#544848',
-    fontSize: 24,
+    fontSize: "24%",
     textAlign: 'center',
     fontWeight: 'bold',
   },
