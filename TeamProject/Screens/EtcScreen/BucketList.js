@@ -9,8 +9,6 @@ import {
   FlatList,
   Image
 } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { List } from 'react-native-paper';
 
 const BucketList = () => {
   const [text, setText] = useState(''); // 입력된 텍스트 관리

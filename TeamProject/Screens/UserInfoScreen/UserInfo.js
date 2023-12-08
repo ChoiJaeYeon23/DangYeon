@@ -50,13 +50,12 @@ const UserInfo = ({ navigation }) => {
       });
       if (response.ok) {
         const userInfos = await response.json();
-        console.log(userInfos);
-        if (userInfos && userInfos.length > 0) {
-          setName(userInfos[0].username);
-          setBirthday(userInfos[0].birthday);
-          setMeetingDay(userInfos[0].meetingDay);
-          setBloodType(userInfos[0].blood_type);
-          setProfilePic({ uri: userInfos[0].user_image });
+        if (userInfos) {
+          setName(userInfos.username);
+          setBirthday(userInfos.birthday);
+          setMeetingDay(userInfos.meetingDay);
+          setBloodType(userInfos.blood_type);
+          setProfilePic({ uri: userInfos.user_image });
         }
       } else {
         console.error("Failed to fetch username");

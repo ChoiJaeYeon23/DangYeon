@@ -85,7 +85,6 @@ const Board = ({ route }) => {
   };
 
   useEffect(() => {
-    console.log("Filtered posts:", filteredPosts);
   }, [filteredPosts]);
 
   return (
@@ -93,7 +92,6 @@ const Board = ({ route }) => {
       <TouchableOpacity
         style={styles.addButton}
         onPress={() => {
-          console.log("Add button pressed");
           navigation.navigate("Gesigeul");
         }}
       >
