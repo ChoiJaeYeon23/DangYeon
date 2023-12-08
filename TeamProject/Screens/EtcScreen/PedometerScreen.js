@@ -128,7 +128,7 @@ const PedometerScreen = () => {
   const claimCandy = async (steps) => {
     const key = steps === 10 ? "ten" : steps === 50 ? "fifty" : "hundred";
     if (currentStepCount >= steps && !candyRewardsReceived[key]) {
-      let candyReward = 1; // 10걸음당 1캔디
+      let candyReward = steps === 10 ? 1 : steps === 50 ? 5 : 10; // 10걸음당 1캔디, 50걸음당 5캔디, 100걸음당 10캔디
       const newCandyCount = candies + candyReward;
       setCandies(newCandyCount);
 

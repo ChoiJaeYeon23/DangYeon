@@ -1116,20 +1116,24 @@ app.delete("/api/delete_image/:imageId", (req, res) => {
 
 app.post("/api/candy_update", (req, res) => {
   const checkId = req.session.checkId; // 세션에서 checkId 가져오기
-  const { newCandyCount } = req.body; // "newCandyCount"로 변경
+  const { newCandyCount } = req.body; // 새로운 캔디 수 받기
   const currentDate = new Date().toISOString().split("T")[0]; // 현재 날짜 가져오기
 
+  // 기존 캔디수에 새로운 캔디수를 더하는 쿼리
   const query = `
   INSERT INTO candy (check_id, candy, month_candy, candy_date)
   VALUES (?, ?, ?, ?)
   ON DUPLICATE KEY UPDATE
     candy = candy + VALUES(candy),
-    month_candy = IF(MONTH(CURRENT_DATE()) = MONTH(candy_date), month_candy + VALUES(month_candy), VALUES(month_candy)),
-    candy_date = VALUES(candy_date)`;
+    month_candy = month_candy + VALUES(month_candy),
+    candy_date = VALUES(candy_date);
+  
+  `;
 
+  // 쿼리 실행
   db.query(
     query,
-    [checkId, newCandyCount, newCandyCount, currentDate, currentDate],
+    [checkId, newCandyCount, newCandyCount, currentDate],
     (err, result) => {
       if (err) {
         console.error("Database error:", err);
