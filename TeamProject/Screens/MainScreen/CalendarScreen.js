@@ -82,6 +82,8 @@ const CalendarScreen = () => {
       const responseData = await response.text();
       if (response.ok) {
         console.log("Event saved:", responseData);
+        calendar_load();
+        Alert.alert("일정을 저장하였습니다.");
       } else {
         throw new Error(`Server error: ${responseData}`);
       }
@@ -181,10 +183,10 @@ const CalendarScreen = () => {
     closeModal();
   };
 
-  const handleEventPress = (index) => {
-    setText(events[selectedDate][index]);
-    setEditingEventIndex(index);
-    setShowEditEventModal(true); // 일정 수정 모달을 보여줌
+  const handleEventPress = (event) => {
+    setText(event.schedule_text);
+    setEditingEventIndex(event.schedule_id); // 여기서 schedule_id를 저장합니다.
+    setShowEditEventModal(true); // 일정 수정 모달을 보여줍니다.
   };
 
   // 선택한 일정 수정하는 함수
@@ -210,10 +212,11 @@ const CalendarScreen = () => {
       if (response.ok) {
         console.log("Event updated:", responseData);
         const updatedEvents = { ...events };
+        // 이 부분에서 수정된 이벤트의 정보를 업데이트합니다.
         updatedEvents[selectedDate] = updatedEvents[selectedDate].map(
-          (event, index) => {
-            if (index === editingEventIndex) {
-              return text.trim();
+          (event) => {
+            if (event.schedule_id === editingEventIndex) {
+              return { ...event, schedule_text: text.trim() };
             }
             return event;
           }
@@ -226,7 +229,7 @@ const CalendarScreen = () => {
     } catch (error) {
       console.error("Failed to update event:", error);
     }
-
+    Alert.alert("수정을 완료하였습니다.");
     closeModal();
   };
 
@@ -253,10 +256,10 @@ const CalendarScreen = () => {
   }, []);
 
   // 게시글 삭제하는 함수
-  const deleteEvent = async (id) => {
+  const deleteEvent = async (schedule_id) => {
     try {
       const response = await fetch(
-        `http://3.34.6.50:8080/api/del_calendar/${id}`,
+        `http://3.34.6.50:8080/api/del_calendar/${schedule_id}`,
         {
           method: "DELETE",
           credentials: "include", // 쿠키/인증 정보를 포함하는 경우
@@ -266,6 +269,8 @@ const CalendarScreen = () => {
         throw new Error("Failed to delete the event");
       }
       console.log("Event deleted successfully");
+      closeModal();
+      Alert.alert("삭제를 완료하였습니다.");
     } catch (error) {
       console.error("Error deleting event:", error);
     }
@@ -275,16 +280,15 @@ const CalendarScreen = () => {
     const dailyEvents = events[selectedDate] || [];
     return dailyEvents.length > 0 ? (
       <ScrollView style={styles.eventsList}>
-        {dailyEvents.map((event, index) => (
+        {dailyEvents.map((event) => (
           <TouchableOpacity
-            key={index}
+            key={event.schedule_id}
             style={styles.eventListItem}
-            onPress={() => handleEventPress(index)}
-            onLongPress={() => confirmDeleteEvent(index)}
+            onPress={() => handleEventPress(event)}
+            onLongPress={() => confirmDeleteEvent(event.schedule_id)}
           >
             <View style={styles.pinkSquare} />
             <View style={{ flex: 1 }}>
-              {/* 객체가 아닌, 객체의 특정 프로퍼티를 렌더링합니다. */}
               <Text style={styles.eventText}>{event.schedule_text}</Text>
               <Text style={styles.dataText}>{event.schedule_date}</Text>
             </View>

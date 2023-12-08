@@ -352,22 +352,23 @@ app.get("/api/load_calendar_text", (req, res) => {
 //캘린더일정 내용 수정
 //캘린더일정 내용 수정
 
-app.put("/api/calendar_text_update:id", (req, res) => {
-  const { id } = req.params;
+app.put("/api/calendar_text_update/:schedule_id", (req, res) => {
+  const { schedule_id } = req.params;
   const { text } = req.body;
 
-  if (!id || !text || !date) {
+  if (!schedule_id || !text) {
     return res.status(400).send("All fields are required");
   }
-  const query = "UPDATE calendar SET schedule_text = ?, WHERE schedule_id =?";
-  db.query(query, [text, date, id], (error, result) => {
+
+  const query = "UPDATE calendar SET schedule_text = ? WHERE schedule_id = ?";
+  db.query(query, [text, schedule_id], (error, result) => {
     if (error) {
       console.error("Update event error:", error);
       return res.status(500).send("Internal Server Error");
     }
 
     if (result.affectedRows === 0) {
-      // ID에 해당하는 이벤트가 없는 경우
+      // schedule_id에 해당하는 이벤트가 없는 경우
       return res.status(404).send("Event not found");
     }
 
@@ -379,15 +380,15 @@ app.put("/api/calendar_text_update:id", (req, res) => {
 //캘린더일정 삭제
 //캘린더일정 삭제
 
-app.delete("/api/del_calendar/:id", (req, res) => {
-  const { id } = req.params; // URL 경로에서 캘린더 내용ID를 추출
+app.delete("/api/del_calendar/:schedule_id", (req, res) => {
+  const { schedule_id } = req.params; // URL 경로에서 캘린더 내용ID를 추출
 
-  if (!id) {
+  if (!schedule_id) {
     return res.status(400).send("Event ID is required");
   }
 
   const query = "DELETE FROM calendar WHERE schedule_id = ?";
-  db.query(query, [id], (error, result) => {
+  db.query(query, [schedule_id], (error, result) => {
     if (error) {
       // 에러 발생 시 클라이언트에 에러 메시지 전송
       console.error("Delete event error:", error);
