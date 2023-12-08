@@ -50,11 +50,13 @@ const UserInfo = ({ navigation }) => {
       });
       if (response.ok) {
         const userInfos = await response.json();
+        console.log(userInfos);
         if (userInfos && userInfos.length > 0) {
           setName(userInfos[0].username);
           setBirthday(userInfos[0].birthday);
           setMeetingDay(userInfos[0].meetingDay);
           setBloodType(userInfos[0].blood_type);
+          setProfilePic({ uri: userInfos[0].user_image });
         }
       } else {
         console.error("Failed to fetch username");
@@ -103,18 +105,25 @@ const UserInfo = ({ navigation }) => {
       return; // 에러가 있으면 여기서 함수 종료
     }
 
-    const profileData = {
-      username: name,
-      birthday: birthday,
-      bloodType: bloodType,
-      meetingDay: meetingDay,
-    };
+    let formData = new FormData(); // 이미지를 저장시키기위해 FormData 사용
+    if (profilePic) {
+      const fileName = profilePic.uri.split("/").pop();
+      const match = /\.(\w+)$/.exec(fileName);
+      const type = match ? `image/${match[1]}` : `image`;
+      formData.append("img", { uri: profilePic.uri, name: fileName, type });
+    }
+    // 기타 사용자 데이터 추가
+    formData.append("username", name);
+    formData.append("birthday", birthday);
+    formData.append("meetingDay", meetingDay);
+    formData.append("bloodType", bloodType);
+
     fetch("http://3.34.6.50:8080/api/userInfo_modify", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(profileData),
+      body: formData,
     })
       .then((response) => response.json())
       .then((data) => {

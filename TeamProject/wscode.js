@@ -95,14 +95,15 @@ const io = socketIo(server, {
 /// 회원가입 처리
 app.post("/api/signup", (req, res) => {
   console.log(req.body);
-  const { username, id, pw, birthday, meetingDay, bloodType } = req.body;
+  const { username, id, pw, birthday, meetingDay, bloodType, gender } =
+    req.body;
 
   const query =
-    "INSERT INTO userInfo (username, id, pw, birthday, meetingDay, blood_Type) VALUES (?, ?, ?, ?, ?, ?)";
+    "INSERT INTO userInfo (username, id, pw, birthday, meetingDay, blood_Type, gender) VALUES (?, ?, ?, ?, ?, ?, ?)";
 
   db.query(
     query,
-    [username, id, pw, birthday, meetingDay, bloodType],
+    [username, id, pw, birthday, meetingDay, bloodType, gender],
     (err, result) => {
       if (err) {
         console.error("Query error: ", err); // 오류 상세 출력
@@ -550,18 +551,19 @@ app.get("/api/usersname", (req, res) => {
 // 내 정보 화면에 정보 가져오기
 app.get("/api/userInfos", (req, res) => {
   const userId = req.session.userId;
-  const getuserInfos =
-    "SELECT username, birthday, meetingDay, blood_type FROM userInfo WHERE id = ?";
-  db.query(getuserInfos, [userId], (err, results) => {
+  const getuserInfosQuery =
+    "SELECT username, birthday, meetingDay, blood_type, user_image FROM userInfo WHERE id = ?";
+
+  db.query(getuserInfosQuery, [userId], (err, results) => {
     if (err) {
       console.error("Database error:", err);
       res.status(500).send({ message: "Database error", error: err });
       return;
     }
     if (results.length > 0) {
-      res.send(results);
+      res.send(results[0]);
     } else {
-      res.status(404).send({ message: "No users found for given userId" });
+      res.status(404).send({ message: "No user found for given userId" });
     }
   });
 });
@@ -569,25 +571,86 @@ app.get("/api/userInfos", (req, res) => {
 // 프로필 수정부분
 // 프로필 수정부분
 // 프로필 수정부분
-app.post("/api/userInfo_modify", (req, res) => {
+app.post("/api/userInfo_modify", upload.single("img"), (req, res) => {
   const userId = req.session.userId;
   const { username, birthday, meetingDay, bloodType } = req.body;
 
-  console.log("Received profile data from client:", req.body); // 클라이언트로부터 받은 데이터 로그 남기기
+  // 업로드된 이미지의 URL 생성
+  let imageUrl = null;
+  if (req.file) {
+    imageUrl = `http://3.34.6.50:8080/images/${req.file.filename}`;
+  }
+
+  console.log("Received profile data from client:", req.body, imageUrl);
 
   const modifyQuery =
-    "UPDATE userInfo SET username = ?, birthday = ?, meetingDay = ?, blood_Type = ? WHERE id = ?";
+    "UPDATE userInfo SET username = ?, birthday = ?, meetingDay = ?, blood_Type = ?, user_image = ? WHERE id = ?";
   db.query(
     modifyQuery,
-    [username, birthday, meetingDay, bloodType, userId],
+    [username, birthday, meetingDay, bloodType, imageUrl, userId],
     (err, result) => {
       if (err) {
-        console.error("Database error:", err); // 데이터베이스 에러 로그 남기기
-        res.send({ message: "뭔가 에러가 있음", error: err });
+        console.error("Database error:", err);
+        res.send({ message: "Database error", error: err });
       } else {
-        console.log("Profile updated successfully", result); // 성공적인 업데이트 로그 남기기
-        res.send({ message: "성공" });
+        console.log("Profile updated successfully", result);
+        res.send({ message: "Profile updated successfully" });
       }
+    }
+  );
+});
+
+//  게시글 추가
+//  게시글 추가
+//  게시글 추가
+app.post("/api/add_post", upload.single("img"), (req, res) => {
+  const { title, content } = req.body;
+  console.log("Received body:", req.body);
+  const imgFile = req.file; // Multer에 의해 추가된 파일 정보
+  console.log("Received file:", imgFile);
+  // 파일이 정상적으로 업로드되었는지 확인
+  if (!imgFile) {
+    res.status(400).send("이미지가 업로드되지 않았습니다.");
+    return;
+  }
+
+  // 이미지 URL 생성 (클라이언트에서 접근 가능한 웹 URL)
+  const imageUrl = `http://3.34.6.50:8080/images/${imgFile.filename}`;
+
+  const userId = req.session.userId;
+  const checkId = req.session.checkId;
+
+  const now = new Date();
+  now.setHours(now.getHours() + 9); // 서버 시간대가 UTC를 사용한다고 가정할 때 KST로 조정합니다.
+  const postdate = now.toISOString().slice(0, 19).replace("T", " ");
+  console.log(
+    "여긴가봐요 : userId, checkId, postdate, title, content, imageUrl",
+    userId,
+    checkId,
+    postdate,
+    title,
+    content,
+    imageUrl
+  );
+  // 데이터베이스에 게시글 정보와 이미지 URL 저장
+  db.query(
+    "INSERT INTO postInfo (user_id, check_id, postdate, title, content, img) VALUES (?, ?, ?, ?, ?, ?)",
+    [userId, checkId, postdate, title, content, imageUrl],
+    (err, result) => {
+      if (err) {
+        res.status(500).send(err);
+        return;
+      }
+
+      res.json({
+        postId: result.insertId,
+        userId: userId,
+        checkId: checkId,
+        postdate: postdate,
+        title: title,
+        content: content,
+        img: imageUrl, // 클라이언트에서 접근 가능한 URL 전달
+      });
     }
   );
 });
@@ -850,61 +913,6 @@ app.post("/api/member_withdrawal", (req, res) => {
       }
     });
   });
-});
-
-//  게시글 추가
-//  게시글 추가
-//  게시글 추가
-app.post("/api/add_post", upload.single("img"), (req, res) => {
-  const { title, content } = req.body;
-  console.log("Received body:", req.body);
-  const imgFile = req.file; // Multer에 의해 추가된 파일 정보
-  console.log("Received file:", imgFile);
-  // 파일이 정상적으로 업로드되었는지 확인
-  if (!imgFile) {
-    res.status(400).send("이미지가 업로드되지 않았습니다.");
-    return;
-  }
-
-  // 이미지 URL 생성 (클라이언트에서 접근 가능한 웹 URL)
-  const imageUrl = `http://3.34.6.50:8080/images/${imgFile.filename}`;
-
-  const userId = req.session.userId;
-  const checkId = req.session.checkId;
-
-  const now = new Date();
-  now.setHours(now.getHours() + 9); // 서버 시간대가 UTC를 사용한다고 가정할 때 KST로 조정합니다.
-  const postdate = now.toISOString().slice(0, 19).replace("T", " ");
-  console.log(
-    "여긴가봐요 : userId, checkId, postdate, title, content, imageUrl",
-    userId,
-    checkId,
-    postdate,
-    title,
-    content,
-    imageUrl
-  );
-  // 데이터베이스에 게시글 정보와 이미지 URL 저장
-  db.query(
-    "INSERT INTO postInfo (user_id, check_id, postdate, title, content, img) VALUES (?, ?, ?, ?, ?, ?)",
-    [userId, checkId, postdate, title, content, imageUrl],
-    (err, result) => {
-      if (err) {
-        res.status(500).send(err);
-        return;
-      }
-
-      res.json({
-        postId: result.insertId,
-        userId: userId,
-        checkId: checkId,
-        postdate: postdate,
-        title: title,
-        content: content,
-        img: imageUrl, // 클라이언트에서 접근 가능한 URL 전달
-      });
-    }
-  );
 });
 
 // 게시글 목록 가져오기

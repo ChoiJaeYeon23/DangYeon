@@ -9,11 +9,11 @@ import {
   StyleSheet,
   Modal,
   FlatList,
-  KeyboardAvoidingView
+  KeyboardAvoidingView,
 } from "react-native";
-import DateTimePicker from '@react-native-community/datetimepicker';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import DateTimePicker from "@react-native-community/datetimepicker";
+import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useNavigation } from "@react-navigation/native";
 
 const SignUp = () => {
@@ -25,7 +25,8 @@ const SignUp = () => {
   const [meetingDay, setMeetingDay] = useState(""); //처음 만난 날
   const [bloodType, setBloodType] = useState(""); //혈액형
   const [isBirthdayPickerVisible, setIsBirthdayPickerVisible] = useState(false); //생년월일 picker
-  const [isMeetingDayPickerVisible, setIsMeetingDayPickerVisible] = useState(false); //처음 만난 날 picker
+  const [isMeetingDayPickerVisible, setIsMeetingDayPickerVisible] =
+    useState(false); //처음 만난 날 picker
   const [isBloodTypeModalVisible, setIsBloodTypeModalVisible] = useState(false); // 혈액형 모달
   const [errorMessage, setErrorMessage] = useState(""); // 에러 메시지 상태
   const navigation = useNavigation();
@@ -57,7 +58,7 @@ const SignUp = () => {
       setErrorMessage(error);
       return; // 에러가 있으면 여기서 함수 종료
     }
-  
+
     const userData = {
       username: username,
       id: id,
@@ -65,8 +66,9 @@ const SignUp = () => {
       birthday: birthday,
       meetingDay: meetingDay,
       bloodType: bloodType,
+      gender: gender,
     };
-  
+
     // 서버로 회원가입 요청을 보냄
     fetch("http://3.34.6.50:8080/api/signup", {
       method: "POST",
@@ -86,15 +88,14 @@ const SignUp = () => {
         alert("회원가입 실패: " + error.message);
       });
   };
-  
 
   // 회원 정보 저장 함수
   const saveUserInfo = async (userData) => {
     try {
-      await AsyncStorage.setItem('userProfile', JSON.stringify(userData));
-      console.log('회원 정보 저장 성공');
+      await AsyncStorage.setItem("userProfile", JSON.stringify(userData));
+      console.log("회원 정보 저장 성공");
     } catch (error) {
-      console.error('회원 정보 저장 실패:', error);
+      console.error("회원 정보 저장 실패:", error);
     }
   };
 
@@ -104,7 +105,7 @@ const SignUp = () => {
       alert("아이디를 먼저 입력해주세요.");
       return; // 아이디가 입력되지 않았다면 함수 종료
     }
-    
+
     return new Promise((resolve, reject) => {
       fetch("http://3.34.6.50:8080/api/check-id", {
         method: "POST",
@@ -133,15 +134,15 @@ const SignUp = () => {
   // 생년월일 변경
   const onBirthdayChange = (event, selectedDate) => {
     const currentDate = selectedDate || new Date();
-    setIsBirthdayPickerVisible(Platform.OS === 'ios');
-    setBirthday(currentDate.toISOString().split('T')[0]);
+    setIsBirthdayPickerVisible(Platform.OS === "ios");
+    setBirthday(currentDate.toISOString().split("T")[0]);
   };
 
   // 처음 만난 날 변경
   const onMeetingDayChange = (event, selectedDate) => {
     const currentDate = selectedDate || new Date();
-    setIsMeetingDayPickerVisible(Platform.OS === 'ios');
-    setMeetingDay(currentDate.toISOString().split('T')[0]);
+    setIsMeetingDayPickerVisible(Platform.OS === "ios");
+    setMeetingDay(currentDate.toISOString().split("T")[0]);
   };
 
   // 생년월일 표시
@@ -157,7 +158,7 @@ const SignUp = () => {
   // 성별 선택에 따른 텍스트 스타일 변경
   const genderTextStyle = (selectedGender) => [
     styles.genderText,
-    gender === selectedGender && styles.selectedGenderText
+    gender === selectedGender && styles.selectedGenderText,
   ];
 
   // 혈액형 선택 모달 표시 함수
@@ -172,11 +173,14 @@ const SignUp = () => {
   };
 
   // 혈액형 데이터
-  const bloodTypes = ['A', 'B', 'O', 'AB'];
+  const bloodTypes = ["A", "B", "O", "AB"];
 
   // 혈액형 선택 항목 렌더링 함수
   const renderBloodTypeItem = ({ item }) => (
-    <TouchableOpacity style={styles.bloodTypeItem} onPress={() => selectBloodType(item)}>
+    <TouchableOpacity
+      style={styles.bloodTypeItem}
+      onPress={() => selectBloodType(item)}
+    >
       <Text style={styles.bloodTypeText}>{item}형</Text>
     </TouchableOpacity>
   );
@@ -192,7 +196,7 @@ const SignUp = () => {
       <KeyboardAwareScrollView
         style={{ flex: 1 }}
         contentContainerStyle={{ flexGrow: 1 }}
-        keyboardShouldPersistTaps='handled'
+        keyboardShouldPersistTaps="handled"
         extraScrollHeight={20}
       >
         <View style={styles.container}>
@@ -202,13 +206,15 @@ const SignUp = () => {
             <Text style={styles.inputLabel}>성별</Text>
             <TouchableOpacity
               style={styles.genderButton}
-              onPress={() => setGender('여성')}>
-              <Text style={genderTextStyle('여성')}>여성</Text>
+              onPress={() => setGender("여성")}
+            >
+              <Text style={genderTextStyle("여성")}>여성</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.genderButton}
-              onPress={() => setGender('남성')}>
-              <Text style={genderTextStyle('남성')}>남성</Text>
+              onPress={() => setGender("남성")}
+            >
+              <Text style={genderTextStyle("남성")}>남성</Text>
             </TouchableOpacity>
           </View>
           <View style={styles.inputRow}>
@@ -231,8 +237,13 @@ const SignUp = () => {
                 onChangeText={setId}
               />
               <View style={styles.buttonContainer}>
-                <TouchableOpacity style={styles.checkDuplicateButton} onPress={checkIdDuplicate}>
-                  <Text style={styles.checkDuplicateButtonText}>ID 중복 확인</Text>
+                <TouchableOpacity
+                  style={styles.checkDuplicateButton}
+                  onPress={checkIdDuplicate}
+                >
+                  <Text style={styles.checkDuplicateButtonText}>
+                    ID 중복 확인
+                  </Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -256,7 +267,10 @@ const SignUp = () => {
                 editable={false}
               />
               <TouchableOpacity onPress={showBirthdayPicker}>
-                <Image source={require('../assets/calendar.png')} style={styles.calendar} />
+                <Image
+                  source={require("../assets/calendar.png")}
+                  style={styles.calendar}
+                />
               </TouchableOpacity>
             </View>
             <View style={styles.datePickerContainer}>
@@ -281,7 +295,10 @@ const SignUp = () => {
                 onPress={showMeetingDayPicker}
               />
               <TouchableOpacity onPress={showMeetingDayPicker}>
-                <Image source={require('../assets/calendar.png')} style={styles.calendar} />
+                <Image
+                  source={require("../assets/calendar.png")}
+                  style={styles.calendar}
+                />
               </TouchableOpacity>
             </View>
             <View style={styles.datePickerContainer}>
@@ -298,7 +315,9 @@ const SignUp = () => {
           <View style={styles.inputRowColumn}>
             <Text style={styles.inputLabel}>혈액형</Text>
             <TouchableOpacity onPress={showBloodTypeModal}>
-              <Text style={styles.bloodText}>{bloodType ? `${bloodType}형` : "혈액형 선택"}</Text>
+              <Text style={styles.bloodText}>
+                {bloodType ? `${bloodType}형` : "혈액형 선택"}
+              </Text>
             </TouchableOpacity>
             <Modal
               animationType="fade"
@@ -306,7 +325,8 @@ const SignUp = () => {
               visible={isBloodTypeModalVisible}
               onRequestClose={() => {
                 setIsBloodTypeModalVisible(false);
-              }}>
+              }}
+            >
               <TouchableOpacity
                 style={styles.centeredView}
                 activeOpacity={1}
@@ -344,17 +364,17 @@ const SignUp = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     padding: 20,
-    backgroundColor: '#FFF9F9',
+    backgroundColor: "#FFF9F9",
   },
   titleText: {
-    textAlign: 'center',
+    textAlign: "center",
     marginBottom: 10,
-    color: '#544848',
+    color: "#544848",
     fontSize: 24,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   genderButton: {
     padding: 8,
@@ -362,83 +382,83 @@ const styles = StyleSheet.create({
   },
   genderText: {
     fontSize: 20,
-    color: '#544848',
+    color: "#544848",
   },
   selectedGenderText: {
-    color: '#FF0000',
-    fontWeight: 'bold'
+    color: "#FF0000",
+    fontWeight: "bold",
   },
   inputRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    width: '60%',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    width: "60%",
     marginBottom: 15,
     marginRight: 50,
   },
   idInputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    width: '95%',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    width: "95%",
   },
   inputRowColumn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    width: '60%',
+    flexDirection: "row",
+    alignItems: "center",
+    width: "60%",
     marginBottom: 15,
     marginRight: 45,
   },
   inputTT: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    width: '75%',
+    alignItems: "center",
+    justifyContent: "center",
+    width: "75%",
     height: 45,
     borderWidth: 1,
     marginBottom: 10,
     paddingHorizontal: 10,
-    backgroundColor: 'white',
-    borderColor: 'black',
+    backgroundColor: "white",
+    borderColor: "black",
     borderWidth: 2,
     borderRadius: 7,
   },
   inputLabel: {
     fontSize: 20,
-    color: '#544848',
-    textAlign: 'center',
-    width: '40%',
+    color: "#544848",
+    textAlign: "center",
+    width: "40%",
     marginRight: 15,
   },
   buttonContainer: {
     flex: 1,
-    alignItems: 'flex-end',
+    alignItems: "flex-end",
   },
   checkDuplicateButton: {
     paddingHorizontal: 8,
     paddingVertical: 4,
-    backgroundColor: '#FFCECE',
+    backgroundColor: "#FFCECE",
     borderWidth: 1,
     borderRadius: 5,
     marginLeft: 20,
   },
   checkDuplicateButtonText: {
-    color: '#544848',
-    textAlign: 'center',
+    color: "#544848",
+    textAlign: "center",
   },
   dateInputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    width: '65%',
+    flexDirection: "row",
+    alignItems: "center",
+    width: "65%",
     borderBottomWidth: 1,
-    borderBottomColor: '#A0A0A0',
+    borderBottomColor: "#A0A0A0",
     marginBottom: 15,
   },
   dateInput: {
     flex: 1,
     height: 40,
     fontSize: 16,
-    textAlign: 'center',
+    textAlign: "center",
     marginLeft: 10,
   },
   calendar: {
@@ -448,53 +468,53 @@ const styles = StyleSheet.create({
   },
   datePickerContainer: {
     marginLeft: -25,
-    width: '9%',
+    width: "9%",
   },
   loginBtn: {
-    width: '75%',
+    width: "75%",
     height: 45,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     borderRadius: 10,
-    backgroundColor: '#FFCECE',
+    backgroundColor: "#FFCECE",
     borderWidth: 1,
     marginTop: 10,
   },
   loginText: {
-    color: '#544848',
-    fontWeight: 'bold',
+    color: "#544848",
+    fontWeight: "bold",
     fontSize: 18,
   },
   bloodText: {
     fontSize: 18,
-    textAlign: 'center',
+    textAlign: "center",
     marginLeft: 30,
   },
   bloodTypeItem: {
     padding: 10,
     borderBottomWidth: 1,
-    borderBottomColor: '#ccc',
+    borderBottomColor: "#ccc",
   },
   bloodTypeText: {
     fontSize: 18,
-    textAlign: 'center',
+    textAlign: "center",
   },
   centeredView: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
     marginTop: 22,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
   },
   modalView: {
     margin: 20,
     width: 200,
     height: 200,
-    backgroundColor: 'white',
+    backgroundColor: "white",
     borderRadius: 25,
     padding: 20,
-    alignItems: 'center',
-    shadowColor: '#000',
+    alignItems: "center",
+    shadowColor: "#000",
     shadowOffset: {
       width: 0,
       height: 2,
@@ -505,16 +525,16 @@ const styles = StyleSheet.create({
   },
   separator: {
     height: 1,
-    width: '80%',
-    backgroundColor: '#737373',
+    width: "80%",
+    backgroundColor: "#737373",
     marginVertical: 15,
     marginBottom: 20,
   },
   errorText: {
-    color: 'red',
+    color: "red",
     fontSize: 16,
     marginBottom: 10,
-    textAlign: 'center',
+    textAlign: "center",
   },
 });
 
