@@ -10,6 +10,7 @@ import {
   Alert,
   Modal,
   Keyboard,
+  TouchableWithoutFeedback,
 } from "react-native";
 import Icon from "react-native-vector-icons/FontAwesome";
 import * as ImagePicker from "expo-image-picker";
@@ -97,79 +98,90 @@ const Gesigeul = ({ route }) => {
       setPostIdToEdit(id);
     }
   }, [route.params?.editingPost]);
-  
+
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity style={styles.doneButton} onPress={handleSavePress}>
-          <Text style={styles.doneText}>저장</Text>
-        </TouchableOpacity>
-      </View>
-      <TextInput
-        style={styles.titleInput} // 제목 입력란 스타일
-        onChangeText={setTitle} // 제목 변경 시 호출
-        value={title} // 제목 상태값
-        placeholder="제목을 입력하세요." // 제목 입력 플레이스홀더 텍스트
-        placeholderTextColor="#989292" // 제목 입력 플레이스홀더 텍스트 색상
-      />
-      <TouchableOpacity
-        onPress={() => {
-          if (!textEditMode) setTextEditMode(true);
-        }}
-        style={styles.inputContainer}
-      >
-        {textEditMode ? (
-          <TextInput
-            style={styles.modalInput}
-            onChangeText={setText}
-            value={text}
-            multiline
-            autoFocus
-          />
-        ) : text.length === 0 ? (
-          <Text style={styles.input}>내용을 입력하세요.</Text>
-        ) : null}
-      </TouchableOpacity>
-      <ScrollView horizontal style={styles.imageScroll}>
-        {imageSources.map((source, index) => (
-          <Image key={index} source={source} style={styles.image} />
-        ))}
-      </ScrollView>
-      <View style={styles.footer}>
-        <TouchableOpacity style={styles.cameraButton} onPress={pickImage}>
-          <Icon name="camera" size={30} color="#808080" />
-        </TouchableOpacity>
-      </View>
-
-      {/* 글쓰기 모달 */}
-      <Modal
-        animationType="slide"
-        transparent={true}
-        visible={modalVisible}
-        onRequestClose={() => setModalVisible(false)}
-      >
-        <View style={styles.centeredView}>
-          {/* 하얀색 입력 박스를 나타내는 새로운 View 컨테이너 */}
-          <View style={styles.inputBox}>
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <TouchableOpacity style={styles.doneButton} onPress={handleSavePress}>
+            <Text style={styles.doneText}>저장</Text>
+          </TouchableOpacity>
+        </View>
+        <TextInput
+          style={styles.titleInput}
+          onChangeText={setTitle}
+          value={title}
+          placeholder="제목을 입력하세요."
+          placeholderTextColor="#989292"
+          blurOnSubmit={true} // 추가됨
+          onSubmitEditing={Keyboard.dismiss} // 추가됨
+        />
+        <TouchableOpacity
+          onPress={() => {
+            if (!textEditMode) {
+              setTextEditMode(true);
+              Keyboard.dismiss(); // 추가됨
+            }
+          }}
+          style={styles.inputContainer}
+        >
+          {textEditMode ? (
             <TextInput
               style={styles.modalInput}
               onChangeText={setText}
               value={text}
-              placeholder="내용을 입력하세요." // 플레이스홀더 텍스트 추가
-              placeholderTextColor="#989292" // 플레이스홀더 텍스트 색상 설정
               multiline
               autoFocus
+              blurOnSubmit={true} // 추가됨
+              onSubmitEditing={Keyboard.dismiss} // 추가됨
             />
-            <TouchableOpacity
-              style={styles.button}
-              onPress={handleConfirmPress}
-            >
-            </TouchableOpacity>
-          </View>
+          ) : text.length === 0 ? (
+            <Text style={styles.input}>내용을 입력하세요.</Text>
+          ) : null}
+        </TouchableOpacity>
+        <ScrollView horizontal style={styles.imageScroll}>
+          {imageSources.map((source, index) => (
+            <Image key={index} source={source} style={styles.image} />
+          ))}
+        </ScrollView>
+        <View style={styles.footer}>
+          <TouchableOpacity style={styles.cameraButton} onPress={pickImage}>
+            <Icon name="camera" size={30} color="#808080" />
+          </TouchableOpacity>
         </View>
-      </Modal>
-    </View>
+
+        {/* 글쓰기 모달 */}
+        <Modal
+          animationType="slide"
+          transparent={true}
+          visible={modalVisible}
+          onRequestClose={() => setModalVisible(false)}
+        >
+          <View style={styles.centeredView}>
+            {/* 하얀색 입력 박스를 나타내는 새로운 View 컨테이너 */}
+            <View style={styles.inputBox}>
+              <TextInput
+                style={styles.modalInput}
+                onChangeText={setText}
+                value={text}
+                placeholder="내용을 입력하세요."
+                placeholderTextColor="#989292"
+                multiline
+                autoFocus
+                blurOnSubmit={true} // 추가됨
+                onSubmitEditing={Keyboard.dismiss} // 추가됨
+              />
+              <TouchableOpacity
+                style={styles.button}
+                onPress={handleConfirmPress}
+              >
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
+      </View>
+    </TouchableWithoutFeedback>
   );
 };
 
@@ -245,7 +257,7 @@ const styles = StyleSheet.create({
     width: "100%", // 입력 박스 너비
     minHeight: 200, // 입력 박스 최소 높이
     padding: 10, // 내부 패딩
-    color:"black",
+    color: "black",
   },
   button: {
     backgroundColor: "#2196F3",
