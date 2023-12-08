@@ -98,6 +98,7 @@ const Gesigeul = ({ route }) => {
       setPostIdToEdit(id);
     }
   }, [route.params?.editingPost]);
+  
 
   return (
     <View style={styles.container}>
@@ -121,7 +122,7 @@ const Gesigeul = ({ route }) => {
       >
         {textEditMode ? (
           <TextInput
-            style={styles.input}
+            style={styles.modalInput}
             onChangeText={setText}
             value={text}
             multiline
@@ -165,7 +166,6 @@ const Gesigeul = ({ route }) => {
               style={styles.button}
               onPress={handleConfirmPress}
             >
-              <Text style={styles.buttonText}>확인</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -188,11 +188,11 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "black",
     padding: 5,
-    borderRadius: 10,
+    borderRadius: 15,
     backgroundColor: "#FDE0E0",
   },
   doneText: {
-    fontSize: 12,
+    fontSize: 15,
     color: "black",
   },
   titleInput: {
@@ -210,7 +210,7 @@ const styles = StyleSheet.create({
   },
   input: {
     fontSize: 16,
-    color: "#989292",
+    color: "#989292", // 입력 텍스트의 색상을 검정색으로 변경
   },
   imageScroll: {
     height: 210,
@@ -221,8 +221,8 @@ const styles = StyleSheet.create({
     marginRight: 10,
   },
   footer: {
-    flexDirection: "row",
     justifyContent: "flex-start",
+    alignItems: "flex-end", // 아이콘을 하단으로 이동
     padding: 10,
   },
   cameraButton: {
@@ -246,6 +246,7 @@ const styles = StyleSheet.create({
     width: "100%", // 입력 박스 너비
     minHeight: 200, // 입력 박스 최소 높이
     padding: 10, // 내부 패딩
+    color:"black",
   },
   button: {
     backgroundColor: "#2196F3",
@@ -253,11 +254,6 @@ const styles = StyleSheet.create({
     padding: 10,
     elevation: 2,
     marginTop: 10,
-  },
-  buttonText: {
-    color: "white",
-    fontWeight: "bold",
-    textAlign: "center",
   },
 });
 

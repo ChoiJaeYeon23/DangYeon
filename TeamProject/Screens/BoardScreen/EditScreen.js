@@ -11,6 +11,7 @@ import {
   TouchableOpacity,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
+import Icon from "react-native-vector-icons/FontAwesome";
 
 const EditScreen = ({ route, navigation }) => {
   const [title, setTitle] = useState("");
@@ -89,19 +90,27 @@ const EditScreen = ({ route, navigation }) => {
 
   return (
     <ScrollView style={styles.container}>
+      <View style={styles.header}>
+        <TouchableOpacity style={styles.doneButton} onPress={editPost}>
+          <Text style={styles.doneText}>저장</Text>
+        </TouchableOpacity>
+      </View>
       <TextInput
-        style={styles.input}
+        style={styles.titleInput}
         value={title}
         onChangeText={setTitle}
         placeholder="제목"
       />
+      <TouchableOpacity style={styles.inputContainer}>
       <TextInput
         style={styles.input}
         value={content}
         onChangeText={setContent}
         placeholder="내용"
         multiline
+        autoFocus
       />
+      </TouchableOpacity>
       <View style={styles.imageContainer}>
         {images.map((uri, index) => (
           <View key={index} style={styles.imageWrapper}>
@@ -110,13 +119,16 @@ const EditScreen = ({ route, navigation }) => {
               onPress={() => removeImage(index)}
               style={styles.deleteButton}
             >
-              <Text style={styles.deleteButtonText}>삭제</Text>
+              <Text style={styles.deleteButtonText}>✖</Text>
             </TouchableOpacity>
           </View>
         ))}
       </View>
-      <Button title="이미지 선택" onPress={pickImage} />
-      <Button title="저장" onPress={editPost} />
+      <View style={styles.footer}>
+        <TouchableOpacity style={styles.cameraButton} onPress={pickImage}>
+          <Icon name="camera" size={30} color="#808080" />
+        </TouchableOpacity>
+      </View>
     </ScrollView>
   );
 };
@@ -127,10 +139,18 @@ const styles = StyleSheet.create({
     padding: 10,
   },
   input: {
-    borderWidth: 1,
-    borderColor: "gray",
-    padding: 10,
-    marginVertical: 5,
+    width: "100%", // 입력 박스 너비
+    minHeight: 200, // 입력 박스 최소 높이
+    padding: 10, // 내부 패딩
+    color:"black",
+  },
+  titleInput: {
+    fontSize: 18, // 제목 폰트 크기
+    fontWeight: "bold", // 제목 폰트 굵기
+    color: "black", // 제목 폰트 색상
+    margin: 10, // 외부 여백
+    borderBottomWidth: 1, // 하단 테두리 추가
+    borderColor: "gray", // 테두리 색상
   },
   imageContainer: {
     flexDirection: "row",
@@ -141,20 +161,50 @@ const styles = StyleSheet.create({
     marginRight: 10,
   },
   image: {
-    width: 100,
-    height: 100,
+    width: 200,
+    height: 200,
   },
   deleteButton: {
     position: "absolute",
     right: 0,
     top: 0,
-    backgroundColor: "red",
     padding: 5,
-    borderRadius: 5,
+    borderRadius: 15,
   },
   deleteButtonText: {
     color: "white",
-    fontSize: 12,
+    fontSize: 25,
+  },
+  footer: {
+    flexDirection: "column", // 아이콘을 세로 방향으로 정렬
+    justifyContent: "flex-start", // 아이콘을 상단으로 정렬
+    alignItems: "flex-end", // 아이콘을 오른쪽으로 정렬
+    padding: 10, // 패딩 설정
+  },
+  cameraButton: {
+    alignItems: "center", // 아이콘을 버튼의 가운데로 정렬
+    padding: 10, // 패딩 설정
+  },
+  doneText: {
+    fontSize: 15,
+    color: "black",
+  },
+  doneButton: {
+    borderWidth: 1,
+    borderColor: "black",
+    padding: 5,
+    borderRadius: 15,
+    backgroundColor: "#FDE0E0",
+  },
+  header: {
+    flexDirection: "row",
+    justifyContent: "flex-end",
+    padding: 10,
+  },
+  inputContainer: {
+    borderColor: "gray",
+    padding: 10,
+    marginTop: 10,
   },
 });
 

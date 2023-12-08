@@ -13,7 +13,7 @@ const DateCourse = () => {
     };
 
     const fetchAIResponse = async (prompt) => {
-        const apiKey = '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';
+        const apiKey = '안녕';
         const apiEndpoint = 'https://api.openai.com/v1/chat/completions';
 
         const requestOptions = {
@@ -35,21 +35,29 @@ const DateCourse = () => {
                 presence_penalty: 0.5,
                 stop: ["Human"],
             }),
+
         };
 
         setIsLoading(true);
         try {
             const response = await fetch(apiEndpoint, requestOptions);
+            if (!response.ok) {
+                throw new Error(`API 호출 실패: ${response.status} ${response.statusText}`);
+            }
             const data = await response.json();
+            if (!data.choices || data.choices.length === 0 || !data.choices[0].message) {
+                throw new Error('응답에 적절한 데이터가 없습니다.');
+            }
             const aiResponse = data.choices[0].message.content;
             setIsLoading(false);
             return aiResponse;
         } catch (error) {
             console.error('OpenAI API 호출 중 오류 발생:', error);
             setIsLoading(false);
-            return 'OpenAI API 호출 중 오류 발생';
+            return `오류: ${error.message}`;
         }
     };
+
 
     const handleSend = async () => {
         if (inputMessage.length === 0) return;
@@ -58,6 +66,7 @@ const DateCourse = () => {
         addMessage('챗봇', aiResponse);
         setInputMessage('');
     };
+
 
     useEffect(() => {
         if (scrollViewRef.current) {
@@ -73,7 +82,9 @@ const DateCourse = () => {
                 onContentSizeChange={() => scrollViewRef.current.scrollToEnd({ animated: true })}
             >
                 {messages.map((msg, index) => (
-                    <Text key={index} style={styles.message}>
+                    <Text
+                        key={index}
+                        style={[styles.message, msg.sender === '챗봇' ? styles.chatbotMessage : null]}>
                         {msg.sender}: {msg.message}
                     </Text>
                 ))}
@@ -87,7 +98,9 @@ const DateCourse = () => {
                     onChangeText={setInputMessage}
                     onSubmitEditing={handleSend}
                 />
-                <Button title="전송" onPress={handleSend} />
+                <TouchableOpacity onPress={handleSend} style={styles.sendButton}>
+                    <Text style={styles.sendButtonText}>전송</Text>
+                </TouchableOpacity>
             </View>
         </View>
     );
@@ -97,6 +110,7 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         padding: 20,
+        backgroundColor: '#FFF9F9', // 흰색 배경 설정
     },
     messagesContainer: {
         flex: 1,
@@ -104,8 +118,10 @@ const styles = StyleSheet.create({
     message: {
         margin: 4,
         padding: 10,
-        backgroundColor: '#f0f0f0',
+        backgroundColor: '#FFFFFF',
         borderRadius: 5,
+        borderWidth: 1, // 테두리 두께 추가
+        borderColor: '#ccc', // 테두리 색상 추가
     },
     loading: {
         alignSelf: 'center',
@@ -122,6 +138,9 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         borderColor: '#ccc',
         borderRadius: 5,
+    },
+    chatbotMessage: {
+        backgroundColor: '#d1f7c4', // 연두색 배경
     },
 });
 
