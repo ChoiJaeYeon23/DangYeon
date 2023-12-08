@@ -33,6 +33,7 @@ const CalendarPage = () => {
   const [markedDates, setMarkedDates] = useState({}); // 각 날짜에 캔디 이미지를 표시
   const [candyCounts, setCandyCounts] = useState({}); // 월별 캔디 수 저장
   const [totalCandyCount, setTotalCandyCount] = useState(0); // 전체 캔디 수
+  const [currentMonth, setCurrentMonth] = useState(moment().format('YYYY-MM-DD')); // 현재 표시되는 달
 
   useEffect(() => {
     const loadAttendanceData = async () => {
@@ -83,16 +84,15 @@ const CalendarPage = () => {
 
     loadAttendanceData();
   }, []);
+  
+    // 달력의 월이 변경될 때 호출되는 함수
+    const onMonthChange = (month) => {
+      setCurrentMonth(month.dateString);
+    };
 
   // 달력에 년도 월 표시 부분
-  const CustomHeader = (month) => {
-    let headerDate;
-    if (moment(month).isValid()) {
-      headerDate = moment(month); // month가 유효한 날짜일 경우
-    } else {
-      console.error("Invalid date format:", month);
-      headerDate = moment(); // 현재 날짜를 기본값으로 사용
-    }
+  const CustomHeader = () => {
+    const headerDate = moment(currentMonth, 'YYYY-MM-DD');
     const yearMonthInKorean = headerDate.format('YYYY년 M월');
 
     return (
@@ -114,36 +114,37 @@ const CalendarPage = () => {
       }
     };
 
-  return (
-    <View style={styles.container}>
-      <View style={styles.shadowContainer}>
-        <Calendar
-          style={styles.calendarStyle}
-          renderHeader={(month) => CustomHeader(month)}
-          markedDates={markedDates}
-          markingType={'custom'}
-          dayComponent={CustomDay}
-          // 달력 스타일링 테마 설정
-          theme={{
-            'stylesheet.day.basic': {
-              base: {
-                width: 40,
-                height: 40,
-                alignItems: 'center',
-                justifyContent: 'center',
+    return (
+      <View style={styles.container}>
+        <View style={styles.shadowContainer}>
+          <Calendar
+            current={currentMonth}
+            onMonthChange={onMonthChange}
+            style={styles.calendarStyle}
+            renderHeader={CustomHeader}
+            markedDates={markedDates}
+            markingType={'custom'}
+            dayComponent={CustomDay}
+            theme={{
+              'stylesheet.day.basic': {
+                base: {
+                  width: 40,
+                  height: 40,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                },
+                text: {
+                  fontSize: 18,
+                  marginTop: 6,
+                },
               },
-              text: {
-                fontSize: 18,
-                marginTop: 6,
+              'stylesheet.calendar.header': {
+                dayHeader: {
+                  fontWeight: '600',
+                  color: '#6B6B6B',
+                },
               },
-            },
-            'stylesheet.calendar.header': {
-              dayHeader: {
-                fontWeight: '600',
-                color: '#6B6B6B',
-              },
-            },
-            arrowColor: 'pink',
+              arrowColor: 'pink',
           }}
         />
       </View>

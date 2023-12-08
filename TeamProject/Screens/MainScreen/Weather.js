@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, Image, TouchableOpacity } from 'react-native';
 import * as Location from 'expo-location';
 import axios from 'axios';
+import ApiKeys from '../../ApiKeys';
 
 const weatherIcons = {
     'Clear': require('../../assets/clear.png'),
@@ -51,7 +52,7 @@ const Weather = () => {
 
     useEffect(() => {
         if (currentLocation) {
-            const apiKey = '9edb951af86953242ae7a71e5c342ad2'; 
+            const apiKey = ApiKeys.WEATHER_API_KEY;
             const { latitude, longitude } = currentLocation;
 
             axios

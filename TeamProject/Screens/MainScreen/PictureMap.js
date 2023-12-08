@@ -4,6 +4,7 @@ import * as ImagePicker from 'expo-image-picker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AntDesign } from '@expo/vector-icons';
 import addimage from '../../assets/add_image.png'
+import ApiKeys from '../../ApiKeys';
 
 const PictureMap = () => {
   const [regionImages, setRegionImages] = useState({}); // 지역별 사진 URI를 저장하는 객체
@@ -160,7 +161,7 @@ const PictureMap = () => {
   // 역지오코딩(구글맵 지오코딩api 활용) 
   const getReverseGeocodingData = async (lat, lon) => {
 
-    const apiKey = 'AIzaSyAUoOgEdqAJjl2MbnqQiztR-8Et2_vFQMA';
+    const apiKey = ApiKeys.GEOCODING_API_KEY;
     const url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lon}&key=${apiKey}`;
 
     try {
