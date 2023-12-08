@@ -600,61 +600,6 @@ app.post("/api/userInfo_modify", upload.single("img"), (req, res) => {
   );
 });
 
-//  게시글 추가
-//  게시글 추가
-//  게시글 추가
-app.post("/api/add_post", upload.single("img"), (req, res) => {
-  const { title, content } = req.body;
-  console.log("Received body:", req.body);
-  const imgFile = req.file; // Multer에 의해 추가된 파일 정보
-  console.log("Received file:", imgFile);
-  // 파일이 정상적으로 업로드되었는지 확인
-  if (!imgFile) {
-    res.status(400).send("이미지가 업로드되지 않았습니다.");
-    return;
-  }
-
-  // 이미지 URL 생성 (클라이언트에서 접근 가능한 웹 URL)
-  const imageUrl = `http://3.34.6.50:8080/images/${imgFile.filename}`;
-
-  const userId = req.session.userId;
-  const checkId = req.session.checkId;
-
-  const now = new Date();
-  now.setHours(now.getHours() + 9); // 서버 시간대가 UTC를 사용한다고 가정할 때 KST로 조정합니다.
-  const postdate = now.toISOString().slice(0, 19).replace("T", " ");
-  console.log(
-    "여긴가봐요 : userId, checkId, postdate, title, content, imageUrl",
-    userId,
-    checkId,
-    postdate,
-    title,
-    content,
-    imageUrl
-  );
-  // 데이터베이스에 게시글 정보와 이미지 URL 저장
-  db.query(
-    "INSERT INTO postInfo (user_id, check_id, postdate, title, content, img) VALUES (?, ?, ?, ?, ?, ?)",
-    [userId, checkId, postdate, title, content, imageUrl],
-    (err, result) => {
-      if (err) {
-        res.status(500).send(err);
-        return;
-      }
-
-      res.json({
-        postId: result.insertId,
-        userId: userId,
-        checkId: checkId,
-        postdate: postdate,
-        title: title,
-        content: content,
-        img: imageUrl, // 클라이언트에서 접근 가능한 URL 전달
-      });
-    }
-  );
-});
-
 // 로그아웃 함수
 // 로그아웃 함수
 // 로그아웃 함수
@@ -913,6 +858,61 @@ app.post("/api/member_withdrawal", (req, res) => {
       }
     });
   });
+});
+
+//  게시글 추가
+//  게시글 추가
+//  게시글 추가
+app.post("/api/add_post", upload.single("img"), (req, res) => {
+  const { title, content } = req.body;
+  console.log("Received body:", req.body);
+  const imgFile = req.file; // Multer에 의해 추가된 파일 정보
+  console.log("Received file:", imgFile);
+  // 파일이 정상적으로 업로드되었는지 확인
+  if (!imgFile) {
+    res.status(400).send("이미지가 업로드되지 않았습니다.");
+    return;
+  }
+
+  // 이미지 URL 생성 (클라이언트에서 접근 가능한 웹 URL)
+  const imageUrl = `http://3.34.6.50:8080/images/${imgFile.filename}`;
+
+  const userId = req.session.userId;
+  const checkId = req.session.checkId;
+
+  const now = new Date();
+  now.setHours(now.getHours() + 9); // 서버 시간대가 UTC를 사용한다고 가정할 때 KST로 조정합니다.
+  const postdate = now.toISOString().slice(0, 19).replace("T", " ");
+  console.log(
+    "여긴가봐요 : userId, checkId, postdate, title, content, imageUrl",
+    userId,
+    checkId,
+    postdate,
+    title,
+    content,
+    imageUrl
+  );
+  // 데이터베이스에 게시글 정보와 이미지 URL 저장
+  db.query(
+    "INSERT INTO postInfo (user_id, check_id, postdate, title, content, img) VALUES (?, ?, ?, ?, ?, ?)",
+    [userId, checkId, postdate, title, content, imageUrl],
+    (err, result) => {
+      if (err) {
+        res.status(500).send(err);
+        return;
+      }
+
+      res.json({
+        postId: result.insertId,
+        userId: userId,
+        checkId: checkId,
+        postdate: postdate,
+        title: title,
+        content: content,
+        img: imageUrl, // 클라이언트에서 접근 가능한 URL 전달
+      });
+    }
+  );
 });
 
 // 게시글 목록 가져오기
