@@ -23,21 +23,11 @@ const UserInfo = ({ navigation }) => {
     const [meetingDay, setMeetingDay] = useState(""); //처음 만난 날
     const [bloodType, setBloodType] = useState(""); //혈액형
     const [isBirthdayPickerVisible, setIsBirthdayPickerVisible] = useState(false); //생년월일 picker
-    const [isMeetingDayPickerVisible, setIsMeetingDayPickerVisible] =
-        useState(false); //처음 만난 날 picker
+    const [isMeetingDayPickerVisible, setIsMeetingDayPickerVisible] = useState(false); //처음 만난 날 picker
     const [profilePic, setProfilePic] = useState(null); // 프로필 사진
     const [isBloodTypeModalVisible, setIsBloodTypeModalVisible] = useState(false); // 혈액형 모달
-    const [errorMessage, setErrorMessage] = useState(""); // 에러 메시지 상태
     const [user1_name, setuser1_name] = useState("");
     const [user2_name, setuser2_name] = useState("");
-
-    const validateInput = () => {
-        if (!name) return "이름을 입력해주세요.";
-        if (!birthday) return "생년월일을 입력해주세요.";
-        if (!meetingDay) return "처음 만난 날을 입력해주세요.";
-        if (!bloodType) return "혈액형을 선택해주세요.";
-        return "";
-    };
 
     // 서버로부터 유저 정보 가져옴
     const loaduserInfos = async () => {

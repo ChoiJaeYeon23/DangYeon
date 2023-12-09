@@ -11,8 +11,6 @@ import {
   Alert,
 } from "react-native";
 import { Calendar, LocaleConfig } from "react-native-calendars";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { id } from "date-fns/locale";
 
 LocaleConfig.locales["kr"] = {
   monthNames: [
@@ -83,7 +81,12 @@ const CalendarScreen = () => {
       const responseData = await response.text();
       if (response.ok) {
         console.log("Event saved:", responseData);
-        calendar_load(); // 일정 로드 함수를 호출하여 최신 상태로 업데이트
+        // 새로운 이벤트를 로컬 상태에 추가
+        const newEvent = { schedule_date: selectedDate, schedule_text: text };
+        const updatedEvents = events[selectedDate]
+          ? [...events[selectedDate], newEvent]
+          : [newEvent];
+        setEvents({ ...events, [selectedDate]: updatedEvents });
         Alert.alert("일정을 저장하였습니다.");
       } else {
         throw new Error(`Server error: ${responseData}`);
@@ -171,18 +174,13 @@ const CalendarScreen = () => {
     setEditingEventIndex(null); // 편집 인덱스 초기화
   };
 
-  const saveEvents = async (updatedEvents) => {
-    //이벤트 AsyncStorage에 저장
-    try {
-      await AsyncStorage.setItem("events", JSON.stringify(updatedEvents));
-    } catch (error) {
-      console.error("일정 저장 실패:", error);
-    }
-  };
-
   const handleAddEvent = async () => {
     if (text.trim()) {
-      const newEvent = { date: selectedDate, text: text.trim() };
+      const newEvent = {
+        schedule_date: selectedDate,
+        schedule_text: text.trim(),
+        schedule_id: new Date().getTime() // 임시 ID 할당
+      };
       // 서버에 저장
       await add_calendar(selectedDate, text.trim());
       // 상태 업데이트
@@ -226,7 +224,6 @@ const CalendarScreen = () => {
           }
         );
         setEvents(updatedEvents);
-        await saveEvents(updatedEvents);
       } else {
         throw new Error(`Server error: ${responseData}`);
       }
@@ -246,21 +243,6 @@ const CalendarScreen = () => {
       { text: "취소", style: "cancel" },
     ]);
   };
-
-  useEffect(() => {
-    const loadEvents = async () => {
-      try {
-        const storedEvents = await AsyncStorage.getItem("events");
-        if (storedEvents !== null) {
-          setEvents(JSON.parse(storedEvents));
-        }
-      } catch (error) {
-        console.error("일정 로드 실패:", error);
-      }
-    };
-
-    loadEvents();
-  }, []);
 
   // 일정 삭제하는 함수
   const deleteEvent = async (schedule_id) => {
@@ -294,9 +276,9 @@ const CalendarScreen = () => {
     const dailyEvents = events[selectedDate] || [];
     return dailyEvents.length > 0 ? (
       <ScrollView style={styles.eventsList}>
-        {dailyEvents.map((event) => (
+        {dailyEvents.map((event, index) => (
           <TouchableOpacity
-            key={event.schedule_id}
+            key={index}
             style={styles.eventListItem}
             onPress={() => handleEventPress(event)}
             onLongPress={() => confirmDeleteEvent(event.schedule_id)}
@@ -361,13 +343,13 @@ const CalendarScreen = () => {
                 style={[styles.modalButton, styles.editButton]}
                 onPress={handleEditEvent}
               >
-                <Text style={styles.modalButtonText}>수정</Text>
+                <Text style={styles.text}>수정</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.modalButton, styles.deleteButton]}
                 onPress={() => confirmDeleteEvent(editingEventIndex)}
               >
-                <Text style={styles.modalButtonText}>삭제</Text>
+                <Text style={styles.text}>삭제</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -388,6 +370,7 @@ const CalendarScreen = () => {
   return (
     <View style={styles.container}>
       <Calendar
+        key={Object.keys(events).length}
         style={styles.calendar}
         onDayPress={handleDayPress} // 날짜를 누를 때 실행될 함수
         locale="kr" // Locale 설정을 'kr'로 설정
@@ -492,6 +475,10 @@ const styles = StyleSheet.create({
     marginBottom: 15,
     textAlign: "center",
   },
+  text: {
+    textAlign: "center",
+    fontSize: 18,
+  },
   input: {
     fontSize: 18,
     textAlign: "center",
@@ -531,6 +518,15 @@ const styles = StyleSheet.create({
   editButtonText: {
     fontSize: 16,
     textAlign: "center",
+  },
+  modalButtonGroup: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+  },
+  modalButton: {
+    marginHorizontal: 7,
+    width: 40,
+    height: 30,
   },
 });
 
