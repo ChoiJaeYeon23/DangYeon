@@ -7,7 +7,7 @@ const DateCourse = () => {
     const [inputMessage, setInputMessage] = useState(''); // 사용자 입력 메시지
     const [messages, setMessages] = useState([]); // 대화 목록
     const [isLoading, setIsLoading] = useState(false); // 로딩 상태
-    const scrollViewRef = useRef(); // 스클롤 뷰
+    const scrollViewRef = useRef(); // 스크롤 뷰
 
     // 메시지 추가 함수
     const addMessage = (sender, message) => {
