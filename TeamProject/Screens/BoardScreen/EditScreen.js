@@ -8,6 +8,8 @@ import {
   ScrollView,
   Alert,
   TouchableOpacity,
+  Keyboard,
+  TouchableWithoutFeedback,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import Icon from "react-native-vector-icons/FontAwesome";
@@ -87,48 +89,60 @@ const EditScreen = ({ route, navigation }) => {
     }
   };
 
+  // 모달의 확인 버튼 클릭 시 호출되는 함수
+  const handleConfirmPress = () => {
+    setModalVisible(false); // 모달 닫기
+    Keyboard.dismiss(); // 키보드 숨기기
+  };
+
   return (
-    <ScrollView style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity style={styles.doneButton} onPress={editPost}>
-          <Text style={styles.doneText}>저장</Text>
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+      <ScrollView style={styles.container}>
+        <View style={styles.header}>
+          <TouchableOpacity style={styles.doneButton} onPress={editPost}>
+            <Text style={styles.doneText}>저장</Text>
+          </TouchableOpacity>
+        </View>
+        <TextInput
+          style={styles.titleInput}
+          value={title}
+          onChangeText={setTitle}
+          placeholder="제목"
+          blurOnSubmit={true}  // Close keyboard on pressing Enter
+          onSubmitEditing={Keyboard.dismiss} // Close keyboard on pressing Enter
+        />
+        <TouchableOpacity style={styles.inputContainer}>
+          <TextInput
+            style={styles.input}
+            value={content}
+            onChangeText={setContent}
+            placeholder="내용"
+            multiline
+            autoFocus
+            blurOnSubmit={true}  // Close keyboard on pressing Enter
+            onSubmitEditing={Keyboard.dismiss} // Close keyboard on pressing Enter
+          />
         </TouchableOpacity>
-      </View>
-      <TextInput
-        style={styles.titleInput}
-        value={title}
-        onChangeText={setTitle}
-        placeholder="제목"
-      />
-      <TouchableOpacity style={styles.inputContainer}>
-      <TextInput
-        style={styles.input}
-        value={content}
-        onChangeText={setContent}
-        placeholder="내용"
-        multiline
-        autoFocus
-      />
-      </TouchableOpacity>
-      <View style={styles.imageContainer}>
-        {images.map((uri, index) => (
-          <View key={index} style={styles.imageWrapper}>
-            <Image source={{ uri }} style={styles.image} />
-            <TouchableOpacity
-              onPress={() => removeImage(index)}
-              style={styles.deleteButton}
-            >
-              <Text style={styles.deleteButtonText}>✖</Text>
-            </TouchableOpacity>
-          </View>
-        ))}
-      </View>
-      <View style={styles.footer}>
-        <TouchableOpacity style={styles.cameraButton} onPress={pickImage}>
-          <Icon name="camera" size={30} color="#808080" />
-        </TouchableOpacity>
-      </View>
-    </ScrollView>
+        <View style={styles.imageContainer}>
+          {images.map((uri, index) => (
+            <View key={index} style={styles.imageWrapper}>
+              <Image source={{ uri }} style={styles.image} />
+              <TouchableOpacity
+                onPress={() => removeImage(index)}
+                style={styles.deleteButton}
+              >
+                <Text style={styles.deleteButtonText}>✖</Text>
+              </TouchableOpacity>
+            </View>
+          ))}
+        </View>
+        <View style={styles.footer}>
+          <TouchableOpacity style={styles.cameraButton} onPress={pickImage}>
+            <Icon name="camera" size={30} color="#808080" />
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
+    </TouchableWithoutFeedback>
   );
 };
 
@@ -141,7 +155,7 @@ const styles = StyleSheet.create({
     width: "100%", // 입력 박스 너비
     minHeight: 200, // 입력 박스 최소 높이
     padding: 10, // 내부 패딩
-    color:"black",
+    color: "black",
   },
   titleInput: {
     fontSize: 18, // 제목 폰트 크기
