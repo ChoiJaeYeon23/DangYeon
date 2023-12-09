@@ -86,6 +86,7 @@ CREATE TABLE candy(
     check_id INT PRIMARY KEY,
     candy INTEGER,
     month_candy INT,
+    candy_date DATE,
     FOREIGN KEY (check_id) REFERENCES couple_connection_check_for_s(check_id) ON DELETE CASCADE
 );
 
