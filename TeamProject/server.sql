@@ -10,6 +10,7 @@ CREATE TABLE userInfo(
     birthday    DATE,
     meetingDay  DATE,
     blood_type  VARCHAR(5),
+    gender      VARCHAR(10),
     user_image  TEXT
 );
 

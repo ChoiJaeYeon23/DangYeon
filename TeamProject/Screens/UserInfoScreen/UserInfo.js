@@ -63,11 +63,20 @@ const UserInfo = ({ navigation }) => {
     } catch (error) {
       console.error("Error fetching meeting day:", error);
     }
-  };
+  }
 
+  
   useEffect(() => {
     loaduserInfos();
+    loadusernames();
+  }, [saveProfileData]);
+
+
+  useEffect(() => {
+    loadusernames();
+    loaduserInfos();
   }, []);
+
 
   // 서버로부터 사용자 이름들 가져오는 코드
   const loadusernames = async () => {
@@ -92,51 +101,52 @@ const UserInfo = ({ navigation }) => {
     }
   };
 
-  useEffect(() => {
-    loadusernames();
-  }, []);
+   
+
 
   // 저장누르면 사용자 개인 프로필 수정하는 함수
-  const saveProfileData = () => {
-    const error = validateInput();
-    if (error) {
-      setErrorMessage(error);
-      return; // 에러가 있으면 여기서 함수 종료
-    }
-
-    let formData = new FormData(); // 이미지를 저장시키기위해 FormData 사용
-    if (profilePic) {
-      const fileName = profilePic.uri.split("/").pop();
-      const match = /\.(\w+)$/.exec(fileName);
-      const type = match ? `image/${match[1]}` : `image`;
-      formData.append("img", { uri: profilePic.uri, name: fileName, type });
-    }
-    // 기타 사용자 데이터 추가
-    formData.append("username", name);
-    formData.append("birthday", birthday);
-    formData.append("meetingDay", meetingDay);
-    formData.append("bloodType", bloodType);
-
-    fetch("http://3.34.6.50:8080/api/userInfo_modify", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: formData,
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        console.log("Server response:", data); // 서버의 응답 로그 남기기
-        alert("프로필 수정 완료");
+  const saveProfileData = async (assets) => {
+    for (const asset of assets) {
+      const formData = new FormData()
+      FormData.append("img", {
+        uri: asset.uri,
+        name: `upload-${Date.now()}.jpg`,
+        type: "image/jpeg",
       })
-      .catch((error) => {
-        alert("뭔가 에러가 있음" + error.message);
-      });
+      
+      if (asset) {
+
+        // 기타 사용자 데이터 추가
+        formData.append("username", name);
+        formData.append("birthday", birthday);
+        formData.append("meetingDay", meetingDay);
+        formData.append("bloodType", bloodType);
+
+        console.log("수정된 프로필 : ",formData)
+        try {
+          const response = await fetch("http://3.34.6.50:8080/api/userInfo_modify", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: formData,
+          })
+          
+
+          if (!response.ok) {
+            throw new Error("Server response not OK");
+          }
+          const data = await response.json();
+          console.log("사용자 정보가 업데이트 되었습니다:", data)
+          alert("프로필 수정 완료");
+
+        } catch (error) {
+          console.log("사용자 정보를 업데이트 하는 중 에러가 발생했습니다:", error)
+        }
+      }
+    }
   };
 
-  useEffect(() => {
-    saveProfileData();
-  }, []);
 
   //회원탈퇴 클라이언트 요청 코드
   const member_withdrawal = () => {
@@ -144,7 +154,7 @@ const UserInfo = ({ navigation }) => {
       "회원 탈퇴",
       "회원을 탈퇴할 경우 모든 데이터가 삭제됩니다. 계속 하시겠습니까?",
       [
-        { text: "취소", onPress: () => {}, style: "cancel" },
+        { text: "취소", onPress: () => { }, style: "cancel" },
         { text: "탈퇴", onPress: () => memberDelete() }, //memberDelete :  사용자가 "탈퇴" 버튼을 눌렀을 때 호출되는 이벤트 핸들러
       ],
       { cancelable: false }
@@ -207,8 +217,7 @@ const UserInfo = ({ navigation }) => {
 
   // 사진 선택하는 함수
   const pickImage = async () => {
-    const permissionResult =
-      await ImagePicker.requestMediaLibraryPermissionsAsync();
+    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!permissionResult.granted) {
       Alert.alert("권한 필요", "갤러리에 접근하기 위한 권한이 필요합니다.");
       return;
@@ -219,7 +228,7 @@ const UserInfo = ({ navigation }) => {
     });
 
     if (!result.canceled && result.assets) {
-      setProfilePic({ uri: result.assets[0].uri }); // 선택한 새 이미지로 profilePic 상태 업데이트
+      await saveProfileData(result.assets)
     } else {
       setProfilePic(null); // 이미지 선택을 취소한 경우, profilePic 상태를 null로 설정하여 기존 이미지 제거
     }
@@ -404,7 +413,10 @@ const UserInfo = ({ navigation }) => {
           </View>
           <Separator />
           <View style={styles.saveButtonContainer}>
-            <TouchableOpacity style={styles.Button} onPress={saveProfileData}>
+            <TouchableOpacity style={styles.Button} onPress={async()=>{
+              console.log('123123')
+              await saveProfileData()
+            }}>
               <Text style={styles.ButtonText}>저장</Text>
             </TouchableOpacity>
             <View style={styles.buttonContainer}>

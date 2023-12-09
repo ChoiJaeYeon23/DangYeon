@@ -233,9 +233,7 @@ const PictureMap = () => {
     );
   };
 
-  useEffect(() => {
-    // selectedImage 상태가 변경될 때마다 실행되는 로직
-  }, [selectedImage]);
+
 
   // 각 도에 저장된 이미지 클릭시 해당 도에 저장된 사진 및 해당주소 모달화면 보여주기
   const onRegionPress = (region) => {
