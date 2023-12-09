@@ -6,7 +6,7 @@ import {
   TouchableOpacity,
   StyleSheet,
   Image,
-  KeyboardAvoidingView
+  KeyboardAvoidingView,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 
@@ -25,7 +25,7 @@ const Login = () => {
       id: id,
       pw: pw,
     };
-  
+
     fetch("http://3.34.6.50:8080/api/login", {
       method: "POST",
       headers: {
@@ -54,11 +54,10 @@ const Login = () => {
         }
       })
       .catch((error) => {
-        console.error("로그인 과정에서 오류 발생:", error); // 오류 로깅
-        alert("로그인 실패: " + error.message);
+        alert("아이디 또는 비밀번호가 올바르지 않습니다. ");
       });
   };
-  
+
   const navigateToSignUp = () => {
     navigation.navigate("SignUp");
   };
@@ -100,17 +99,17 @@ const Login = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     padding: 10,
-    backgroundColor: '#FFF9F9',
+    backgroundColor: "#FFF9F9",
   },
   titleText: {
-    textAlign: 'center',
+    textAlign: "center",
     marginBottom: 5,
-    color: '#544848',
+    color: "#544848",
     fontSize: 24,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   image: {
     width: 150,
@@ -119,30 +118,30 @@ const styles = StyleSheet.create({
     marginBottom: 30,
   },
   input: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    width: '75%',
+    alignItems: "center",
+    justifyContent: "center",
+    width: "75%",
     height: 45,
     borderWidth: 1,
-    borderColor: 'black',
+    borderColor: "black",
     borderRadius: 7,
     marginBottom: 10,
     paddingHorizontal: 10,
-    backgroundColor: 'white',
+    backgroundColor: "white",
   },
   button: {
-    width: '75%',
+    width: "75%",
     height: 45,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     borderRadius: 10,
-    backgroundColor: '#FFCECE',
+    backgroundColor: "#FFCECE",
     borderWidth: 1,
     marginTop: 10,
   },
   buttonText: {
-    color: '#544848',
-    fontWeight: 'bold',
+    color: "#544848",
+    fontWeight: "bold",
     fontSize: 18,
   },
 });
