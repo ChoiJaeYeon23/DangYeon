@@ -172,11 +172,10 @@ const PictureMap = () => {
         throw new Error("Server response not OK");
       }
       const data = await response.json();
-  
       // 지역별로 이미지 그룹화
       const groupedImages = {};
       const initialSelectedImage = {};
-  
+
       data.forEach(image => {
         const region = image.image_region || '기타';
         if (!groupedImages[region]) {
@@ -185,18 +184,18 @@ const PictureMap = () => {
         }
         groupedImages[region].push({ uri: image.image_uri, address: image.image_address, id: image.image_id });
       });
-  
+
       setRegionImages(groupedImages);
       setSelectedImage(initialSelectedImage); // 초기 선택된 이미지 설정
     } catch (error) {
       console.error("Error fetching images:", error);
     }
   };
-  
+
   useEffect(() => {
     fetchImages();
   }, []);
-  
+
 
   // 8도(+제주도)반환 결과 및 사진 uri를 8도이미지 위 해당하는 도에 이미지형태(배열)로 저장
   const renderImageOnMap = (region) => {
@@ -224,7 +223,11 @@ const PictureMap = () => {
     };
 
     // 선택된 이미지 또는 첫 번째 이미지를 기본적으로 표시
-    const imageUri = selectedImage[region] || uris[0];
+    let imageUri = selectedImage[region];
+    if (!imageUri && uris[0]) {
+      imageUri = uris[0].uri; // 'uri' 속성을 직접 참조
+    }
+
 
     return (
       <TouchableWithoutFeedback key={region} onPress={() => onRegionPress(region)}>
@@ -299,7 +302,10 @@ const PictureMap = () => {
 
   return (
     <View style={styles.container}>
-      <TouchableOpacity onPress={pickImage}>
+      <TouchableOpacity onPress={async () => {
+        await pickImage()
+        await fetchImages()
+      }}>
         <Image source={addimage} style={styles.addImage} />
       </TouchableOpacity>
       <View style={styles.mapContainer}>

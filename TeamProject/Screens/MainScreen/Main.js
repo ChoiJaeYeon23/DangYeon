@@ -4,6 +4,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import moment from 'moment';
 import PictureMap from './PictureMap';
 import Weather from './Weather';
+import { useFocusEffect } from "@react-navigation/native";
 
 const whiteCandyImage = require('../../assets/Bincandy.png');
 const brownCandyImage = require('../../assets/candy.png');
@@ -138,6 +139,12 @@ const Main = ({ navigation }) => {
     loadusernames()
   }, []);
 
+  useFocusEffect(
+    React.useCallback(() => {
+      loadusernames();
+      loadmeetingday();
+    }, [])
+  );
   const calculateDaysSinceMeeting = (meetingDay) => { // 처음 만난 날 계산
     const today = moment();
     const startDay = moment(meetingDay);

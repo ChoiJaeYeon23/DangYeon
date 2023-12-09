@@ -303,7 +303,7 @@ const UserInfo = ({ navigation }) => {
                         <TouchableOpacity style={styles.iconContainer} onPress={pickImage}>
                             {profilePic ? (
                                 <Image
-                                    source={{ uri: profilePic.uri }}
+                                    source={profilePic}
                                     style={{ width: 50, height: 50, borderRadius: 25 }}
                                 />
                             ) : (
