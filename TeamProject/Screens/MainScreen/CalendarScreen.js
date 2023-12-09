@@ -65,6 +65,7 @@ const CalendarScreen = () => {
   const [showEditEventModal, setShowEditEventModal] = useState(false);
   const [editingEventIndex, setEditingEventIndex] = useState(null);
 
+  // 서버에 일정을 저장하게 요청하는 함수
   const add_calendar = async (selectedDate, text) => {
     console.log(`Saving event for date: ${selectedDate}, text: ${text}`);
     try {
@@ -82,7 +83,7 @@ const CalendarScreen = () => {
       const responseData = await response.text();
       if (response.ok) {
         console.log("Event saved:", responseData);
-        calendar_load();
+        calendar_load(); // 일정 로드 함수를 호출하여 최신 상태로 업데이트
         Alert.alert("일정을 저장하였습니다.");
       } else {
         throw new Error(`Server error: ${responseData}`);
@@ -179,24 +180,19 @@ const CalendarScreen = () => {
     }
   };
 
-  const handleAddEvent = () => {
+  const handleAddEvent = async () => {
     if (text.trim()) {
-      const updatedEvents = {
-        ...events,
-        [selectedDate]: [...(events[selectedDate] || []), text.trim()],
-      };
-      setEvents(updatedEvents);
-      saveEvents(updatedEvents); // 변경된 내용 저장
-      add_calendar(selectedDate, text.trim()); // 서버에 이벤트 저장
-    } else {
-      // 이벤트가 입력되지 않은 경우, 해당 날짜의 마커를 제거합니다.
-      const updatedEvents = { ...events };
-      delete updatedEvents[selectedDate];
-      setEvents(updatedEvents);
+      const newEvent = { date: selectedDate, text: text.trim() };
+      // 서버에 저장
+      await add_calendar(selectedDate, text.trim());
+      // 상태 업데이트
+      const updatedEvents = events[selectedDate]
+        ? [...events[selectedDate], newEvent]
+        : [newEvent];
+      setEvents({ ...events, [selectedDate]: updatedEvents });
     }
-    setShowAddEventModal(false);
+    closeModal();
   };
-
   // 선택한 일정 수정하는 함수
   const handleEditEvent = async () => {
     if (!text.trim()) {
@@ -241,9 +237,12 @@ const CalendarScreen = () => {
     closeModal();
   };
 
-  const confirmDeleteEvent = (index) => {
+  const confirmDeleteEvent = (schedule_id) => {
     Alert.alert("일정 삭제", "이 일정을 삭제하시겠습니까?", [
-      { text: "삭제", onPress: () => deleteEvent(index) },
+      {
+        text: "삭제",
+        onPress: () => deleteEvent(schedule_id), //schedule_id를 사용하여 해당 일정 삭제
+      },
       { text: "취소", style: "cancel" },
     ]);
   };
@@ -263,25 +262,32 @@ const CalendarScreen = () => {
     loadEvents();
   }, []);
 
-  // 게시글 삭제하는 함수
+  // 일정 삭제하는 함수
   const deleteEvent = async (schedule_id) => {
     try {
       const response = await fetch(
         `http://3.34.6.50:8080/api/del_calendar/${schedule_id}`,
         {
           method: "DELETE",
-          credentials: "include", // 쿠키/인증 정보를 포함하는 경우
         }
       );
       if (!response.ok) {
         throw new Error("Failed to delete the event");
       }
       console.log("Event deleted successfully");
+      calendar_load();
       closeModal();
+
       Alert.alert("삭제를 완료하였습니다.");
     } catch (error) {
       console.error("Error deleting event:", error);
     }
+  };
+
+  const handleEventPress = (event) => {
+    setText(event.schedule_text);
+    setEditingEventIndex(event.schedule_id); // 이벤트의 ID 또는 고유 식별자를 저장
+    setShowEditEventModal(true); // 이벤트 수정 모달을 표시
   };
 
   const renderEvents = () => {
