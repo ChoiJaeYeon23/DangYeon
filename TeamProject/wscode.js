@@ -10,7 +10,7 @@ const MySQLStore = require("express-mysql-session")(session);
 const multer = require("multer");
 const path = require("path");
 
-// 파일 필터링 함수
+// 파일 필터링 함수 
 const fileFilter = (req, file, cb) => {
   if (file.mimetype === "image/jpeg" || file.mimetype === "image/png") {
     cb(null, true); // 이미지가 jpeg나 png인 경우 파일 저장을 허용
